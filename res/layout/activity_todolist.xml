@@ -15,7 +15,7 @@
  
     </EditText>
 
-    <ListView
+    <com.kiddobloom.bucketlist.SelectListView
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,10 +23,8 @@
         android:layout_alignParentTop="true"
         android:layout_marginLeft="0dp"
         android:layout_marginTop="10dp"
-        android:choiceMode="singleChoice"
-        android:drawSelectorOnTop="false"
-        android:listSelector="@drawable/list_item_selector" >
+        android:drawSelectorOnTop="false" >
 
-    </ListView>
+    </com.kiddobloom.bucketlist.SelectListView>
 
 </LinearLayout>

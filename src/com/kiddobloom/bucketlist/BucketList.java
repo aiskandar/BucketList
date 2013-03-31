@@ -3,20 +3,24 @@ package com.kiddobloom.bucketlist;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import android.annotation.TargetApi;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -29,8 +33,10 @@ import com.actionbarsherlock.view.ActionMode.Callback;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class BucketList extends SherlockFragmentActivity implements LoaderCallbacks<Cursor>, OnItemClickListener {
 
+	private static final String SHARED_PREF_NAME = "BUCKET_LIST_PREF";
 	private static final String TEXT_ENTRY_KEY = "TEXT_ENTRY_KEY";
 	private static final String ADDING_ITEM_KEY = "ADDING_ITEM_KEY";
 	private static final String SELECTED_INDEX_KEY = "SELECTED_INDEX_KEY";
@@ -41,6 +47,9 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 	ActionMode mMode;
 	LoaderManager lm;
 	static boolean updateInstead = false;
+	static Uri lastUri;
+	int selectedPos = -1;
+	int selectedId = -1;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +58,7 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 		setContentView(R.layout.activity_todolist);
 		Log.d("tag", "main is created");
 		
-		String from[] = {"task", "date"};
+		String from[] = {MyContentProvider.COLUMN_TASK, MyContentProvider.COLUMN_DATE};
 		int to[] = {R.id.textView1, R.id.textView2};
 		
 		//la = new ArrayAdapter<TodolistActivity.TodoItem>(this, R.layout.list_image_text, R.id.textView1, todoList);
@@ -58,8 +67,7 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 		
 		lv.setOnItemClickListener(this);
 				
-		SharedPreferences x = getSharedPreferences("todolist", 0);
-		String y = x.getString(TEXT_ENTRY_KEY, "none");
+		SharedPreferences x = getSharedPreferences(SHARED_PREF_NAME, 0);
 		
 		//registerForContextMenu(findViewById(android.R.id.list));
 		lm = getSupportLoaderManager();
@@ -74,30 +82,37 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 		et.setOnEditorActionListener(new OnEditorActionListener() {
 			
 			@Override
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-				Log.d("tag", "editText event id: " + actionId + " view: " + v.getText().toString());
+			public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
+				Log.d("tag", "editText event: " + event + " actionID: " + actionId + " view: " + tv.getText().toString());
 
-				String x = v.getText().toString();
-				v.setText("");		
-				
-				ContentValues cv = new ContentValues();
-				SimpleDateFormat sdf = new SimpleDateFormat("MMM dd");
-				Date date = new Date();
-				
-				Log.d("tag", "date : " + sdf.format(date));
-						
-				cv.put(MyContentProvider.COLUMN_TASK, x);
-				cv.put(MyContentProvider.COLUMN_DATE, sdf.format(date));
-						
-				getContentResolver().insert(MyContentProvider.CONTENT_URI, cv);
+				// when Enter key is pressed on soft keyboard - the code below only catch the key up event
+				if (event.getAction() == KeyEvent.ACTION_UP && event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+					
+					String x = tv.getText().toString();
+					tv.setText("");		
+					
+					ContentValues cv = new ContentValues();
+					SimpleDateFormat sdf = new SimpleDateFormat("MMM dd");
+					Date date = new Date();
+					
+					Log.d("tag", "date : " + sdf.format(date));
+							
+					cv.put(MyContentProvider.COLUMN_TASK, x);
+					cv.put(MyContentProvider.COLUMN_DATE, sdf.format(date));
+							
+					if (updateInstead == false) {
+						getContentResolver().insert(MyContentProvider.CONTENT_URI, cv);
+					} else {
+						getContentResolver().update(lastUri, cv, null, null);
+						signalUpdate(false, null);
+					}
+				}
 				
 				return true;
 			}
 		});
 		
 	}
-
-
 
 //	@Override
 //	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
@@ -113,8 +128,6 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 //		
 //	}
 	
-
-
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
@@ -174,7 +187,6 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 //		//l.setItemChecked(position, true);
 //
 //	}
-	
 
 //	@Override
 //	public boolean onCreateOptionsMenu(Menu menu) {
@@ -207,13 +219,54 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 //	}
 
 
+	
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		
-		Log.d("tag", "list item clicked with position:" + position + " and id: " + id);	
-		//Callback callback = new AnActionModeofEpicProportions(id, this);
+		Log.d("tag", "list item clicked with view:" + view + " position:" + position + " and id: " + id);
+		
+		selectedPos = position;
+		
+//		Log.d("tag", "first visible position: " + lv.getFirstVisiblePosition());
+//		Log.d("tag", "last visible position: " + lv.getLastVisiblePosition());
+		
+		//Log.d("tag", "checked item count: " + lv.getCheckedItemCount());
+		SparseBooleanArray sba = lv.getCheckedItemPositions();
+		long[] itemids = lv.getCheckedItemIds(); 
+		
+		Log.d("tag", "get checked items size: " + sba.size());
+		
+		for (int i = 0; i < 10 ; i++) {
+			if (sba.get(i) == true) {
+				Log.d("tag", "checked item: " + i);
+			}
+		}
+		
+		Log.d("tag", "get checked item Ids size: " + itemids.length);
+		
+		for (int i = 0 ; i < itemids.length ; i++) {
+			Log.d("tag", "checked item id: " + itemids[i]);
+		}
+		
+//		Log.d("tag", "get child count: " + lv.getChildCount());
+//		
+//		for (int i=0 ; i < lv.getChildCount() ; i++) {
+//			View v = lv.getChildAt(i);
+//			
+//			Log.d("tag", "get child at index " + i + " : " + v);
+//		
+//			CheckBox cr = (CheckBox) v.findViewById(R.id.ctv1);
+//			
+//		}
+
+//		if (!r.isChecked()) {
+//			//Callback callback = new AnActionModeofEpicProportions(id, this);
+//			r.setChecked(true);
+//		} else {
+		
 		Callback callback = new AnActionModeofEpicProportions(id);
-		mMode = startActionMode(callback);	
+		mMode = startActionMode(callback);
+//		}
 	}
 	
 	@Override
@@ -232,8 +285,8 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 		myCursor = cursor;
 		la.swapCursor(cursor);
 		
-		int position = lv.getCheckedItemPosition();
-		lv.setItemChecked(position, false);
+		//int position = lv.getCheckedItemPosition();
+		//lv.setItemChecked(position, false);
 
 	}
 
@@ -244,7 +297,13 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 		Log.d("tag", "loader manager : onloaderreset");
 		la.swapCursor(null);
 	}
-	
+
+	public void signalUpdate(boolean b, Uri url) {
+		// TODO Auto-generated method stub
+		updateInstead = b;
+		lastUri = url;
+	}
+
 	public class AnActionModeofEpicProportions implements ActionMode.Callback {
 
 		long _id = -1; 
@@ -284,6 +343,8 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 	    	long id[] = lv.getCheckedItemIds();
 	    	
 			Uri url = Uri.withAppendedPath(base, Integer.toString((int)id[0]));
+			
+			Log.d("tag", "uri: " + url);
 			        
 	        if (item.toString().equals("Delete")) {
 	        	Log.d("tag", "actionmode delete");		
@@ -293,24 +354,14 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 	        	EditText et = (EditText)findViewById(R.id.editText1);
 	        	LinearLayout tv = (LinearLayout) lv.getChildAt(position);
 	        	
-	        	if (lv != null) {
+	        	if (tv != null) {
 	        		TextView view = (TextView) tv.findViewById(R.id.textView1);
 	        		
 		        	if (view != null) {
 		        		et.setText(view.getText().toString());
 		        	}
-
-//		    		ContentValues cv = new ContentValues();
-//		    		
-//		    		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-//		    		Date date = new Date();
-//		    		
-//		    		Log.d("tag", "date : " + sdf.format(date));
-//		    				
-//		    		cv.put(MyContentProvider.COLUMN_TASK, et.getText().toString());
-//		    		cv.put(MyContentProvider.COLUMN_DATE, sdf.format(date));		        	
-//		        	
-//		        	getContentResolver().update(url, cv, null, null);
+		        	
+		        	signalUpdate(true, url);
 	        	}
         }
 	        
@@ -329,5 +380,4 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 
 	}
 
-	
 }
