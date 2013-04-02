@@ -28,15 +28,16 @@ public class SelectListView extends ListView {
 		// TODO Auto-generated method stub
 		Log.d("tag", "perform item click position: " + position);
 		
-		boolean test = false;
+		boolean checked = false;
 		
 		if (isItemChecked(position)) {
-			test = true; //setItemChecked(position, false);
+			checked = true; 
 		}
 		
 		super.performItemClick(view, position, id);
 		
-		if (test == true) {
+		// allow the user to toggle the checkbox
+		if (checked == true) {
 			setItemChecked(position, false);
 		}
 		
@@ -47,7 +48,7 @@ public class SelectListView extends ListView {
 	@Override
 	public void setItemChecked(int position, boolean value) {
 		// TODO Auto-generated method stub
-		Log.d("tag", "set item checked : " + position);
+		//Log.d("tag", "set item checked : " + position);
 		super.setItemChecked(position, value);
 	}
 
@@ -62,7 +63,7 @@ public class SelectListView extends ListView {
 	public boolean onTouchEvent(MotionEvent ev) {
 		// TODO Auto-generated method stub
 		
-		Log.d("tag", "on touch event: " + ev);
+		//Log.d("tag", "on touch event: " + ev);
 		return super.onTouchEvent(ev);
 	}
 }

@@ -1,5 +1,7 @@
 package com.kiddobloom.bucketlist;
 
+import java.util.List;
+
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
@@ -70,12 +72,20 @@ public class MyContentProvider extends ContentProvider {
 	@Override
 	public int delete(Uri uri, String selection, String[] selectionArgs) {
 		
-		String rowId= uri.getLastPathSegment();
+		//String rowId= uri.getLastPathSegment();
+		List<String> ls = null;
+		
+		ls = uri.getPathSegments();
 		
 		Log.d("tag", "delete Uri " + uri);
-		bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + rowId, null);
+		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
+		
+		for (int i = 1 ; i < ls.size() ; i++) {
+			Log.d("tag", "rowID to delete: " + ls.get(i).toString());
+			bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
+		}
 		getContext().getContentResolver().notifyChange(uri, null);		
-		return Integer.parseInt(rowId);
+		return 1;
 	}
 
 	@Override

@@ -53,7 +53,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 		// TODO Auto-generated method stub
 		// super.bindView(arg0, arg1, arg2);
 		//Log.d("tag", "bindview: " + v + " cursor: " + c.getPosition());
-		Log.d("tag", "bindview - cursor: " + c.getPosition());
+		//Log.d("tag", "bindview - cursor: " + c.getPosition());
 		
 		TextView tv = (TextView) v.findViewById(R.id.textView1);
 		tv.setText(c.getString(1));

@@ -33,7 +33,6 @@ import com.actionbarsherlock.view.ActionMode.Callback;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
-@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class BucketList extends SherlockFragmentActivity implements LoaderCallbacks<Cursor>, OnItemClickListener {
 
 	private static final String SHARED_PREF_NAME = "BUCKET_LIST_PREF";
@@ -232,41 +231,45 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 		
 		//Log.d("tag", "checked item count: " + lv.getCheckedItemCount());
 		SparseBooleanArray sba = lv.getCheckedItemPositions();
-		long[] itemids = lv.getCheckedItemIds(); 
+
 		
-		Log.d("tag", "get checked items size: " + sba.size());
+		//Log.d("tag", "get checked items size: " + sba.size());
+		int count = 0;
 		
 		for (int i = 0; i < 10 ; i++) {
 			if (sba.get(i) == true) {
-				Log.d("tag", "checked item: " + i);
+				Log.d("tag", "checked item positon: " + i);
+				count++;
 			}
 		}
 		
-		Log.d("tag", "get checked item Ids size: " + itemids.length);
+		if (count == 0) {
+			/* no items are checked.  let's disable CAB in case the CAB are already initialized */
+			if (mMode != null) {
+				mMode.finish();
+				return;
+			}
+		}
+
+		if (count > 1) {
+				// re-init actionMode with delete mode only			
+		}
+		
+		long[] itemids = lv.getCheckedItemIds(); 
+		
+		Log.d("tag", "number of checked item Ids: " + itemids.length);
 		
 		for (int i = 0 ; i < itemids.length ; i++) {
 			Log.d("tag", "checked item id: " + itemids[i]);
 		}
 		
-//		Log.d("tag", "get child count: " + lv.getChildCount());
-//		
-//		for (int i=0 ; i < lv.getChildCount() ; i++) {
-//			View v = lv.getChildAt(i);
-//			
-//			Log.d("tag", "get child at index " + i + " : " + v);
-//		
-//			CheckBox cr = (CheckBox) v.findViewById(R.id.ctv1);
-//			
-//		}
-
-//		if (!r.isChecked()) {
-//			//Callback callback = new AnActionModeofEpicProportions(id, this);
-//			r.setChecked(true);
-//		} else {
+		if (mMode != null) {
+			return;
+		}
 		
-		Callback callback = new AnActionModeofEpicProportions(id);
+		Callback callback = new AnActionModeofEpicProportions();		
 		mMode = startActionMode(callback);
-//		}
+
 	}
 	
 	@Override
@@ -283,11 +286,21 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 		Log.d("tag", "loader manager : onloadfinished cursor= " + cursor);
 		//save the cursor
 		myCursor = cursor;
-		la.swapCursor(cursor);
+
 		
+		SparseBooleanArray sba = lv.getCheckedItemPositions();
+
+		for (int i = 0; i < 10 ; i++) {
+			if (sba.get(i) == true) {
+				Log.d("tag", "checked item position: " + i);
+				lv.setItemChecked(i, false);
+			}
+		}
+
+		la.swapCursor(cursor);
 		//int position = lv.getCheckedItemPosition();
 		//lv.setItemChecked(position, false);
-
+		//la.notifyDataSetChanged();
 	}
 
 
@@ -305,12 +318,9 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 	}
 
 	public class AnActionModeofEpicProportions implements ActionMode.Callback {
-
-		long _id = -1; 
 		
-		public AnActionModeofEpicProportions(long id) {		
-			Log.d("tag", "new actionmode bar requested for id: " + id);		
-			_id = id;
+		public AnActionModeofEpicProportions() {		
+			Log.d("tag", "new actionmode bar");	
 		}
 
 		@Override
@@ -340,15 +350,22 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 			// TODO Auto-generated method stub
 			Uri base = MyContentProvider.CONTENT_URI;
 			int position = lv.getCheckedItemPosition();
-	    	long id[] = lv.getCheckedItemIds();
-	    	
-			Uri url = Uri.withAppendedPath(base, Integer.toString((int)id[0]));
+			long[] itemids = lv.getCheckedItemIds(); 
 			
-			Log.d("tag", "uri: " + url);
+			Log.d("tag", "number of checked item Ids: " + itemids.length);
+			
+			for (int i = 0 ; i < itemids.length ; i++) {
+				Log.d("tag", "checked item id: " + itemids[i]);
+				base = Uri.withAppendedPath(base, Integer.toString((int)itemids[i]));
+			}
+			
+			Log.d("tag", "uri: " + base);
 			        
 	        if (item.toString().equals("Delete")) {
 	        	Log.d("tag", "actionmode delete");		
-	        	position = getContentResolver().delete(url, null, null);
+	        	getContentResolver().delete(base, null, null);
+	        	
+	        //	lv.setItemChecked(position, value)
 	        	
 	        } else if (item.toString().equals("Edit")) {
 	        	EditText et = (EditText)findViewById(R.id.editText1);
@@ -361,11 +378,12 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 		        		et.setText(view.getText().toString());
 		        	}
 		        	
-		        	signalUpdate(true, url);
+		        	signalUpdate(true, base);
 	        	}
-        }
+	        }
+
 	        
-	        //mode.finish();
+	        mode.finish();
 	        return true;
 
 		}
@@ -374,7 +392,7 @@ public class BucketList extends SherlockFragmentActivity implements LoaderCallba
 		public void onDestroyActionMode(ActionMode mode) {
 			// TODO Auto-generated method stub
 			Log.d("tag", "actionmode ondestroy: " + mode);
-			
+			mMode = null;
 		}
 		
 
