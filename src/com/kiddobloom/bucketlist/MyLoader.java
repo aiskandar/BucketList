@@ -20,21 +20,21 @@ public class MyLoader extends CursorLoader {
 	public Cursor loadInBackground() {
 		// TODO Auto-generated method stub
 		Cursor c = super.loadInBackground();
-		Log.d("tag", "loadInBackground");
+		//Log.d("tag", "loadInBackground");
 		return c;
 	}
 	
 	@Override
 	protected void onStartLoading() {
 		super.onStartLoading();
-		Log.d("tag", "loader : onstartloading" + this + " cursor= " + cursor);
+		//Log.d("tag", "loader : onstartloading" + this + " cursor= " + cursor);
 		
 	}
 	
 	@Override
 	protected void onStopLoading() {
 		super.onStopLoading();
-		Log.d("tag", "loader : onstoploading");
+		//Log.d("tag", "loader : onstoploading");
 	}
 	
 	@Override
@@ -68,14 +68,14 @@ public class MyLoader extends CursorLoader {
 	@Override
 	public void deliverResult(Cursor data) {
 		super.deliverResult(data);
-		Log.d("tag", "loader : deliverresult cursor= " + data);
+		//Log.d("tag", "loader : deliverresult cursor= " + data);
 		
 		if (isStarted()) {
-			Log.d("tag", "loader started state " + this);
+			//Log.d("tag", "loader started state " + this);
 		}
 		
 		if (isReset()) {
-			Log.d("tag", "loader reset state " + this);
+			//Log.d("tag", "loader reset state " + this);
 		}
 		
 	}
@@ -91,7 +91,7 @@ public class MyLoader extends CursorLoader {
 		// TODO Auto-generated method stub
 		super.reset();
 		
-		Log.d("tag", "loader : reset");
+		//Log.d("tag", "loader : reset");
 		
 		if (isStarted()) {
 			Log.d("tag", "loader started state " + this);

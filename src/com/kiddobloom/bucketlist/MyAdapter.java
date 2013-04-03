@@ -2,8 +2,10 @@ package com.kiddobloom.bucketlist;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Paint;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,18 +54,62 @@ public class MyAdapter extends SimpleCursorAdapter {
 	public void bindView(View v, Context context, Cursor c) {
 		// TODO Auto-generated method stub
 		// super.bindView(arg0, arg1, arg2);
-		//Log.d("tag", "bindview: " + v + " cursor: " + c.getPosition());
-		//Log.d("tag", "bindview - cursor: " + c.getPosition());
+		
+		//Log.d("tag2", "bindview - position: " + c.getPosition());
 		
 		TextView tv = (TextView) v.findViewById(R.id.textView1);
-		tv.setText(c.getString(1));
+		tv.setText(c.getString(MyContentProvider.COLUMN_INDEX_TASK));
 
-		//Log.d("tag", "checked item position: " + lv.getCheckedItemPosition());
+		TextView tv2 = (TextView) v.findViewById(R.id.textView2);
+		tv2.setText(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
 		
-		CheckBox cr = (CheckBox) v.findViewById(R.id.ctv1);
+//		SparseBooleanArray sba = lv.getCheckedItemPositions();
+//		
+//		Log.d("tag3", "sba size: " + sba.size());
+//		
+//    	for (int i = 0; i < sba.size() ; i++) {
+//    		int key = sba.keyAt(i);
+//    		Log.d("tag3", "value at key:" + key + " is "+ sba.get(key));
+//    		if (sba.get(key) == true) {
+//				Log.d("tag3", "checked item position: " + key);
+//			}
+//		}
+		
+		if (lv.isItemChecked(c.getPosition())) {
+			//Log.d("tag2", "yellow");
+			v.setBackgroundResource(R.color.paper);
+		} else {
+			//Log.d("tag2", "white");
+			v.setBackgroundResource(android.R.color.white);
+		}
+		
+		String checked_str = c.getString(MyContentProvider.COLUMN_INDEX_DONE);
+		boolean checked = Boolean.parseBoolean(checked_str);
+		
+		//Log.d("tag", "pos = " + c.getPosition() + " checked = " + checked);
 
-		cr.setChecked(lv.isItemChecked(c.getPosition()));
+		CheckBox cb = (CheckBox) v.findViewById(R.id.ctv1);
+		
+		if (cb != null) {
+			cb.setChecked(checked);
 
+			if (cb.isChecked()) {
+				tv.setPaintFlags(tv.getPaintFlags()
+						| Paint.STRIKE_THRU_TEXT_FLAG);
+			} else {
+				tv.setPaintFlags(tv.getPaintFlags()
+						& ~Paint.STRIKE_THRU_TEXT_FLAG);
+			}
+		}
+
+		
+	}
+	
+	@Override
+	public View getView(int arg0, View arg1, ViewGroup arg2) {
+		// TODO Auto-generated method stub
+		//Log.d("tag", "getview :" + arg0);
+		return super.getView(arg0, arg1, arg2);
 	}
 	
 }

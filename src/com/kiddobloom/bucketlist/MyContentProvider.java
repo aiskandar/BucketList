@@ -19,15 +19,23 @@ public class MyContentProvider extends ContentProvider {
 	public static final Uri CONTENT_URI = Uri.withAppendedPath(AUTHORITY_URI, "bucket");
 	
 	private static final String DATABASE_NAME = "bucketList.db";
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 3;
 	
 	// Database table name
 	public static final String DATABASE_TABLE = "bucket";
 	
 	// Database column name
 	public static final String COLUMN_ID = "_id";
-	public static final String COLUMN_DATE = "date";
 	public static final String COLUMN_TASK = "task";
+	public static final String COLUMN_DATE = "date";
+	public static final String COLUMN_DONE = "done";
+
+	// Database column index
+	public static final int COLUMN_INDEX_ID = 0;
+	public static final int COLUMN_INDEX_TASK = 1;
+	public static final int COLUMN_INDEX_DATE = 2;
+	public static final int COLUMN_INDEX_DONE = 3;
+	
 	
 	private SQLiteDatabase bucketDB;
 	private BucketDBOpenHelper bucketDBHelper;
@@ -80,7 +88,7 @@ public class MyContentProvider extends ContentProvider {
 		Log.d("tag", "delete Uri " + uri);
 		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
 		
-		for (int i = 1 ; i < ls.size() ; i++) {
+		for (int i = 2 ; i < ls.size() ; i++) {
 			Log.d("tag", "rowID to delete: " + ls.get(i).toString());
 			bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
 		}
@@ -109,8 +117,8 @@ public class MyContentProvider extends ContentProvider {
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {	
-			// sqlite command: create table DATABASE_TABLE(KEY_ID INTEGER PRIMARY KEY, COLUMN_TASK TEXT, COLUMN_DATE TEXT);
-			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_TASK + " TEXT, " + COLUMN_DATE + " TEXT);";
+			// sqlite command: create table DATABASE_TABLE(KEY_ID INTEGER PRIMARY KEY, COLUMN_TASK TEXT, COLUMN_DATE TEXT, COLUMN_DONE BOOL);
+			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_TASK + " TEXT, " + COLUMN_DATE + " TEXT, " + COLUMN_DONE + " TEXT);";
 			db.execSQL(sqlCreateTable);
 			Log.d("tag", "sqllite new database generated");
 		}
