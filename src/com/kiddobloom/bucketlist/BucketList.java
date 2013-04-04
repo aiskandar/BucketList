@@ -1,6 +1,7 @@
 package com.kiddobloom.bucketlist;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import android.content.ContentValues;
@@ -31,6 +32,7 @@ import com.actionbarsherlock.view.ActionMode;
 import com.actionbarsherlock.view.ActionMode.Callback;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
+import com.google.gson.Gson;
 
 public class BucketList extends SherlockFragmentActivity implements
 		LoaderCallbacks<Cursor>, OnItemClickListener {
@@ -55,7 +57,7 @@ public class BucketList extends SherlockFragmentActivity implements
 		setContentView(R.layout.activity_todolist);
 		Log.d("tag", "main is created");
 
-		String from[] = { MyContentProvider.COLUMN_TASK,
+		String from[] = { MyContentProvider.COLUMN_ENTRY,
 				MyContentProvider.COLUMN_DATE };
 		int to[] = { R.id.textView1, R.id.textView2 };
 
@@ -118,7 +120,7 @@ public class BucketList extends SherlockFragmentActivity implements
 
 					Log.d("tag", "date : " + sdf.format(date));
 
-					cv.put(MyContentProvider.COLUMN_TASK, text);
+					cv.put(MyContentProvider.COLUMN_ENTRY, text);
 
 					if (updateInstead == false) {
 						cv.put(MyContentProvider.COLUMN_DATE, sdf.format(date));
@@ -135,6 +137,8 @@ public class BucketList extends SherlockFragmentActivity implements
 				return true;
 			}
 		});
+
+
 
 	}
 
@@ -173,6 +177,28 @@ public class BucketList extends SherlockFragmentActivity implements
 		// TODO Auto-generated method stub
 		super.onStop();
 		Log.d("tag", "main is stopped");
+		
+		Gson mJson = new Gson(); 
+		ArrayList<BucketListTable> list = new ArrayList<BucketListTable>();
+		
+		int count = myCursor.getCount();
+		myCursor.moveToFirst();
+		
+		for(int i=0; i<count; i++){
+		    BucketListTable data = new BucketListTable();		   
+		   
+		    data.setDate(myCursor.getString(MyContentProvider.COLUMN_INDEX_DATE));
+		    data.setEntry(myCursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
+		    data.setId(myCursor.getInt(MyContentProvider.COLUMN_INDEX_ID));
+		    data.setDone(myCursor.getString(MyContentProvider.COLUMN_INDEX_DONE));
+		    
+		    list.add(data);
+		    myCursor.moveToNext();
+		}
+		
+		String jsonData = mJson.toJson(list);
+		Log.d("tag", "json: " + jsonData);
+		
 	}
 
 	@Override
@@ -386,7 +412,7 @@ public class BucketList extends SherlockFragmentActivity implements
 				}
 
 				Cursor c = (Cursor) la.getItem(position);
-				String text = c.getString(MyContentProvider.COLUMN_INDEX_TASK);
+				String text = c.getString(MyContentProvider.COLUMN_INDEX_ENTRY);
 				Log.d("tag", "text to Edit: " + text);
 
 				int itemId = (int) la.getItemId(position);
@@ -419,7 +445,7 @@ public class BucketList extends SherlockFragmentActivity implements
 						Log.d("tag", "checked item position: " + key);
 						Cursor c = (Cursor) la.getItem(key);
 						String text = c
-								.getString(MyContentProvider.COLUMN_INDEX_TASK);
+								.getString(MyContentProvider.COLUMN_INDEX_ENTRY);
 						Log.d("tag", " text to share: " + text);
 						textList.append(++count);
 						textList.append(". ");

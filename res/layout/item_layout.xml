@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.kiddobloom.bucketlist.BucketlistRowLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/row"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:layout_margin="10dp"
+    android:layout_weight="0"
+    android:background="@drawable/row_item_bg"
+    android:orientation="horizontal" >
+	    
+	    <CheckBox
+	        android:id="@+id/ctv1"
+	        android:layout_width="0dp"
+	        android:layout_height="match_parent"
+	        android:layout_gravity="left"
+	        android:layout_marginLeft="10dp"
+	        android:layout_weight="2"
+	        android:clickable="false"
+	        android:duplicateParentState="true"
+	        android:focusable="false"
+	        android:focusableInTouchMode="false"
+	        android:gravity="center_vertical" />
+	    
+		<TextView
+		    android:id="@+id/textView1"
+		    android:layout_width="0dp"
+		    android:layout_height="match_parent"
+		    android:layout_gravity="left"
+		    android:layout_weight="9"
+		    android:gravity="center_vertical"
+		    android:textAppearance="?android:attr/textAppearanceSmall" />
+		
+		<TextView
+		    android:id="@+id/textView2"
+		    android:layout_width="0dp"
+		    android:layout_height="match_parent"
+		    android:layout_gravity="right"
+		    android:layout_marginRight="10dp"
+		    android:layout_weight="2"
+		    android:gravity="center_vertical"
+		    android:textAppearance="?android:attr/textAppearanceSmall" />
+
+</com.kiddobloom.bucketlist.BucketlistRowLayout>
+

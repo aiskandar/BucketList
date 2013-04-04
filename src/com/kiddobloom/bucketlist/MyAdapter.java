@@ -23,7 +23,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 	
 	public MyAdapter(Context c, String[] from, int[] to) {
 		
-		super(c, R.layout.list_image_text, null, from, to, 0);
+		super(c, R.layout.item_layout, null, from, to, 0);
 		
 		// TODO Auto-generated constructor stub
 		mInflater = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -43,7 +43,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 		
 		//Log.d("tag", "cursor: " + cursor.getPosition());
 		
-		View v = mInflater.inflate(R.layout.list_image_text, parent, false);
+		View v = mInflater.inflate(R.layout.item_layout, parent, false);
 	
 		lv = (ListView) parent;
 		
@@ -58,7 +58,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 		//Log.d("tag2", "bindview - position: " + c.getPosition());
 		
 		TextView tv = (TextView) v.findViewById(R.id.textView1);
-		tv.setText(c.getString(MyContentProvider.COLUMN_INDEX_TASK));
+		tv.setText(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
 
 		TextView tv2 = (TextView) v.findViewById(R.id.textView2);
 		tv2.setText(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
