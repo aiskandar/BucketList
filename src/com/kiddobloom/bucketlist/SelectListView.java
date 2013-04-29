@@ -36,10 +36,10 @@ public class SelectListView extends ListView {
 		
 		Log.d("tag", "perform item click position: " + position);
 
-		if (BucketList.updateInstead == true) {
+		if (MyListFragment.updateInstead == true) {
 			Log.d("tag", "in middle of update");
 			Toast.makeText(getContext(),
-	                "Press X button to cancel edit mode or press Enter to save change",
+	                "Cancel edit mode or press Enter to save change",
 	                Toast.LENGTH_SHORT).show();
 			return false;
 		}
@@ -79,46 +79,81 @@ public class SelectListView extends ListView {
 	public boolean onTouchEvent(MotionEvent ev) {
 		// TODO Auto-generated method stub
 		
-		Uri base = MyContentProvider.CONTENT_URI;
+//		Uri base = MyContentProvider.CONTENT_URI;
+//		
+//		Log.d("tag", "on touch event action=" + ev.getAction() + " x=" + ev.getX() + " y=" + ev.getY());
+//		
+//		float x = ev.getX();
+//		float y= ev.getY();
+//		int action = ev.getAction();
+//
+//		int position = pointToPosition((int)x, (int)y);
+//		Log.d("tag", "listview touched for pos: " + position);
+//		
+//		int id = (int) getAdapter().getItemId(position);
+//		Log.d("tag", "listview touched for item id: " + id);
+
+//		if (x < getWidth() / 7 && action == MotionEvent.ACTION_DOWN) {
+//
+//			Cursor c = (Cursor) getAdapter().getItem(position);
+//			String checked = c.getString(MyContentProvider.COLUMN_INDEX_DONE);
+//
+//			Log.d("tag", "checkbox is checked = " + checked);
+//
+//			ContentValues cv = new ContentValues();
+//			
+//			if (checked.equals("true")) {
+//				cv.put(MyContentProvider.COLUMN_DONE, "false");
+//			} else {
+//				cv.put(MyContentProvider.COLUMN_DONE, "true");
+//			}
+//			
+//			base = Uri.withAppendedPath(base, "edit");
+//			base = Uri.withAppendedPath(base, Integer.toString(id));
+//			
+//			Log.d("tag", "uri: " + base);
+//			
+//			getContext().getContentResolver().update(base, cv, null, null);
+//			
+//			return false;
+//			
+//		} 
 		
-		//Log.d("tag", "on touch event action=" + ev.getAction() + " x=" + ev.getX() + " y=" + ev.getY());
+//		if (action == MotionEvent.ACTION_DOWN) {
+//			
+//			Log.d("tag", "listview entry is touched");
+//			
+//			if (MyListFragment.updateInstead == true) {
+//				Log.d("tag", "in middle of update");
+//				Toast.makeText(getContext(),
+//		                "Press X button to cancel edit mode or press Enter to save change",
+//		                Toast.LENGTH_SHORT).show();
+//				return false;
+//			}
+//				
+//			boolean checked = false;
+//			
+//			if (isItemChecked(position)) {
+//				checked = true; 
+//			}
+//			
+//			// this is the function in AbsListView that maintains the state of checked items in listView
+//			super.performItemClick(this, position, id);
+//			
+//			// Allow the user to toggle the selection
+//			if (checked == true) {
+//				setItemChecked(position, false);
+//			}
+//			
+//			if (callback != null) {
+//				callback.OnItemClick(position, id, this);
+//			}
+//			
+//			return false;
+//		} 
+			
+		return super.onTouchEvent(ev);
 		
-		float x = ev.getX();
-		float y= ev.getY();
-		int action = ev.getAction();
 		
-		if (x < getWidth() / 7 && action == MotionEvent.ACTION_DOWN) {
-			
-			int position = pointToPosition((int)x, (int)y);
-			Log.d("tag", "checkbox area is clicked for pos: " + position);
-			
-			int id = (int) getAdapter().getItemId(position);
-			Log.d("tag", "checkbox area is clicked for item id: " + id);
-			
-			Cursor c = (Cursor) getAdapter().getItem(position);
-			String checked = c.getString(MyContentProvider.COLUMN_INDEX_DONE);
-						
-			Log.d("tag", "checkbox is checked = " + checked);
-			
-			ContentValues cv = new ContentValues();
-			
-			if (checked.equals("true")) {
-				cv.put(MyContentProvider.COLUMN_DONE, "false");
-			} else {
-				cv.put(MyContentProvider.COLUMN_DONE, "true");
-			}
-			
-			base = Uri.withAppendedPath(base, "edit");
-			base = Uri.withAppendedPath(base, Integer.toString(id));
-			
-			Log.d("tag", "uri: " + base);
-			
-			getContext().getContentResolver().update(base, cv, null, null);
-			
-			return false;
-			
-		} else {
-			return super.onTouchEvent(ev);
-		}
 	}
 }

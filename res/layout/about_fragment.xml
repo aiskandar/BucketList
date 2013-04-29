@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/scrollView1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="none" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="vertical" >
+
+
+            <TextView
+                android:id="@+id/blogHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="10dp"
+                android:text="The Bucket List"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/blogEntryTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="10dp"
+                android:text="Posted on Jan 2013" />
+
+            <TextView
+                android:id="@+id/blogP1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Why do we need a Bucket List? Most importantly, what will you fill your Bucket List with? Will you fill it with things that you think are important at the moment and then realize that they are meaningless? Will you fill it with something so meaningful, and you are glad to have lived and had the opportunities to do things you did? In my opinion, a Bucket List should have two sections; a Must Do List and Nice To Do list" />
+
+            <TextView
+                android:id="@+id/blogH2_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Must Do List"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/blogP2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="“Must Do List” is a list that has action items that will give meaning to live a life without regrets. This list, if not executed, will bring despair and regret at our death-bed. Things that will have a positive impact on others should go on this list. However, if we are in the process of executing this list then we die, I think we will feel fine, because we die in the process of trying/doing. For example, in my own “Must Do List” I will put the following:" />
+
+            <TextView
+                android:id="@+id/blogP3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="1. To know God." />
+
+            <TextView
+                android:id="@+id/blogP4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="2. To be God’s instrument of grace." />
+
+            <TextView
+                android:id="@+id/blogP5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="3. To express love towards spouse, children, and family members." />
+
+            <TextView
+                android:id="@+id/blogP6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="4. … and so on." />
+
+            <TextView
+                android:id="@+id/blogH2_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Nice To Do list"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/blogP7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="A “Nice To Do List” has all the things that will satisfy our senses and ego. It tickles our sense of adventure. We can go wild with this. It does not need lots of thinking. Just let loose. If we don’t get to complete the list, we will not regret it.  Go ahead, list anything that you dream to do freely.  Release that bottled up energy and dream.  For example, in my list, I would list:" />
+
+            <TextView
+                android:id="@+id/blogP8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="1. To climb the leaning tower of Pisa." />
+
+            <TextView
+                android:id="@+id/blogP9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="2. To ride on a hot air balloon." />
+
+            <TextView
+                android:id="@+id/blogP10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="3. To see a blue whale." />
+
+            <TextView
+                android:id="@+id/blogP11"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="4. … and so on." />
+
+            <TextView
+                android:id="@+id/blogP12"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="Each person will have different things that belongs to either “Must Do List” or “Nice To Do List”. Dividing the list into two sections like above will help in prioritizing our life. Once we figure out our “Must Do List”, we have to start doing this list NOW because we all do not know how long we will live." />
+            
+            <TextView
+                android:id="@+id/blogFooter2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_gravity="center_horizontal"
+                android:clickable="true"
+                android:onClick="handleVisit"
+                android:text="@string/visit_kiddobloom"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <ImageButton
+                android:id="@+id/imageButton1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_gravity="center_horizontal"
+                android:maxWidth="100dp"
+                android:onClick="handleFbLike"
+                android:src="@drawable/fblike" />
+
+        </LinearLayout>
+
+    </ScrollView>
+

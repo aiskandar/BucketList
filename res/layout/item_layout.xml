@@ -6,39 +6,80 @@
     android:layout_margin="10dp"
     android:layout_weight="0"
     android:background="@drawable/row_item_bg"
+    android:clickable="false"
+    android:focusable="false"
+    android:focusableInTouchMode="false"
+    android:longClickable="false"
     android:orientation="horizontal" >
-	    
-	    <CheckBox
-	        android:id="@+id/ctv1"
-	        android:layout_width="0dp"
-	        android:layout_height="match_parent"
-	        android:layout_gravity="left"
-	        android:layout_marginLeft="10dp"
-	        android:layout_weight="2"
-	        android:clickable="false"
-	        android:duplicateParentState="true"
-	        android:focusable="false"
-	        android:focusableInTouchMode="false"
-	        android:gravity="center_vertical" />
-	    
-		<TextView
-		    android:id="@+id/textView1"
-		    android:layout_width="0dp"
-		    android:layout_height="match_parent"
-		    android:layout_gravity="left"
-		    android:layout_weight="9"
-		    android:gravity="center_vertical"
-		    android:textAppearance="?android:attr/textAppearanceSmall" />
-		
-		<TextView
-		    android:id="@+id/textView2"
-		    android:layout_width="0dp"
-		    android:layout_height="match_parent"
-		    android:layout_gravity="right"
-		    android:layout_marginRight="10dp"
-		    android:layout_weight="2"
-		    android:gravity="center_vertical"
-		    android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <CheckBox
+        android:id="@+id/ctv1"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_weight="1"
+        android:clickable="false"
+        android:duplicateParentState="true"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:gravity="center_vertical"
+        android:longClickable="false" />
+
+    <LinearLayout
+        android:id="@+id/textWrapper"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="6"
+        android:clickable="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:longClickable="false"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/blogHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_weight="8"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:longClickable="false"
+            android:text="test"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:longClickable="false"
+            android:text="test2"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/ib2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginRight="5dp"
+        android:scaleType="center"
+        android:src="@drawable/share" />
+    
+    <ImageButton
+        android:id="@+id/ib1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginRight="5dp"
+        android:scaleType="center"
+        android:src="@drawable/rating_not_important" />
 
 </com.kiddobloom.bucketlist.BucketlistRowLayout>
-

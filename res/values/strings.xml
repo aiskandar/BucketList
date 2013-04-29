@@ -1,10 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="app_name">The Bucket List</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="menu_settings">Settings</string>
-    <string name="menu_delete_list">Delete List</string>
-    <string name="menu_delete_item">Delete</string>
+    <string name="service_name">kiddoBLOOM</string>
+    <string name="app_name">Bucket List</string>
+    <string name="app_id">150619161779623</string>
+
+    <!-- Button for going to the previous screen or step -->
+    <string name="back_button_label">Back</string>
+    <!-- Button to cancel the current operation -->
+    <string name="cancel_button_label">Cancel</string>
+    <string name="profile_action">Sample profile</string>
+    <string name="view_profile">View Profile</string>
+    <string name="skip_button"><ul>Skip</ul></string>
+
+    <!-- Preferences Strings -->
+    <string name="menu_preferences">Preferences</string>
+    <string name="menu_update">Sync</string>
+    <string name="share_label">Share your bucket list with the community</string>
+    <string name="name_label">Name</string>
+    <string name="pref_name">USER_PREF</string>
+    <string name="pref_share_key">PREF_SHARE</string>
+    <string name="pref_skip_key">PREF_SKIP_ACCOUNT</string>
+    <string name="pref_userid_key">PREF_USERID</string>
+        <string name="pref_initial_sync_key">PREF_SYNCED</string>
+    <string name="pref_userid_registered_key">PREF_USERID_REGISTERED</string>
+    <string name="visit_kiddobloom">Visit us on our website <a href="http://www.kiddobloom.com">kiddoBLOOM</a></string>
 
 </resources>

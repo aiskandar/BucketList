@@ -3,27 +3,93 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_SYNC_STATS" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+
     <uses-sdk
         android:minSdkVersion="10"
         android:targetSdkVersion="14" />
-    
-     <application
+
+    <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme" 
+        android:enabled="true" >
+        
         <activity
-            android:name="com.kiddobloom.bucketlist.BucketList"
-            android:label="@string/app_name" >
-            <intent-filter>
+            android:name=".BucketListActivity"
+            android:label="@string/app_name" 
+            android:exported="true">
+        </activity>
+
+        <activity
+            android:name=".ShareActivity"
+            android:label="@string/app_name" 
+            android:exported="true">
+        </activity>
+        
+        <activity
+            android:name=".PreferencesActivity"
+            android:label="@string/app_name" 
+            android:exported="true">
+ 
+        </activity>
+        
+        <activity
+            android:name=".AuthenticatorActivity"
+            android:label="@string/app_name"
+            android:excludeFromRecents="true"
+            android:exported="true">
+            <!--
+                No intent-filter here! This activity is only ever launched by
+                someone who explicitly knows the class name
+            -->
+           <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+  
         </activity>
-        <activity android:name="second" android:theme="@style/AppBaseTheme"></activity>
         
-        <provider android:name="com.kiddobloom.bucketlist.MyContentProvider" android:authorities="com.kiddobloom.bucketlist" />
+        <activity android:name="com.facebook.LoginActivity"/>       
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/app_id"/>
+
+        <service
+            android:name=".AuthenticationService"
+            android:exported="true">
+            <intent-filter>
+                <action
+                    android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
         
-    </application>   
+        <service
+            android:name=".SyncService"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
+        </service>
+
+        <provider
+            android:name=".MyContentProvider"
+            android:authorities="com.kiddobloom.bucketlist"
+            android:enabled="true" />
+    </application>
 
 </manifest>

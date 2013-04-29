@@ -1,11 +1,10 @@
 package com.kiddobloom.bucketlist;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
+import android.app.Activity;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -17,92 +16,91 @@ import android.support.v4.content.Loader;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 
-import com.actionbarsherlock.app.SherlockFragmentActivity;
+import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.ActionMode;
 import com.actionbarsherlock.view.ActionMode.Callback;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
-import com.google.gson.Gson;
 
-public class BucketList extends SherlockFragmentActivity implements
-		LoaderCallbacks<Cursor>, OnItemClickListener {
+//import com.kiddobloom.bucketlist.MyAdapter.OnItemClickListener;
 
-	private static final String SHARED_PREF_NAME = "BUCKET_LIST_PREF";
-	private static final String TEXT_ENTRY_KEY = "TEXT_ENTRY_KEY";
-	private static final String ADDING_ITEM_KEY = "ADDING_ITEM_KEY";
-	private static final String SELECTED_INDEX_KEY = "SELECTED_INDEX_KEY";
+public class MyListFragment extends SherlockFragment implements 
+						OnItemClickListener, LoaderCallbacks<Cursor> {
 
-	MyAdapter la;
-	ListView lv;
-	Cursor myCursor;
-	ActionMode mMode;
-	LoaderManager lm;
+	public MyAdapter la;
+	public SelectListView lv;
+	public EditText et;
+	public Cursor myCursor;
+	public ActionMode mMode;
+	public LoaderManager lm;
+	public SharedPreferences sp;
 	static boolean updateInstead = false;
 	static Uri lastUri;
-
+	
+	public MyListFragment() {
+		// TODO Auto-generated constructor stub
+	}
+	
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-
+	public void onCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_todolist);
-		Log.d("tag", "main is created");
+		
+		String from[] = { MyContentProvider.COLUMN_ENTRY, MyContentProvider.COLUMN_DATE };
+		int to[] = { R.id.blogHeader, R.id.textView2 };
 
-		String from[] = { MyContentProvider.COLUMN_ENTRY,
-				MyContentProvider.COLUMN_DATE };
-		int to[] = { R.id.textView1, R.id.textView2 };
+		la = new MyAdapter(getSherlockActivity(), from, to);
 
-		getSupportActionBar().setTitle("The Bucket List");
-		getSupportActionBar().setSubtitle("by kiddoBLOOM");
-
-		la = new MyAdapter(this, from, to);
-		lv = (ListView) findViewById(android.R.id.list);
-
-		lv.setOnItemClickListener(this);
-
-		SharedPreferences x = getSharedPreferences(SHARED_PREF_NAME, 0);
+		sp = getSherlockActivity().getSharedPreferences(getString(R.string.pref_name), 0);
+		
+		boolean share = sp.getBoolean(getString(R.string.pref_share_key), false);
+		boolean skip = sp.getBoolean(getString(R.string.pref_skip_key), false);
 
 		// registerForContextMenu(findViewById(android.R.id.list));
-		lm = getSupportLoaderManager();
+		lm = getSherlockActivity().getSupportLoaderManager();
 		LoaderCallbacks<Cursor> loaderCallback = this;
 		lm.initLoader(0, null, loaderCallback);
 		// lm.enableDebugLogging(true);
 
+	}
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, 
+			ViewGroup container, Bundle savedInstanceState) {
+		
+		View v = inflater.inflate(R.layout.mylist_fragment, container, false);	
+		
+		lv = (SelectListView) v.findViewById(android.R.id.list);
+		et = (EditText) v.findViewById(R.id.editText1);
+		
+		getSherlockActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN); 
+
+		if (lv==null || et==null) {
+			return null;
+		}
+		
+		
+		// register on item click listener on listview 
+		lv.setOnItemClickListener(this);
 		lv.setAdapter(la);
-
-		ImageButton cab = (ImageButton) findViewById(R.id.imageButton2);
-
-		cab.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				Log.d("tag", "cancel button is clicked");
-
-				EditText et = (EditText) findViewById(R.id.editText1);
-				et.setText("");
-
-				updateInstead = false;
-				lastUri = null;
-
-			}
-		});
-
-		EditText et = (EditText) findViewById(R.id.editText1);
-
+		//lv.setOnClickListenerCallback(this);
+			
+		// register editor listener for keyboard presses
 		et.setOnEditorActionListener(new OnEditorActionListener() {
 
 			@Override
-			public boolean onEditorAction(TextView tv, int actionId,
-					KeyEvent event) {
+			public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
+				
 				Log.d("tag", "editText event: " + event + " actionID: "
 						+ actionId + " view: " + tv.getText().toString());
 
@@ -124,177 +122,48 @@ public class BucketList extends SherlockFragmentActivity implements
 
 					if (updateInstead == false) {
 						cv.put(MyContentProvider.COLUMN_DATE, sdf.format(date));
+						cv.put(MyContentProvider.COLUMN_RATING, "false");
+						cv.put(MyContentProvider.COLUMN_SHARE, "true");
 						cv.put(MyContentProvider.COLUMN_DONE, "false");
-						getContentResolver().insert(
+						getSherlockActivity().getContentResolver().insert(
 								MyContentProvider.CONTENT_URI, cv);
 
 					} else {
-						getContentResolver().update(lastUri, cv, null, null);
+						getSherlockActivity().getContentResolver().update(lastUri, cv,
+								null, null);
 						signalUpdate(false, null);
 					}
 				}
-
+				
 				return true;
 			}
 		});
 
-
-
+		return v;
 	}
-
-	// @Override
-	// public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo
-	// menuInfo) {
-	// // TODO Auto-generated method stub
-	// View x = findViewById(android.R.id.list);
-	//
-	// Log.d("tag", "crete context menu");
-	//
-	// if (x == v) {
-	// Log.d("tag", "create context menu for listview :" + x);
-	// getMenuInflater().inflate(R.menu.listview_item_menu, menu);
-	// }
-	//
-	// }
-
+	
 	@Override
-	protected void onPause() {
+	public void onActivityCreated(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
-		super.onPause();
-		Log.d("tag", "main is paused");
-
-		SharedPreferences x = getSharedPreferences("todolist",
-				Context.MODE_PRIVATE);
-		SharedPreferences.Editor ed = x.edit();
-
-		EditText t = (EditText) findViewById(R.id.editText1);
-		ed.putString(TEXT_ENTRY_KEY, t.getText().toString());
-		ed.commit();
+		super.onActivityCreated(savedInstanceState);
 	}
-
+	
 	@Override
-	protected void onStop() {
+	public void onAttach(Activity activity) {
 		// TODO Auto-generated method stub
-		super.onStop();
-		Log.d("tag", "main is stopped");
-		
-		Gson mJson = new Gson(); 
-		ArrayList<BucketListTable> list = new ArrayList<BucketListTable>();
-		
-		int count = myCursor.getCount();
-		myCursor.moveToFirst();
-		
-		for(int i=0; i<count; i++){
-		    BucketListTable data = new BucketListTable();		   
-		   
-		    data.setDate(myCursor.getString(MyContentProvider.COLUMN_INDEX_DATE));
-		    data.setEntry(myCursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
-		    data.setId(myCursor.getInt(MyContentProvider.COLUMN_INDEX_ID));
-		    data.setDone(myCursor.getString(MyContentProvider.COLUMN_INDEX_DONE));
-		    
-		    list.add(data);
-		    myCursor.moveToNext();
-		}
-		
-		String jsonData = mJson.toJson(list);
-		Log.d("tag", "json: " + jsonData);
-		
+		super.onAttach(activity);
 	}
-
+	
 	@Override
-	protected void onStart() {
+	public void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
-		Log.d("tag", "main is started");
-
 	}
-
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		// TODO Auto-generated method stub
-		Log.d("tag", "onsaveinstancestate");
-		super.onSaveInstanceState(outState);
-
-	}
-
-	@Override
-	protected void onRestoreInstanceState(Bundle state) {
-		// TODO Auto-generated method stub
-		Log.d("tag", "onrestoreinstancestate");
-
-		super.onRestoreInstanceState(state);
-	}
-
-	@Override
-	public void onItemClick(AdapterView<?> parent, View view, int position,
-			long id) {
-
-		int count = 0;
-		Callback callback;
-
-		SparseBooleanArray sba = lv.getCheckedItemPositions();
-		// Log.d("tag", "sba size: " + sba.size());
-
-		for (int i = 0; i < sba.size(); i++) {
-			int key = sba.keyAt(i);
-			// Log.d("tag", "value at key:" + key + " is "+ sba.get(key));
-			if (sba.get(key) == true) {
-				// Log.d("tag", "checked item position: " + key);
-				count++;
-			}
-		}
-
-		Log.d("tag", "onItemClick position: " + position + " checked count = "
-				+ count);
-
-		if (count == 0) {
-			/*
-			 * no items are checked. let's disable CAB in case the CAB is
-			 * already initialized
-			 */
-			if (mMode != null) {
-				mMode.finish();
-			}
-			return;
-		}
-
-		if (mMode == null) {
-			callback = new AnActionModeofEpicProportions();
-			mMode = startActionMode(callback);
-		}
-
-		if (count > 1) {
-			// Log.d("tag", "count > 1");
-			mMode.getMenu().removeItem(
-					AnActionModeofEpicProportions.MENU_ID_EDIT);
-		} else if (count == 1) {
-			if (mMode.getMenu().findItem(
-					AnActionModeofEpicProportions.MENU_ID_EDIT) == null) {
-				// Log.d("tag", "adding edit menu item");
-				mMode.getMenu()
-						.add(AnActionModeofEpicProportions.MENU_GROUP_ID_MAIN,
-								AnActionModeofEpicProportions.MENU_ID_EDIT, 0,
-								"Edit")
-						.setIcon(R.drawable.content_edit)
-						.setShowAsAction(
-								MenuItem.SHOW_AS_ACTION_IF_ROOM
-										| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
-
-			}
-		}
-
-		/*
-		 * need to tell the framework explicitly to do getView calls to the
-		 * adapter - needed for Android 4.x
-		 */
-		la.notifyDataSetChanged();
-
-	}
-
+	
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle bundle) {
 		// Log.d("tag", "loader manager : oncreateloader");
-		Loader<Cursor> loader = new MyLoader(this,
+		Loader<Cursor> loader = new MyLoader(getSherlockActivity(),
 				MyContentProvider.CONTENT_URI, null, null, null, null);
 		return loader;
 	}
@@ -306,9 +175,6 @@ public class BucketList extends SherlockFragmentActivity implements
 		myCursor = cursor;
 		la.swapCursor(cursor);
 
-		// for (int i=0; i < cursor.getColumnCount(); i++) {
-		// Log.d("tag", "column " + i + " = " + cursor.getColumnName(i));
-		// }
 	}
 
 	@Override
@@ -322,15 +188,15 @@ public class BucketList extends SherlockFragmentActivity implements
 		updateInstead = b;
 		lastUri = url;
 	}
-
-	public class AnActionModeofEpicProportions implements ActionMode.Callback {
+	
+	public class MyListActionMode implements ActionMode.Callback {
 
 		public final static int MENU_GROUP_ID_MAIN = 0;
 		public final static int MENU_ID_EDIT = 0;
 		public final static int MENU_ID_DELETE = 1;
 		public final static int MENU_ID_SHARE = 2;
 
-		public AnActionModeofEpicProportions() {
+		public MyListActionMode() {
 			Log.d("tag", "constructor for actionmode");
 		}
 
@@ -390,7 +256,7 @@ public class BucketList extends SherlockFragmentActivity implements
 				}
 
 				Log.d("tag", "uri: " + base);
-				getContentResolver().delete(base, null, null);
+				getSherlockActivity().getContentResolver().delete(base, null, null);
 
 			} else if (menuItemId == MENU_ID_EDIT) {
 
@@ -423,7 +289,7 @@ public class BucketList extends SherlockFragmentActivity implements
 				Log.d("tag", "uri: " + base);
 
 				if (text != null) {
-					EditText et = (EditText) findViewById(R.id.editText1);
+					
 					et.setText(text.toString());
 					et.setSelection(et.getText().length());
 				}
@@ -492,4 +358,71 @@ public class BucketList extends SherlockFragmentActivity implements
 
 		}
 	}
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position,
+			long id) {
+		// TODO Auto-generated method stub
+		int count = 0;
+		Callback callback;
+
+		SparseBooleanArray sba = lv.getCheckedItemPositions();
+		// Log.d("tag", "sba size: " + sba.size());
+
+		for (int i = 0; i < sba.size(); i++) {
+			int key = sba.keyAt(i);
+			// Log.d("tag", "value at key:" + key + " is "+ sba.get(key));
+			if (sba.get(key) == true) {
+				// Log.d("tag", "checked item position: " + key);
+				count++;
+			}
+		}
+
+		Log.d("tag", "onItemClick position: " + position + " checked count = "
+				+ count);
+
+		if (count == 0) {
+			/*
+			 * no items are checked. let's disable CAB in case the CAB is
+			 * already initialized
+			 */
+			if (mMode != null) {
+				mMode.finish();
+			}
+			return;
+		}
+
+		if (mMode == null) {
+			callback = new MyListActionMode();
+			mMode = getSherlockActivity().startActionMode(callback);
+		}
+
+		if (count > 1) {
+			// Log.d("tag", "count > 1");
+			mMode.getMenu().removeItem(
+					MyListActionMode.MENU_ID_EDIT);
+		} else if (count == 1) {
+			if (mMode.getMenu().findItem(
+					MyListActionMode.MENU_ID_EDIT) == null) {
+				// Log.d("tag", "adding edit menu item");
+				mMode.getMenu()
+						.add(MyListActionMode.MENU_GROUP_ID_MAIN,
+								MyListActionMode.MENU_ID_EDIT, 0,
+								"Edit")
+						.setIcon(R.drawable.content_edit)
+						.setShowAsAction(
+								MenuItem.SHOW_AS_ACTION_IF_ROOM
+										| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+
+			}
+		}
+
+		/*
+		 * need to tell the framework explicitly to do getView calls to the
+		 * adapter - needed for Android 4.x
+		 */
+		la.notifyDataSetChanged();
+		
+	}
+
 }

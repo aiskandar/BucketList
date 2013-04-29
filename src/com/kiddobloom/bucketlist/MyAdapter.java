@@ -1,115 +1,235 @@
 package com.kiddobloom.bucketlist;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.RatingBar;
+import android.widget.RatingBar.OnRatingBarChangeListener;
 import android.widget.TextView;
 
 public class MyAdapter extends SimpleCursorAdapter {
 
 	LayoutInflater mInflater;		
-	ListView lv;
-	static int selectedPos = -1;
-	static int prevSelectedPos = -1;
-	static boolean selectedPosChecked = false;
-	
+	Context context;
+		
 	public MyAdapter(Context c, String[] from, int[] to) {
-		
 		super(c, R.layout.item_layout, null, from, to, 0);
-		
-		// TODO Auto-generated constructor stub
+		context = c;
 		mInflater = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		
 	}
-
+	
+	public class ViewHolder {
+		CheckBox cb;
+		ImageButton ib1;
+		ImageButton ib2;
+		TextView tv1;
+		TextView tv2;
+		int itemId;
+		int pos;
+	}
+	
+	public class ImageViewHolder {
+		int itemId;
+		String rating;
+		String share;
+	}	
+	
 	@Override
 	public boolean hasStableIds() {
 		// TODO Auto-generated method stub
 		return true;
 	}
-		
-	@Override
-	public View newView(Context context, Cursor cursor, ViewGroup parent) {
-		// TODO Auto-generated method stub
-		// return super.newView(context, cursor, parent);
-		
-		//Log.d("tag", "cursor: " + cursor.getPosition());
-		
-		View v = mInflater.inflate(R.layout.item_layout, parent, false);
-	
-		lv = (ListView) parent;
-		
-		return v;
-	}
 	
 	@Override
-	public void bindView(View v, Context context, Cursor c) {
-		// TODO Auto-generated method stub
-		// super.bindView(arg0, arg1, arg2);
-		
-		//Log.d("tag2", "bindview - position: " + c.getPosition());
-		
-		TextView tv = (TextView) v.findViewById(R.id.textView1);
-		tv.setText(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
+	public View getView(int position, View baseview, ViewGroup vg) {
 
-		TextView tv2 = (TextView) v.findViewById(R.id.textView2);
-		tv2.setText(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
+		//Log.d("tag", "getview position:" + position + " v:" + baseview + " vg:" + vg);
+		ViewHolder vh = null;
+		//ImageViewHolder ivh = null;
 		
-//		SparseBooleanArray sba = lv.getCheckedItemPositions();
-//		
-//		Log.d("tag3", "sba size: " + sba.size());
-//		
-//    	for (int i = 0; i < sba.size() ; i++) {
-//    		int key = sba.keyAt(i);
-//    		Log.d("tag3", "value at key:" + key + " is "+ sba.get(key));
-//    		if (sba.get(key) == true) {
-//				Log.d("tag3", "checked item position: " + key);
-//			}
-//		}
+		Cursor c = getCursor();
+		int itemId = (int) getItemId(position);
+		ListView lv = (ListView) vg;
 		
-		if (lv.isItemChecked(c.getPosition())) {
-			//Log.d("tag2", "yellow");
-			v.setBackgroundResource(R.color.paper);
-		} else {
-			//Log.d("tag2", "white");
-			v.setBackgroundResource(android.R.color.white);
+		//Log.d("tag", "cursor:" + c.getPosition() + " id:" + itemId);
+		
+		if (baseview == null) {
+
+			// inflate the view object for the row - baseview if of type BucketListRowLayout object
+			baseview = mInflater.inflate(R.layout.item_layout, vg, false);
+			
+			// save the child views of the base view 
+			// In this case: checkbox, textviews, and ratingbar objects will be saved in ViewHolder
+			// Purpose of the ViewHolder is to save the findViewById for these child views
+			// The ViewHolder object will be saved in the tag of the baseview by calling setTag
+			vh = new ViewHolder();
+			vh.cb = (CheckBox) baseview.findViewById(R.id.ctv1);
+			vh.tv1 = (TextView) baseview.findViewById(R.id.blogHeader);
+			vh.tv2 = (TextView) baseview.findViewById(R.id.textView2);
+			vh.ib1 = (ImageButton) baseview.findViewById(R.id.ib1);	
+			vh.ib2 = (ImageButton) baseview.findViewById(R.id.ib2);	
+			
+			// save the ViewHolder
+			baseview.setTag(vh);
+			
+			// setup the click listener for checkbox
+			vh.cb.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					CheckBox cb = (CheckBox) v;
+					Integer id;
+					id = (Integer) v.getTag();
+					//Log.d("tag", "checkbox clicked for id:" + id + " checked:" + cb.isChecked());
+					
+					Uri base = MyContentProvider.CONTENT_URI;
+					base = Uri.withAppendedPath(base, "edit");
+					base = Uri.withAppendedPath(base, Integer.toString(id));
+					
+					ContentValues cv = new ContentValues();
+					boolean checked = cb.isChecked();
+					cv.put(MyContentProvider.COLUMN_DONE, Boolean.toString(checked));					
+					context.getContentResolver().update(base, cv, null, null);
+				}
+			});
+			
+			vh.ib1.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+
+					ImageViewHolder ivh = (ImageViewHolder) v.getTag();		
+					
+					Log.d("tag", "star image clicked id: " + ivh.itemId + " rating: " + ivh.rating);
+					
+					Uri base = MyContentProvider.CONTENT_URI;
+					base = Uri.withAppendedPath(base, "edit");
+					base = Uri.withAppendedPath(base, Integer.toString(ivh.itemId));
+										
+					ContentValues cv = new ContentValues();
+					
+					if (ivh.rating.equals("false")) {
+						ivh.rating = "true";
+					} else {
+						ivh.rating = "false";
+					}
+					
+					cv.put(MyContentProvider.COLUMN_RATING, ivh.rating);					
+					context.getContentResolver().update(base, cv, null, null);				}
+			});
+
+			vh.ib2.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+
+					ImageViewHolder ivh = (ImageViewHolder) v.getTag();		
+					
+					Log.d("tag", "share image clicked id: " + ivh.itemId + " share: " + ivh.share);
+					
+					Uri base = MyContentProvider.CONTENT_URI;
+					base = Uri.withAppendedPath(base, "edit");
+					base = Uri.withAppendedPath(base, Integer.toString(ivh.itemId));
+										
+					ContentValues cv = new ContentValues();
+					
+					if (ivh.share.equals("false")) {
+						ivh.share = "true";
+					} else {
+						ivh.share = "false";
+					}
+					
+					cv.put(MyContentProvider.COLUMN_SHARE, ivh.share);					
+					context.getContentResolver().update(base, cv, null, null);				}
+			});
+		} else {	
+			// the row view has been inflated before - get the saved child views
+			vh = (ViewHolder) baseview.getTag();
 		}
 		
+		// populate the checkbox and ratingbar for the data in the adapter based on
+		// the persistant db storage		
+		vh.tv1.setText(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
+		vh.tv2.setText(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
+
 		String checked_str = c.getString(MyContentProvider.COLUMN_INDEX_DONE);
 		boolean checked = Boolean.parseBoolean(checked_str);
 		
-		//Log.d("tag", "pos = " + c.getPosition() + " checked = " + checked);
+		if (vh.cb != null) {
+			vh.cb.setChecked(checked);
 
-		CheckBox cb = (CheckBox) v.findViewById(R.id.ctv1);
-		
-		if (cb != null) {
-			cb.setChecked(checked);
-
-			if (cb.isChecked()) {
-				tv.setPaintFlags(tv.getPaintFlags()
+			if (vh.cb.isChecked()) {
+				vh.tv1.setPaintFlags(vh.tv1.getPaintFlags()
 						| Paint.STRIKE_THRU_TEXT_FLAG);
 			} else {
-				tv.setPaintFlags(tv.getPaintFlags()
+				vh.tv1.setPaintFlags(vh.tv1.getPaintFlags()
 						& ~Paint.STRIKE_THRU_TEXT_FLAG);
-			}
+			}	
+		}
+		
+		String rating_str = c.getString(MyContentProvider.COLUMN_INDEX_RATING);
+		if (rating_str.equals("false")) {
+			vh.ib1.setImageResource(R.drawable.rating_not_important);
+		} else {
+			vh.ib1.setImageResource(R.drawable.rating_important);
+		}
+		
+		if (lv.isItemChecked(position)) {
+			//Log.d("tag2", "yellow");
+			baseview.setBackgroundResource(R.color.paper);
+		} else {
+			//Log.d("tag2", "white");
+			baseview.setBackgroundResource(android.R.color.white);
 		}
 
+		String share_str = c.getString(MyContentProvider.COLUMN_INDEX_SHARE);
+		if (share_str.equals("false")) {
+			vh.ib2.setImageResource(R.drawable.share_no);
+		} else {
+			vh.ib2.setImageResource(R.drawable.share);
+		}
+
+		baseview.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+
+				ViewHolder vh = (ViewHolder) v.getTag();
+				Log.d("tag", "onclick row for id:" + vh.itemId + " position:" + vh.pos);
+				
+				ListView lv = (ListView) v.getParent();
+				lv.performItemClick(v, vh.pos, vh.itemId);
+			}
+		});
 		
-	}
-	
-	@Override
-	public View getView(int arg0, View arg1, ViewGroup arg2) {
-		// TODO Auto-generated method stub
-		//Log.d("tag", "getview :" + arg0);
-		return super.getView(arg0, arg1, arg2);
+		// save the itemId of the data in the adapter into the child views
+		// purpose is for the checkbox and ratingbar event listeners to understand the
+		// current adapter itemId that is using this View
+		// Everytime getview is called - we reset itemId in the view object
+		
+		ImageViewHolder ivh = new ImageViewHolder();
+		ivh.itemId = itemId;
+		ivh.rating = rating_str;
+		ivh.share = share_str;
+		
+		vh.cb.setTag(itemId);
+		vh.ib1.setTag(ivh);
+		vh.ib2.setTag(ivh);
+		vh.itemId = itemId;
+		vh.pos = position;
+		
+		return baseview;
 	}
 	
 }
