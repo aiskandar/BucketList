@@ -209,7 +209,7 @@ public class MyContentProvider extends ContentProvider {
 		if (command.equals(PATH_INSERT)) {
 			getContext().getContentResolver().notifyChange(uri, null, true);
 		} else if (command.equals(PATH_INSERT_NO_NOTIFY)) {
-			getContext().getContentResolver().notifyChange(uri, null, false);
+			//getContext().getContentResolver().notifyChange(uri, null, false);
 		} else {
 			// throw exception here
 		}
@@ -243,7 +243,7 @@ public class MyContentProvider extends ContentProvider {
 		if (command.equals(PATH_DELETE)) {
 			getContext().getContentResolver().notifyChange(uri, null, true);
 		} else if (command.equals(PATH_DELETE_NO_NOTIFY)) {
-			getContext().getContentResolver().notifyChange(uri, null, false);
+			//getContext().getContentResolver().notifyChange(uri, null, false);
 		} else {
 			// throw exception here
 		}
@@ -281,7 +281,7 @@ public class MyContentProvider extends ContentProvider {
 		if (command.equals(PATH_UPDATE)) {
 			getContext().getContentResolver().notifyChange(uri, null, true);
 		} else if (command.equals(PATH_UPDATE_NO_NOTIFY)) {
-			getContext().getContentResolver().notifyChange(uri, null, false);
+			//getContext().getContentResolver().notifyChange(uri, null, false);
 		} else {
 			// throw exception here
 		}

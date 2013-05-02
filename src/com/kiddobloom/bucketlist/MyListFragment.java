@@ -250,7 +250,7 @@ public class MyListFragment extends SherlockFragment implements
 
 			if (menuItemId == MENU_ID_DELETE) {
 
-				base = Uri.withAppendedPath(base, "delete");
+				base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE);
 
 				Log.d("tag", "number of checked item Ids: " + itemids.length);
 				for (int i = 0; i < itemids.length; i++) {
@@ -287,7 +287,7 @@ public class MyListFragment extends SherlockFragment implements
 
 				int itemId = (int) la.getItemId(position);
 
-				base = Uri.withAppendedPath(base, "edit");
+				base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
 				base = Uri.withAppendedPath(base, Integer.toString(itemId));
 
 				Log.d("tag", "uri: " + base);

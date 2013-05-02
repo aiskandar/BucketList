@@ -103,6 +103,11 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
 	}
 
+	private void restDelete(String id, Cursor c, ContentProviderClient provider) {
+		
+		
+	}
+	
 	private void restInsert(String id, Cursor c, ContentProviderClient provider) {
 		
 		Gson mJson = new Gson(); 
@@ -210,7 +215,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 						// restUpdate();
 						break;
 					case MyContentProvider.REST_STATE_DELETE:
-						// restDelete();
+						restDelete(id, c, provider);
 						break;
 					case MyContentProvider.REST_STATE_NONE:	
 					case MyContentProvider.REST_STATE_QUERY:
@@ -221,9 +226,20 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 			} else {
 				
 			}
+
+			Uri base = MyContentProvider.CONTENT_URI;
+			base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_NO_NOTIFY);
+			Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+			try {
+				provider.delete(uri, null, null);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			c.moveToNext();
 		}
-				
+						
 		HttpEntity entity = null;
 		HttpResponse resp = null;
 		String response = null;
