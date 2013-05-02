@@ -27,6 +27,8 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 	CheckBox registered;
 	CheckBox skip;
 	CheckBox synced;
+	CheckBox fb_me_retrieved;
+	CheckBox fb_friends_retrieved;
 	TextView tv;
 	
 	@Override
@@ -56,6 +58,12 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 		synced = (CheckBox) findViewById(R.id.pref_cb_initial_sync);
 		synced.setOnClickListener(this);
 
+		fb_me_retrieved = (CheckBox) findViewById(R.id.pref_cb_fb_me_retrieved);
+		fb_me_retrieved.setOnClickListener(this);
+		
+		fb_friends_retrieved = (CheckBox) findViewById(R.id.pref_cb_fb_friends_retrieved);
+		fb_friends_retrieved.setOnClickListener(this);
+		
 		tv = (TextView) findViewById(R.id.pref_tv_userid);
 		
 		updateUI();
@@ -76,6 +84,11 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 		boolean b4 = sp.getBoolean(getString(R.string.pref_initial_sync_key), false);
 		synced.setChecked(b3);
 
+		boolean b5 = sp.getBoolean(getString(R.string.pref_fb_me_retrieved), false);
+		fb_me_retrieved.setChecked(b5);
+		
+		boolean b6 = sp.getBoolean(getString(R.string.pref_fb_friends_retrieved), false);
+		fb_friends_retrieved.setChecked(b6);
 
 	}
 	
@@ -87,6 +100,8 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 		editor.putBoolean(getString(R.string.pref_skip_key), skip.isChecked());
 		editor.putString(getString(R.string.pref_userid_key), tv.getText().toString());
 		editor.putBoolean(getString(R.string.pref_initial_sync_key), synced.isChecked());
+		editor.putBoolean(getString(R.string.pref_fb_me_retrieved), fb_me_retrieved.isChecked());
+		editor.putBoolean(getString(R.string.pref_fb_friends_retrieved), fb_friends_retrieved.isChecked());
 
 		editor.commit();
 

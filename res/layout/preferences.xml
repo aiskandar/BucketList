@@ -31,6 +31,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Init synced" />
+
+        <CheckBox
+            android:id="@+id/pref_cb_fb_me_retrieved"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Facebook ME retrieved" />
+                
+        <CheckBox
+            android:id="@+id/pref_cb_fb_friends_retrieved"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Facebook Friends retrieved" />
         
         <TextView
             android:id="@+id/pref_tv_userid"
