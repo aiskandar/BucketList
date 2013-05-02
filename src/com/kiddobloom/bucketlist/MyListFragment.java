@@ -125,6 +125,9 @@ public class MyListFragment extends SherlockFragment implements
 						cv.put(MyContentProvider.COLUMN_RATING, "false");
 						cv.put(MyContentProvider.COLUMN_SHARE, "true");
 						cv.put(MyContentProvider.COLUMN_DONE, "false");
+						cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_INSERT);
+						cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
+						
 						getSherlockActivity().getContentResolver().insert(
 								MyContentProvider.CONTENT_URI, cv);
 

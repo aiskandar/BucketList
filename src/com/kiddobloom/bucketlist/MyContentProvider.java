@@ -24,7 +24,7 @@ public class MyContentProvider extends ContentProvider {
 	public static final Uri CONTENT_URI = Uri.withAppendedPath(AUTHORITY_URI, "bucket");
 	
 	private static final String DATABASE_NAME = "bucketList.db";
-	private static final int DATABASE_VERSION = 10;
+	private static final int DATABASE_VERSION = 12;
 	
 	// Database table name
 	public static final String DATABASE_TABLE = "bucket";
@@ -36,8 +36,8 @@ public class MyContentProvider extends ContentProvider {
 	public static final String COLUMN_RATING = "rating";
 	public static final String COLUMN_SHARE = "share";
 	public static final String COLUMN_DONE = "done";
-	public static final String COLUMN_REST_STATUS = "rest_status";
-	public static final String COLUMN_REST_RESULT = "rest_result";
+	public static final String COLUMN_REST_STATE = "rest_state";
+	public static final String COLUMN_REST_STATUS = "rest_result";
 
 	// Database column index
 	public static final int COLUMN_INDEX_ID = 0;
@@ -46,8 +46,34 @@ public class MyContentProvider extends ContentProvider {
 	public static final int COLUMN_INDEX_RATING = 3;
 	public static final int COLUMN_INDEX_SHARE = 4;
 	public static final int COLUMN_INDEX_DONE = 5;
-	public static final int COLUMN_INDEX_REST_STATUS = 6;
-	public static final int COLUMN_INDEX_REST_RESULT = 7;
+	public static final int COLUMN_INDEX_REST_STATE = 6;
+	public static final int COLUMN_INDEX_REST_STATUS = 7;
+	
+	// REST STATUS constants
+	public static final int REST_STATE_INSERT = 0;
+	public static final int REST_STATE_DELETE = 1;
+	public static final int REST_STATE_UPDATE = 2;
+	public static final int REST_STATE_QUERY = 3;
+	public static final int REST_STATE_NONE = 4;
+
+	public static final String REST_STATE_INSERT_STR = "insert";
+	public static final String REST_STATE_DELETE_STR = "delete";
+	public static final String REST_STATE_UPDATE_STR = "update";
+	public static final String REST_STATE_QUERY_STR = "query";
+	public static final String REST_STATE_NONE_STR = "none";
+	
+    public static final String restStateStr[] = {REST_STATE_INSERT_STR, REST_STATE_DELETE_STR, REST_STATE_UPDATE_STR, REST_STATE_QUERY_STR, REST_STATE_NONE_STR };
+	
+	// REST RESULTS constants
+	public static final int REST_STATUS_TRANSACTING = 0;
+	public static final int REST_STATUS_RETRY = 1;
+	public static final int REST_STATUS_SYNCED = 2;
+	
+	public static final String REST_STATUS_TRANSACTING_STR = "transacting";
+	public static final String REST_STATUS_RETRY_STR = "retry";
+	public static final String REST_STATUS_SYNCED_STR = "synced";
+	
+    public static final String restStatusStr[] = {REST_STATUS_TRANSACTING_STR, REST_STATUS_RETRY_STR, REST_STATUS_SYNCED_STR};
 	
 	private SQLiteDatabase bucketDB;
 	private BucketDBOpenHelper bucketDBHelper;
@@ -76,11 +102,12 @@ public class MyContentProvider extends ContentProvider {
 		AccountManager accountManager = AccountManager.get(getContext());
 
 		boolean synced = sp.getBoolean(getContext().getString(R.string.pref_initial_sync_key), false);
+		Log.d("tag", "sync: " + synced);
 		
 		if (synced == false) {
 			Account[] accounts = accountManager.getAccountsByType("com.kiddobloom");		
 			for (int i=0 ; i < accounts.length ; i++) {
-				Log.d("tag", "account: " + accounts[i].name);
+				Log.d("tag", "requesting query sync for account: " + accounts[i].name);
 			
 				Bundle extras = new Bundle();
 				extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
@@ -114,7 +141,7 @@ public class MyContentProvider extends ContentProvider {
 				
 		bucketDB.insert(DATABASE_TABLE, null, values);
 		
-		Log.d("tag", "authority: " + uri.getAuthority());
+		//Log.d("tag", "authority: " + uri.getAuthority());
 		
 		getContext().getContentResolver().notifyChange(uri, null, true);
 		Log.d("tag", "insert Uri " + uri);
@@ -145,12 +172,21 @@ public class MyContentProvider extends ContentProvider {
 	@Override
 	public int update(Uri uri, ContentValues values, String selection,
 			String[] selectionArgs) {
-		
-		String rowId= uri.getLastPathSegment();
+
+		List<String> ls = null;
+
+		String rowId= uri.getLastPathSegment();		
+		ls = uri.getPathSegments();
 		
 		Log.d("tag", "update Uri " + uri + " rowId:" + rowId);
-		bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);		
-		getContext().getContentResolver().notifyChange(uri, null, true);		
+		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
+		
+		for (int i = 2 ; i < ls.size() ; i++) {
+			Log.d("tag", "update URI: " + ls.get(i).toString());
+		}		
+
+//		bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);		
+//		getContext().getContentResolver().notifyChange(uri, null, true);		
 		return Integer.parseInt(rowId);
 	}
 	
@@ -164,7 +200,7 @@ public class MyContentProvider extends ContentProvider {
 		@Override
 		public void onCreate(SQLiteDatabase db) {	
 			// sqlite command: create table DATABASE_TABLE(KEY_ID INTEGER PRIMARY KEY, COLUMN_ENTRY TEXT, COLUMN_DATE TEXT, COLUMN_RATING TEXT, COLUMN_DONE TEXT, COLUMN_REST_STATUS TEXT, COLUMN_REST_RESULT TEXT);
-			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_ENTRY + " TEXT, " + COLUMN_DATE + " TEXT, " + COLUMN_RATING + " TEXT, " + COLUMN_SHARE + " TEXT, " +  COLUMN_DONE + " TEXT, " + COLUMN_REST_STATUS + " TEXT, " + COLUMN_REST_RESULT + " TEXT);" ;
+			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_ENTRY + " TEXT, " + COLUMN_DATE + " TEXT, " + COLUMN_RATING + " TEXT, " + COLUMN_SHARE + " TEXT, " +  COLUMN_DONE + " TEXT, " + COLUMN_REST_STATE + " INTEGER, " + COLUMN_REST_STATUS + " INTEGER);" ;
 			db.execSQL(sqlCreateTable);
 			Log.d("tag", "sqllite new database generated");
 		}

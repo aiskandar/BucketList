@@ -31,6 +31,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.SyncResult;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
@@ -61,14 +62,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 	public void onPerformSync(Account account, Bundle extras, String authority,
 			ContentProviderClient provider, SyncResult syncResult) {
 		Log.d("tag", "Sync :" + account.name + " " + extras);
-
-		Gson mJson = new Gson(); 
-		ArrayList<BucketListTableServer> list = new ArrayList<BucketListTableServer>();
 		Cursor c = null;
-        HttpEntity entity = null;
-        HttpResponse resp = null;
-        String response = null;
-		
         boolean force = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL);
         
         if (force == true) {
@@ -77,8 +71,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         	fetchBucketList(account.name, provider);
         	
         } else {
-        	
-        
 			try {
 				c = provider.query(MyContentProvider.AUTHORITY_URI, null, null,
 						null, null);
@@ -88,71 +80,120 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 			}
 
 			c.moveToFirst();
-
 			for (int i = 0; i < c.getCount(); i++) {
-				BucketListTableServer data = new BucketListTableServer();
-
-				data.setDate(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
-				data.setEntry(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
-				data.setId(c.getInt(MyContentProvider.COLUMN_INDEX_ID));
-				data.setDone(c.getString(MyContentProvider.COLUMN_INDEX_DONE));
-				data.setRating(c
-						.getString(MyContentProvider.COLUMN_INDEX_RATING));
-				data.setUsername(account.name);
-
-				list.add(data);
-
+				
+				if (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATUS) == MyContentProvider.REST_STATUS_TRANSACTING) {
+					
+					Log.d("tag", "the following row ID: " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + " is transacting");
+					Log.d("tag", "transaction type: " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+					
+					switch (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)) {
+						case MyContentProvider.REST_STATE_INSERT:
+							restInsert(account, c, provider);
+							break;
+						case MyContentProvider.REST_STATE_UPDATE:
+							break;
+						case MyContentProvider.REST_STATE_DELETE:
+							break;
+						case MyContentProvider.REST_STATE_NONE:	
+						case MyContentProvider.REST_STATE_QUERY:
+							// throw exception here - when transacting, it cannot be in these 2 states
+							break;
+						default:
+					}				
+				} else {
+					
+				}
 				c.moveToNext();
 			}
-
-			String jsonData = mJson.toJson(list);
-			Log.d("tag", jsonData);
-
-			final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-			nvp.add(new BasicNameValuePair("json", jsonData));
-
-			try {
-				entity = new UrlEncodedFormEntity(nvp);
-			} catch (UnsupportedEncodingException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
-			try {
-				// entity = new StringEntity(jsonData);
-				final HttpPost post = new HttpPost(
-						"http://andyiskandar.me/bucket.php");
-				post.addHeader(entity.getContentType());
-				post.setEntity(entity);
-				// post.setHeader("Accept", "application/json");
-				// post.setHeader("Content-type", "application/json");
-
-				HttpClient mHttpClient = new DefaultHttpClient();
-				resp = mHttpClient.execute(post);
-				response = EntityUtils.toString(resp.getEntity());
-			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				Log.d("tag", "response: " + response);
-			} else {
-				Log.d("tag", "Server error in fetching remote contacts: "
-						+ resp.getStatusLine());
-			}
         }
+
 	}
 
+	private void restInsert(Account account, Cursor c, ContentProviderClient provider) {
+		
+		Gson mJson = new Gson(); 
+		ArrayList<BucketListTableServer> list = new ArrayList<BucketListTableServer>();
+        HttpEntity entity = null;
+        HttpResponse resp = null;
+        String response = null;
+
+		BucketListTableServer data = new BucketListTableServer();
+
+		data.setDate(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
+		data.setEntry(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
+		data.setId(c.getInt(MyContentProvider.COLUMN_INDEX_ID));
+		data.setDone(c.getString(MyContentProvider.COLUMN_INDEX_DONE));
+		data.setRating(c
+				.getString(MyContentProvider.COLUMN_INDEX_RATING));
+		data.setUsername(account.name);	
+		
+		list.add(data);
+		
+		String jsonData = mJson.toJson(list);
+		Log.d("tag", jsonData);
+
+		final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+		nvp.add(new BasicNameValuePair("json", jsonData));
+
+		try {
+			entity = new UrlEncodedFormEntity(nvp);
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		try {
+			// entity = new StringEntity(jsonData);
+			final HttpPost post = new HttpPost(
+					"http://andyiskandar.me/bucket.php");
+			post.addHeader(entity.getContentType());
+			post.setEntity(entity);
+			// post.setHeader("Accept", "application/json");
+			// post.setHeader("Content-type", "application/json");
+
+			HttpClient mHttpClient = new DefaultHttpClient();
+			resp = mHttpClient.execute(post);
+			response = EntityUtils.toString(resp.getEntity());
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+			Log.d("tag", "response: " + response);
+			
+			ContentValues cv = new ContentValues();
+			cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
+			cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
+			
+			Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, "edit_status");
+			Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+			
+			try {
+				provider.update(uri, cv, null, null);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		} else {
+			Log.d("tag", "Server error in fetching remote contacts: "
+					+ resp.getStatusLine());
+		}
+		
+	}
+	
+	
 	private void fetchBucketList(String id, ContentProviderClient provider) {
 
 		HttpEntity entity = null;
@@ -195,13 +236,14 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 			cv.put(MyContentProvider.COLUMN_RATING, blt.rating);
 			cv.put(MyContentProvider.COLUMN_SHARE, blt.share);
 			cv.put(MyContentProvider.COLUMN_DONE, blt.done);
+			cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
+			cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
 			
-			try {
-				provider.insert(MyContentProvider.CONTENT_URI, cv);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			try {
+//				provider.insert(MyContentProvider.CONTENT_URI, cv);
+//			} catch (RemoteException e) {
+//				e.printStackTrace();
+//			}
 
     	}
  
