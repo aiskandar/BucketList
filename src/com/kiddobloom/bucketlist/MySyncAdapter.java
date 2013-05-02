@@ -53,7 +53,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority,
 			ContentProviderClient provider, SyncResult syncResult) {
-		Log.d("tag", "Sync :" + account.name + " " + extras);
+		Log.d("tag", "onPerformSync :" + account.name + " " + extras);
         boolean force = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL);
         Cursor c = null;
         
@@ -104,6 +104,11 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 	}
 
 	private void restDelete(String id, Cursor c, ContentProviderClient provider) {
+		
+		
+	}
+
+	private void restUpdate(String id, Cursor c, ContentProviderClient provider) {
 		
 		
 	}
@@ -212,7 +217,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 						restInsert(id, c, provider);
 						break;
 					case MyContentProvider.REST_STATE_UPDATE:
-						// restUpdate();
+						restUpdate(id, c, provider);
 						break;
 					case MyContentProvider.REST_STATE_DELETE:
 						restDelete(id, c, provider);
