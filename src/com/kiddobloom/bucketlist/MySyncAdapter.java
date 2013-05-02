@@ -3,11 +3,15 @@ package com.kiddobloom.bucketlist;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Provider;
+import java.sql.Array;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -40,44 +44,33 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 public class MySyncAdapter extends AbstractThreadedSyncAdapter {
-	
-	String KEY_USERNAME = "username";
-	String KEY_DATE = "date";
-	String KEY_ITEM = "item";
-	String KEY_DONE = "done";
-	String KEY_RATING = "rating";
 
 	public MySyncAdapter(Context context, boolean autoInitialize) {
 		super(context, autoInitialize);
 		// TODO Auto-generated constructor stub
 	}
 
-//	public MySyncAdapter(Context context, boolean autoInitialize,
-//			boolean allowParallelSyncs) {
-//		super(context, autoInitialize, allowParallelSyncs);
-//		// TODO Auto-generated constructor stub
-//	}
-
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority,
 			ContentProviderClient provider, SyncResult syncResult) {
 		Log.d("tag", "Sync :" + account.name + " " + extras);
-		Cursor c = null;
         boolean force = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL);
+        Cursor c = null;
         
+		try {
+			c = provider.query(MyContentProvider.AUTHORITY_URI, null, null,
+					null, null);
+		} catch (RemoteException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
         if (force == true) {
         	// this was triggered by a query - the only place I set force to true
         	Log.d("tag", "db query");
-        	fetchBucketList(account.name, provider);
+        	fetchBucketList(account.name, provider, c);
         	
         } else {
-			try {
-				c = provider.query(MyContentProvider.AUTHORITY_URI, null, null,
-						null, null);
-			} catch (RemoteException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
 
 			c.moveToFirst();
 			for (int i = 0; i < c.getCount(); i++) {
@@ -89,7 +82,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 					
 					switch (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)) {
 						case MyContentProvider.REST_STATE_INSERT:
-							restInsert(account, c, provider);
+							restInsert(account.name, c, provider);
 							break;
 						case MyContentProvider.REST_STATE_UPDATE:
 							break;
@@ -110,7 +103,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
 	}
 
-	private void restInsert(Account account, Cursor c, ContentProviderClient provider) {
+	private void restInsert(String id, Cursor c, ContentProviderClient provider) {
 		
 		Gson mJson = new Gson(); 
 		ArrayList<BucketListTableServer> list = new ArrayList<BucketListTableServer>();
@@ -124,9 +117,8 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		data.setEntry(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
 		data.setId(c.getInt(MyContentProvider.COLUMN_INDEX_ID));
 		data.setDone(c.getString(MyContentProvider.COLUMN_INDEX_DONE));
-		data.setRating(c
-				.getString(MyContentProvider.COLUMN_INDEX_RATING));
-		data.setUsername(account.name);	
+		data.setRating(c.getString(MyContentProvider.COLUMN_INDEX_RATING));
+		data.setUsername(id);	
 		
 		list.add(data);
 		
@@ -176,7 +168,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 			cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
 			cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
 			
-			Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, "edit_status");
+			Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
 			Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
 			
 			try {
@@ -194,15 +186,52 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 	}
 	
 	
-	private void fetchBucketList(String id, ContentProviderClient provider) {
+	private void fetchBucketList(String id, ContentProviderClient provider, Cursor c) {
 
-		HttpEntity entity = null;
-        HttpResponse resp = null;
-        String response = null;
-               
-		try {
-			final HttpGet get = new HttpGet("http://andyiskandar.me/bucketget.php?id=" + id);
+		// before we do anything to fetch all the bucket list from the cloud
+		// check the rest_status and rest_state of each local db
+		// possible that users add to the list in offline mode - the rest_state would be RETRY
+		// if all the rest_state in the list are SYNCED, we just overwrite the local db
+		
+		c.moveToFirst();
+		for (int i = 0; i < c.getCount(); i++) {
 			
+			if (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATUS) == MyContentProvider.REST_STATUS_TRANSACTING || 
+					c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATUS) == MyContentProvider.REST_STATUS_RETRY) {
+				
+				Log.d("tag", "the following row ID: " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + " is transacting/retry");
+				Log.d("tag", "transaction type: " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+				
+				switch (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)) {
+					case MyContentProvider.REST_STATE_INSERT:
+						restInsert(id, c, provider);
+						break;
+					case MyContentProvider.REST_STATE_UPDATE:
+						// restUpdate();
+						break;
+					case MyContentProvider.REST_STATE_DELETE:
+						// restDelete();
+						break;
+					case MyContentProvider.REST_STATE_NONE:	
+					case MyContentProvider.REST_STATE_QUERY:
+						// throw exception here - when transacting, it cannot be in these 2 states
+						break;
+					default:
+				}				
+			} else {
+				
+			}
+			c.moveToNext();
+		}
+				
+		HttpEntity entity = null;
+		HttpResponse resp = null;
+		String response = null;
+		
+		try {
+			final HttpGet get = new HttpGet(
+					"http://andyiskandar.me/bucketget.php?id=" + id);
+
 			HttpClient mHttpClient = new DefaultHttpClient();
 			resp = mHttpClient.execute(get);
 			response = EntityUtils.toString(resp.getEntity());
@@ -216,43 +245,51 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+			Log.d("tag", "response: " + response);
+
+			Gson mJson = new Gson();
+
+			ArrayList<BucketListTable> blList = mJson.fromJson(response,
+					new TypeToken<Collection<BucketListTable>>() {
+					}.getType());
+
+			int size = blList.size();
+			ContentValues[] cvArray = new ContentValues[size];
+
+			for (int i = 0; i < size; i++) {
+				BucketListTable blt = blList.get(i);
+
+				ContentValues cv = new ContentValues();
+
+				cv.put(MyContentProvider.COLUMN_ENTRY, blt.item);
+				cv.put(MyContentProvider.COLUMN_DATE, blt.date);
+				cv.put(MyContentProvider.COLUMN_RATING, blt.rating);
+				cv.put(MyContentProvider.COLUMN_SHARE, blt.share);
+				cv.put(MyContentProvider.COLUMN_DONE, blt.done);
+				cv.put(MyContentProvider.COLUMN_REST_STATUS,
+						MyContentProvider.REST_STATUS_SYNCED);
+				cv.put(MyContentProvider.COLUMN_REST_STATE,
+						MyContentProvider.REST_STATE_NONE);
+
+				cvArray[i] = cv;
+			}
+
+			Uri base = MyContentProvider.CONTENT_URI;
+			base = Uri.withAppendedPath(base, "insert");
+
+			try {
+				provider.bulkInsert(base, cvArray);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		} else {
+			Log.d("tag",
+					"Server error in fetching bucket list: "
+							+ resp.getStatusLine());
+		}
 	
-    if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-    	Log.d("tag", "response: " + response);
-    	
-    	Gson mJson = new Gson();
-    	
-    	ArrayList<BucketListTable> blList = mJson.fromJson(response, new TypeToken<Collection<BucketListTable>>() {}.getType());
-    	
-    	int size = blList.size();
-    	
-    	for (int i=0; i < size; i++) {
-        	BucketListTable blt = blList.get(i);
-
-        	ContentValues cv = new ContentValues();
-		
-			cv.put(MyContentProvider.COLUMN_ENTRY, blt.item);
-			cv.put(MyContentProvider.COLUMN_DATE, blt.date);
-			cv.put(MyContentProvider.COLUMN_RATING, blt.rating);
-			cv.put(MyContentProvider.COLUMN_SHARE, blt.share);
-			cv.put(MyContentProvider.COLUMN_DONE, blt.done);
-			cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
-			cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
-			
-//			try {
-//				provider.insert(MyContentProvider.CONTENT_URI, cv);
-//			} catch (RemoteException e) {
-//				e.printStackTrace();
-//			}
-
-    	}
- 
-    	
-    } else {
-            Log.d("tag", "Server error in fetching bucket list: "
-                + resp.getStatusLine());
-    }
-		
 	}
 	
 

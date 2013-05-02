@@ -128,12 +128,13 @@ public class MyListFragment extends SherlockFragment implements
 						cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_INSERT);
 						cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
 						
-						getSherlockActivity().getContentResolver().insert(
-								MyContentProvider.CONTENT_URI, cv);
-
+						Uri base = MyContentProvider.CONTENT_URI;
+						base = Uri.withAppendedPath(base, "insert");
+						
+						getSherlockActivity().getContentResolver().insert(base , cv);
+						
 					} else {
-						getSherlockActivity().getContentResolver().update(lastUri, cv,
-								null, null);
+						getSherlockActivity().getContentResolver().update(lastUri, cv, null, null);
 						signalUpdate(false, null);
 					}
 				}

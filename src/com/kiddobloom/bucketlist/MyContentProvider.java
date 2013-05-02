@@ -19,9 +19,27 @@ import android.util.Log;
 
 public class MyContentProvider extends ContentProvider {
     
+	// URI format
+	// base uri - content://com.kiddobloom.bucketlist/bucket
+	// query - content://com.kiddobloom.bucketlist/bucket/query
+	// insert - content://com.kiddobloom.bucketlist/bucket/insert
+	// insert_no_notify - content://com.kiddobloom.bucketlist/bucket/insert_no_notify
+	// update - content://com.kiddobloom.bucketlist/bucket/update/5
+	// update_no_notify - content://com.kiddobloom.bucketlist/bucket/update_no_notify/5
+	// delete - content://com.kiddobloom.bucketlist/bucket/delete/5/6/9/13
+	// delete_no_notify - content://com.kiddobloom.bucketlist/bucket/delete_no_notify/5/6/9/13
+	
     public static final String AUTHORITY = "com.kiddobloom.bucketlist";
 	public static final Uri AUTHORITY_URI = Uri.parse("content://" + AUTHORITY); 
 	public static final Uri CONTENT_URI = Uri.withAppendedPath(AUTHORITY_URI, "bucket");
+	
+	public static final String PATH_QUERY = "query";
+	public static final String PATH_INSERT = "insert";
+	public static final String PATH_INSERT_NO_NOTIFY = "insert_no_notify";
+	public static final String PATH_UPDATE = "update";
+	public static final String PATH_UPDATE_NO_NOTIFY = "update_no_notify";
+	public static final String PATH_DELETE = "delete";
+	public static final String PATH_DELETE_NO_NOTIFY = "delete_no_notify";
 	
 	private static final String DATABASE_NAME = "bucketList.db";
 	private static final int DATABASE_VERSION = 12;
@@ -90,11 +108,43 @@ public class MyContentProvider extends ContentProvider {
 		bucketDB = bucketDBHelper.getWritableDatabase();
 		return true;
 	}
+	
+	@Override
+	public int bulkInsert(Uri uri, ContentValues[] values) {
+		// TODO Auto-generated method stub
+		Log.d("tag", "bulk insert Uri " + uri);
+		
+		List<String> ls = null;
+		ls = uri.getPathSegments();
+		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
+		
+		for (int i = 0 ; i < ls.size() ; i++) {
+			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
+		}
+		
+		int size = values.length;
+		for (int i=0; i<size; i++) {
+			bucketDB.insert(DATABASE_TABLE, null, values[i]);
+		}
+		
+		getContext().getContentResolver().notifyChange(uri, null, true);
+		
+		return 0;
+	}
 
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 
 		Log.d("tag", "query Uri " + uri.toString());
+		
+		List<String> ls = null;
+		ls = uri.getPathSegments();
+		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
+		
+		for (int i = 0 ; i < ls.size() ; i++) {
+			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
+		}
+		
 		Cursor cur = bucketDB.query(DATABASE_TABLE, null, null, null, null, null, COLUMN_RATING + " DESC");
 		cur.setNotificationUri(getContext().getContentResolver(), uri);
 		
@@ -138,55 +188,105 @@ public class MyContentProvider extends ContentProvider {
 
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
-				
-		bucketDB.insert(DATABASE_TABLE, null, values);
-		
-		//Log.d("tag", "authority: " + uri.getAuthority());
-		
-		getContext().getContentResolver().notifyChange(uri, null, true);
+
 		Log.d("tag", "insert Uri " + uri);
 		
+		List<String> ls = null;
+		ls = uri.getPathSegments();
+		String command = null;
+		
+		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
+		
+		for (int i = 0 ; i < ls.size() ; i++) {
+			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
+			if (i == 1) {
+				command = ls.get(i).toString();
+			} 
+		}
+		
+		bucketDB.insert(DATABASE_TABLE, null, values);
+		
+		if (command.equals(PATH_INSERT)) {
+			getContext().getContentResolver().notifyChange(uri, null, true);
+		} else if (command.equals(PATH_INSERT_NO_NOTIFY)) {
+			getContext().getContentResolver().notifyChange(uri, null, false);
+		} else {
+			// throw exception here
+		}
+
 		return uri;
 	}
 
 	@Override
 	public int delete(Uri uri, String selection, String[] selectionArgs) {
-		
-		//String rowId= uri.getLastPathSegment();
-		List<String> ls = null;
-		
-		ls = uri.getPathSegments();
-		
+
 		Log.d("tag", "delete Uri " + uri);
+
+		List<String> ls = null;
+		ls = uri.getPathSegments();
+		String command = null;
+		
 		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
 		
+		for (int i = 0 ; i < ls.size() ; i++) {
+			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
+			if (i == 1) {
+				command = ls.get(i).toString();
+			} 
+		}
+
 		for (int i = 2 ; i < ls.size() ; i++) {
 			Log.d("tag", "rowID to delete: " + ls.get(i).toString());
 			bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
 		}
 		
-		getContext().getContentResolver().notifyChange(uri, null, true);		
-		return 1;
+		if (command.equals(PATH_DELETE)) {
+			getContext().getContentResolver().notifyChange(uri, null, true);
+		} else if (command.equals(PATH_DELETE_NO_NOTIFY)) {
+			getContext().getContentResolver().notifyChange(uri, null, false);
+		} else {
+			// throw exception here
+		}
+		
+		return 0;
 	}
 
 	@Override
 	public int update(Uri uri, ContentValues values, String selection,
 			String[] selectionArgs) {
 
-		List<String> ls = null;
+		Log.d("tag", "update Uri " + uri);
 
-		String rowId= uri.getLastPathSegment();		
+		List<String> ls = null;
 		ls = uri.getPathSegments();
+		String rowId = null;
+		String command = null;
 		
-		Log.d("tag", "update Uri " + uri + " rowId:" + rowId);
 		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
 		
-		for (int i = 2 ; i < ls.size() ; i++) {
-			Log.d("tag", "update URI: " + ls.get(i).toString());
-		}		
+		for (int i = 0 ; i < ls.size() ; i++) {
+			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
+			
+			if (i == 1) {
+				command = ls.get(i).toString();
+			} else if (i == 2) {
+				rowId = ls.get(i).toString();
+			}
+		}
 
-//		bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);		
-//		getContext().getContentResolver().notifyChange(uri, null, true);		
+		if (rowId != null) {	
+			bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
+		}
+		
+		if (command.equals(PATH_UPDATE)) {
+			getContext().getContentResolver().notifyChange(uri, null, true);
+		} else if (command.equals(PATH_UPDATE_NO_NOTIFY)) {
+			getContext().getContentResolver().notifyChange(uri, null, false);
+		} else {
+			// throw exception here
+		}
+		
+		
 		return Integer.parseInt(rowId);
 	}
 	
