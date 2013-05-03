@@ -2,16 +2,8 @@ package com.kiddobloom.bucketlist;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.Provider;
-import java.sql.Array;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -85,8 +77,10 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 							restInsert(account.name, c, provider);
 							break;
 						case MyContentProvider.REST_STATE_UPDATE:
+							restUpdate(account.name, c, provider);
 							break;
 						case MyContentProvider.REST_STATE_DELETE:
+							restDelete(account.name, c, provider);
 							break;
 						case MyContentProvider.REST_STATE_NONE:	
 						case MyContentProvider.REST_STATE_QUERY:
@@ -105,7 +99,59 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
 	private void restDelete(String id, Cursor c, ContentProviderClient provider) {
 		
-		
+		Gson mJson = new Gson(); 
+		ArrayList<BucketListTable> list = new ArrayList<BucketListTable>();
+        HttpEntity entity = null;
+        HttpResponse resp = null;
+        String response = null;
+
+		try {
+			final HttpGet get = new HttpGet(
+					"http://andyiskandar.me/bucketdelete.php?serverid=" + c.getInt(MyContentProvider.COLUMN_INDEX_SERVER_ID));
+			HttpClient mHttpClient = new DefaultHttpClient();
+			resp = mHttpClient.execute(get);
+			response = EntityUtils.toString(resp.getEntity());
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+			Log.d("tag", "response: " + response);
+
+			boolean error = response.startsWith("error:");
+			
+			if (error == true) {
+				String arr[] = response.split(":");
+			
+				Log.d("tag", "error response in restDelete");
+				for(int i=0; i < arr.length ; i++) {
+					Log.d("tag", "error: " + arr[i]);
+				}
+				
+			} else {
+			
+				Uri base = MyContentProvider.CONTENT_URI;
+				base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_DB);
+				Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+				
+				try {
+					provider.delete(uri, null, null);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} else {
+			Log.d("tag", "Server error in fetching remote contacts: "
+					+ resp.getStatusLine());
+		}		
 	}
 
 	private void restUpdate(String id, Cursor c, ContentProviderClient provider) {
@@ -116,20 +162,20 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 	private void restInsert(String id, Cursor c, ContentProviderClient provider) {
 		
 		Gson mJson = new Gson(); 
-		ArrayList<BucketListTableServer> list = new ArrayList<BucketListTableServer>();
+		ArrayList<BucketListTable> list = new ArrayList<BucketListTable>();
         HttpEntity entity = null;
         HttpResponse resp = null;
         String response = null;
 
-		BucketListTableServer data = new BucketListTableServer();
+		BucketListTable data = new BucketListTable();
 
+		data.setFacebookId(id);	
 		data.setDate(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
 		data.setEntry(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
-		data.setId(c.getInt(MyContentProvider.COLUMN_INDEX_ID));
 		data.setDone(c.getString(MyContentProvider.COLUMN_INDEX_DONE));
 		data.setRating(c.getString(MyContentProvider.COLUMN_INDEX_RATING));
-		data.setUsername(id);	
-		
+		data.setShare(c.getString(MyContentProvider.COLUMN_INDEX_SHARE));
+
 		list.add(data);
 		
 		String jsonData = mJson.toJson(list);
@@ -174,18 +220,35 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 			Log.d("tag", "response: " + response);
 			
-			ContentValues cv = new ContentValues();
-			cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
-			cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
+			boolean error = response.startsWith("error:");
 			
-			Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
-			Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+			if (error == true) {
+				String arr[] = response.split(":");
 			
-			try {
-				provider.update(uri, cv, null, null);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Log.d("tag", "error response in restDelete");
+				for(int i=0; i < arr.length ; i++) {
+					Log.d("tag", "arr[i]");
+				}
+			} else {
+				// the response should contain server_id of the last inserted entry
+				int serverId = Integer.parseInt(response);
+				
+				Log.d("tag", "server id: " + serverId);
+				
+				ContentValues cv = new ContentValues();
+				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
+				cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
+				cv.put(MyContentProvider.COLUMN_SERVER_ID, serverId);
+				
+				Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
+				Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+				
+				try {
+					provider.update(uri, cv, null, null);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
 		} else {
@@ -200,7 +263,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
 		// before we do anything to fetch all the bucket list from the cloud
 		// check the rest_status and rest_state of each local db
-		// possible that users add to the list in offline mode - the rest_state would be RETRY
+		// possible that users add to the list in offline mode - the rest_state would be REST_STATUS_RETRY or REST_STATUS_TRANSACTING
 		// if all the rest_state in the list are SYNCED, we just overwrite the local db
 		
 		c.moveToFirst();
@@ -228,8 +291,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 						break;
 					default:
 				}				
-			} else {
-				
 			}
 
 			Uri base = MyContentProvider.CONTENT_URI;
@@ -252,7 +313,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		try {
 			final HttpGet get = new HttpGet(
 					"http://andyiskandar.me/bucketget.php?id=" + id);
-
 			HttpClient mHttpClient = new DefaultHttpClient();
 			resp = mHttpClient.execute(get);
 			response = EntityUtils.toString(resp.getEntity());
@@ -277,33 +337,39 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 					}.getType());
 
 			int size = blList.size();
-			ContentValues[] cvArray = new ContentValues[size];
-
-			for (int i = 0; i < size; i++) {
-				BucketListTable blt = blList.get(i);
-
-				ContentValues cv = new ContentValues();
-
-				cv.put(MyContentProvider.COLUMN_ENTRY, blt.item);
-				cv.put(MyContentProvider.COLUMN_DATE, blt.date);
-				cv.put(MyContentProvider.COLUMN_RATING, blt.rating);
-				cv.put(MyContentProvider.COLUMN_SHARE, blt.share);
-				cv.put(MyContentProvider.COLUMN_DONE, blt.done);
-				cv.put(MyContentProvider.COLUMN_REST_STATUS,
-						MyContentProvider.REST_STATUS_SYNCED);
-				cv.put(MyContentProvider.COLUMN_REST_STATE,
-						MyContentProvider.REST_STATE_NONE);
-
-				cvArray[i] = cv;
-			}
-
-			Uri base = MyContentProvider.CONTENT_URI;
-			base = Uri.withAppendedPath(base, "insert");
-
-			try {
-				provider.bulkInsert(base, cvArray);
-			} catch (RemoteException e) {
-				e.printStackTrace();
+			
+			if (size > 0) {
+				ContentValues[] cvArray = new ContentValues[size];
+	
+				for (int i = 0; i < size; i++) {
+					BucketListTable blt = blList.get(i);
+	
+					ContentValues cv = new ContentValues();
+	
+					Log.d("tag", "server id: " + blt.server_id);
+					
+					cv.put(MyContentProvider.COLUMN_SERVER_ID, blt.server_id);
+					cv.put(MyContentProvider.COLUMN_ENTRY, blt.entry);
+					cv.put(MyContentProvider.COLUMN_DATE, blt.date);
+					cv.put(MyContentProvider.COLUMN_RATING, blt.rating);
+					cv.put(MyContentProvider.COLUMN_SHARE, blt.share);
+					cv.put(MyContentProvider.COLUMN_DONE, blt.done);
+					cv.put(MyContentProvider.COLUMN_REST_STATUS,
+							MyContentProvider.REST_STATUS_SYNCED);
+					cv.put(MyContentProvider.COLUMN_REST_STATE,
+							MyContentProvider.REST_STATE_NONE);
+	
+					cvArray[i] = cv;
+				}
+	
+				Uri base = MyContentProvider.CONTENT_URI;
+				base = Uri.withAppendedPath(base, "insert");
+	
+				try {
+					provider.bulkInsert(base, cvArray);
+				} catch (RemoteException e) {
+					e.printStackTrace();
+				}
 			}
 		} else {
 			Log.d("tag",

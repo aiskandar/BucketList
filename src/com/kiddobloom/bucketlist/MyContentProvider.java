@@ -26,7 +26,9 @@ public class MyContentProvider extends ContentProvider {
 	// insert_no_notify - content://com.kiddobloom.bucketlist/bucket/insert_no_notify
 	// update - content://com.kiddobloom.bucketlist/bucket/update/5
 	// update_no_notify - content://com.kiddobloom.bucketlist/bucket/update_no_notify/5
-	// delete - content://com.kiddobloom.bucketlist/bucket/delete/5/6/9/13
+	
+	// delete (rest) - content://com.kiddobloom.bucketlist/bucket/delete/5/6/9/13
+	// delete_db - content://com.kiddobloom.bucketlist/bucket/delete_db/5/6/9/13
 	// delete_no_notify - content://com.kiddobloom.bucketlist/bucket/delete_no_notify/5/6/9/13
 	
     public static final String AUTHORITY = "com.kiddobloom.bucketlist";
@@ -39,33 +41,39 @@ public class MyContentProvider extends ContentProvider {
 	public static final String PATH_UPDATE = "update";
 	public static final String PATH_UPDATE_NO_NOTIFY = "update_no_notify";
 	public static final String PATH_DELETE = "delete";
+	public static final String PATH_DELETE_DB = "delete_db";
 	public static final String PATH_DELETE_NO_NOTIFY = "delete_no_notify";
 	
 	private static final String DATABASE_NAME = "bucketList.db";
-	private static final int DATABASE_VERSION = 12;
+	private static final int DATABASE_VERSION = 14;
 	
 	// Database table name
 	public static final String DATABASE_TABLE = "bucket";
 	
 	// Database column name
 	public static final String COLUMN_ID = "_id";
-	public static final String COLUMN_ENTRY = "entry";
+	public static final String COLUMN_SERVER_ID = "server_id";
 	public static final String COLUMN_DATE = "date";
+	public static final String COLUMN_ENTRY = "entry";
+	public static final String COLUMN_DONE = "done";
 	public static final String COLUMN_RATING = "rating";
 	public static final String COLUMN_SHARE = "share";
-	public static final String COLUMN_DONE = "done";
 	public static final String COLUMN_REST_STATE = "rest_state";
 	public static final String COLUMN_REST_STATUS = "rest_result";
 
 	// Database column index
 	public static final int COLUMN_INDEX_ID = 0;
-	public static final int COLUMN_INDEX_ENTRY = 1;
+	public static final int COLUMN_INDEX_SERVER_ID = 1;
 	public static final int COLUMN_INDEX_DATE = 2;
-	public static final int COLUMN_INDEX_RATING = 3;
-	public static final int COLUMN_INDEX_SHARE = 4;
-	public static final int COLUMN_INDEX_DONE = 5;
-	public static final int COLUMN_INDEX_REST_STATE = 6;
-	public static final int COLUMN_INDEX_REST_STATUS = 7;
+	public static final int COLUMN_INDEX_ENTRY = 3;
+	public static final int COLUMN_INDEX_DONE = 4;
+	public static final int COLUMN_INDEX_RATING = 5;
+	public static final int COLUMN_INDEX_SHARE = 6;
+	public static final int COLUMN_INDEX_REST_STATE = 7;
+	public static final int COLUMN_INDEX_REST_STATUS = 8;
+	
+	public static final String dbColumnStr[] = {COLUMN_ID, COLUMN_SERVER_ID, COLUMN_DATE, COLUMN_ENTRY, 
+										COLUMN_DONE, COLUMN_RATING, COLUMN_SHARE, COLUMN_REST_STATE, COLUMN_REST_STATUS };
 	
 	// REST STATUS constants
 	public static final int REST_STATE_INSERT = 0;
@@ -234,16 +242,34 @@ public class MyContentProvider extends ContentProvider {
 				command = ls.get(i).toString();
 			} 
 		}
-
-		for (int i = 2 ; i < ls.size() ; i++) {
-			Log.d("tag", "rowID to delete: " + ls.get(i).toString());
-			bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
-		}
 		
 		if (command.equals(PATH_DELETE)) {
+			
+			for (int i = 2 ; i < ls.size() ; i++) {
+				Log.d("tag", "rowID to delete: " + ls.get(i).toString());
+				
+				ContentValues cv = new ContentValues();	
+				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_DELETE);
+				cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
+				bucketDB.update(DATABASE_TABLE, cv, COLUMN_ID + "=" + ls.get(i).toString(), null);
+							
+				//bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
+			}
+
 			getContext().getContentResolver().notifyChange(uri, null, true);
+			
+		} else if (command.equals(PATH_DELETE_DB)) {
+			
+			for (int i = 2 ; i < ls.size() ; i++) {
+				Log.d("tag", "rowID to REALLY delete: " + ls.get(i).toString());
+				bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
+				getContext().getContentResolver().notifyChange(uri, null, true);
+			} 
 		} else if (command.equals(PATH_DELETE_NO_NOTIFY)) {
-			//getContext().getContentResolver().notifyChange(uri, null, false);
+			for (int i = 2 ; i < ls.size() ; i++) {
+				Log.d("tag", "rowID to REALLY delete: " + ls.get(i).toString());
+				bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
+			}
 		} else {
 			// throw exception here
 		}
@@ -300,7 +326,7 @@ public class MyContentProvider extends ContentProvider {
 		@Override
 		public void onCreate(SQLiteDatabase db) {	
 			// sqlite command: create table DATABASE_TABLE(KEY_ID INTEGER PRIMARY KEY, COLUMN_ENTRY TEXT, COLUMN_DATE TEXT, COLUMN_RATING TEXT, COLUMN_DONE TEXT, COLUMN_REST_STATUS TEXT, COLUMN_REST_RESULT TEXT);
-			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_ENTRY + " TEXT, " + COLUMN_DATE + " TEXT, " + COLUMN_RATING + " TEXT, " + COLUMN_SHARE + " TEXT, " +  COLUMN_DONE + " TEXT, " + COLUMN_REST_STATE + " INTEGER, " + COLUMN_REST_STATUS + " INTEGER);" ;
+			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_SERVER_ID + " INTEGER, " + COLUMN_DATE + " TEXT, " + COLUMN_ENTRY + " TEXT, " + COLUMN_DONE + " TEXT, " + COLUMN_RATING + " TEXT, " +  COLUMN_SHARE + " TEXT, " + COLUMN_REST_STATE + " INTEGER, " + COLUMN_REST_STATUS + " INTEGER);" ;
 			db.execSQL(sqlCreateTable);
 			Log.d("tag", "sqllite new database generated");
 		}

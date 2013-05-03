@@ -260,6 +260,7 @@ public class MyListFragment extends SherlockFragment implements
 				}
 
 				Log.d("tag", "uri: " + base);
+				
 				getSherlockActivity().getContentResolver().delete(base, null, null);
 
 			} else if (menuItemId == MENU_ID_EDIT) {

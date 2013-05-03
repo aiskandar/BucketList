@@ -3,9 +3,10 @@ package com.kiddobloom.bucketlist;
 import com.google.gson.annotations.Expose;
 
 public class BucketListTable {
+
 	@Expose
-	public int id;
-	
+	public int server_id;
+
 	@Expose
 	public String facebook_id;
 	
@@ -13,7 +14,7 @@ public class BucketListTable {
 	public String date;
 
 	@Expose
-	public String item;
+	public String entry;
 
 	@Expose
 	public String done;
@@ -24,8 +25,8 @@ public class BucketListTable {
 	@Expose
 	public String share;
 	
-	void setId(int id) {
-		this.id = id;
+	void setServerId(int server_id) {
+		this.server_id = server_id;
 	}
 
 	void setFacebookId(String fbid) {
@@ -33,7 +34,7 @@ public class BucketListTable {
 	}
 
 	void setEntry(String entry) {
-		this.item = entry;
+		this.entry = entry;
 	}
 	
 	void setDate(String date) {
