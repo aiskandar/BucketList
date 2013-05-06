@@ -13,16 +13,16 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RatingBar;
-import android.widget.RatingBar.OnRatingBarChangeListener;
 import android.widget.TextView;
 
 public class MyAdapter extends SimpleCursorAdapter {
 
 	LayoutInflater mInflater;		
 	Context context;
-		
+	int resId[] = {R.drawable.path, R.drawable.faith, R.drawable.fear, R.drawable.pray};
+	
 	public MyAdapter(Context c, String[] from, int[] to) {
 		super(c, R.layout.item_layout, null, from, to, 0);
 		context = c;
@@ -30,6 +30,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 	}
 	
 	public class ViewHolder {
+		LinearLayout tw;
 		CheckBox cb;
 		ImageButton ib1;
 		ImageButton ib2;
@@ -74,6 +75,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 			// Purpose of the ViewHolder is to save the findViewById for these child views
 			// The ViewHolder object will be saved in the tag of the baseview by calling setTag
 			vh = new ViewHolder();
+			vh.tw = (LinearLayout) baseview.findViewById(R.id.textWrapper);
 			vh.cb = (CheckBox) baseview.findViewById(R.id.ctv1);
 			vh.tv1 = (TextView) baseview.findViewById(R.id.blogHeader);
 			vh.tv2 = (TextView) baseview.findViewById(R.id.textView2);
@@ -187,10 +189,11 @@ public class MyAdapter extends SimpleCursorAdapter {
 		
 		if (lv.isItemChecked(position)) {
 			//Log.d("tag2", "yellow");
-			baseview.setBackgroundResource(R.color.paper);
+			vh.tw.setBackgroundResource(R.color.paper);
 		} else {
 			//Log.d("tag2", "white");
-			baseview.setBackgroundResource(android.R.color.white);
+			int resIdx = resId[position % 4];
+			vh.tw.setBackgroundResource(resIdx);
 		}
 
 		String share_str = c.getString(MyContentProvider.COLUMN_INDEX_SHARE);

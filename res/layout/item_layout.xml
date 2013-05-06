@@ -2,7 +2,7 @@
 <com.kiddobloom.bucketlist.BucketlistRowLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/row"
     android:layout_width="match_parent"
-    android:layout_height="60dp"
+    android:layout_height="200dp"
     android:layout_margin="10dp"
     android:layout_weight="0"
     android:background="@drawable/row_item_bg"
@@ -10,76 +10,89 @@
     android:focusable="false"
     android:focusableInTouchMode="false"
     android:longClickable="false"
-    android:orientation="horizontal" >
-
-    <CheckBox
-        android:id="@+id/ctv1"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_gravity="center"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_weight="1"
-        android:clickable="false"
-        android:duplicateParentState="true"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:gravity="center_vertical"
-        android:longClickable="false" />
+    android:orientation="vertical"
+    android:padding="10dp" >
 
     <LinearLayout
         android:id="@+id/textWrapper"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="6"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="3"
+        android:background="@color/paper"
         android:clickable="false"
         android:focusable="false"
         android:focusableInTouchMode="false"
         android:longClickable="false"
-        android:orientation="vertical" >
+        android:orientation="vertical"
+        android:paddingLeft="20dp" >
 
         <TextView
             android:id="@+id/blogHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
-            android:layout_weight="8"
             android:clickable="false"
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:longClickable="false"
             android:text="test"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:textAppearance="?android:attr/textAppearanceLargeInverse" />
 
         <TextView
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:layout_marginTop="40dp"
+            android:layout_weight="0"
             android:clickable="false"
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:longClickable="false"
             android:text="test2"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/ib2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginRight="5dp"
-        android:scaleType="center"
-        android:src="@drawable/share" />
-    
-    <ImageButton
-        android:id="@+id/ib1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginRight="5dp"
-        android:scaleType="center"
-        android:src="@drawable/rating_not_important" />
+    <LinearLayout
+        android:id="@+id/metaWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        android:layout_weight="1"
+        android:orientation="horizontal" >
+
+        <ImageButton
+            android:id="@+id/ib2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="5dp"
+            android:scaleType="center"
+            android:src="@drawable/share" />
+
+        <ImageButton
+            android:id="@+id/ib1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginRight="5dp"
+            android:scaleType="center"
+            android:src="@drawable/rating_not_important" />
+
+        <CheckBox
+            android:id="@+id/ctv1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:clickable="false"
+            android:duplicateParentState="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:gravity="center_vertical"
+            android:longClickable="false" />
+    </LinearLayout>
 
 </com.kiddobloom.bucketlist.BucketlistRowLayout>

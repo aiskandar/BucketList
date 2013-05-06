@@ -21,9 +21,12 @@ public class MyContentProvider extends ContentProvider {
     
 	// URI format
 	// base uri - content://com.kiddobloom.bucketlist/bucket
+	
 	// query - content://com.kiddobloom.bucketlist/bucket/query
+	
 	// insert - content://com.kiddobloom.bucketlist/bucket/insert
 	// insert_no_notify - content://com.kiddobloom.bucketlist/bucket/insert_no_notify
+	
 	// update - content://com.kiddobloom.bucketlist/bucket/update/5
 	// update_no_notify - content://com.kiddobloom.bucketlist/bucket/update_no_notify/5
 	
@@ -45,7 +48,7 @@ public class MyContentProvider extends ContentProvider {
 	public static final String PATH_DELETE_NO_NOTIFY = "delete_no_notify";
 	
 	private static final String DATABASE_NAME = "bucketList.db";
-	private static final int DATABASE_VERSION = 14;
+	private static final int DATABASE_VERSION = 15;
 	
 	// Database table name
 	public static final String DATABASE_TABLE = "bucket";
@@ -153,7 +156,7 @@ public class MyContentProvider extends ContentProvider {
 			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
 		}
 		
-		Cursor cur = bucketDB.query(DATABASE_TABLE, null, null, null, null, null, COLUMN_RATING + " DESC");
+		Cursor cur = bucketDB.query(DATABASE_TABLE, projection, selection, selectionArgs, null, null, COLUMN_RATING + " DESC");
 		cur.setNotificationUri(getContext().getContentResolver(), uri);
 		
 		SharedPreferences sp = getContext().getSharedPreferences(getContext().getString(R.string.pref_name), 0);

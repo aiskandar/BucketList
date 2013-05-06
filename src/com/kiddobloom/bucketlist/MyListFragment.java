@@ -167,8 +167,12 @@ public class MyListFragment extends SherlockFragment implements
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle bundle) {
 		// Log.d("tag", "loader manager : oncreateloader");
+		
+		// filter the entries that are marked for deletion (using the selection field) from displaying in listview
+		// sync adapter will kick in later to send the rest delete command to server
+		// once we get confirmation from the server that deletion succeeds, the entry in the db will be deleted
 		Loader<Cursor> loader = new MyLoader(getSherlockActivity(),
-				MyContentProvider.CONTENT_URI, null, null, null, null);
+				MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
 		return loader;
 	}
 
