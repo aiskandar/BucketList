@@ -123,14 +123,14 @@ public class MyContentProvider extends ContentProvider {
 	@Override
 	public int bulkInsert(Uri uri, ContentValues[] values) {
 		// TODO Auto-generated method stub
-		Log.d("tag", "bulk insert Uri " + uri);
+		//Log.d("tag", "bulk insert Uri " + uri);
 		
 		List<String> ls = null;
 		ls = uri.getPathSegments();
-		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
+		Log.d("tag", "bulk insert path segments: " + ls);
 		
 		for (int i = 0 ; i < ls.size() ; i++) {
-			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
+			//Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
 		}
 		
 		int size = values.length;
@@ -138,7 +138,12 @@ public class MyContentProvider extends ContentProvider {
 			bucketDB.insert(DATABASE_TABLE, null, values[i]);
 		}
 		
-		getContext().getContentResolver().notifyChange(uri, null, true);
+		// bulk insert is only called after performing initial sync
+		// we get here from onPerformSync after the device has received
+		// JSON response from the server.  we want to update the listview
+		// but we do not want to trigger another network update
+		// set the syncToNetwork flag to false
+		getContext().getContentResolver().notifyChange(uri, null, false);
 		
 		return 0;
 	}
@@ -146,14 +151,14 @@ public class MyContentProvider extends ContentProvider {
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 
-		Log.d("tag", "query Uri " + uri.toString());
+		//Log.d("tag", "query Uri " + uri.toString());
 		
 		List<String> ls = null;
 		ls = uri.getPathSegments();
-		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
+		Log.d("tag", "query path segments: " + ls + " with size: " + ls.size());
 		
 		for (int i = 0 ; i < ls.size() ; i++) {
-			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
+			//Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
 		}
 		
 		Cursor cur = bucketDB.query(DATABASE_TABLE, projection, selection, selectionArgs, null, null, COLUMN_RATING + " DESC");
@@ -163,7 +168,7 @@ public class MyContentProvider extends ContentProvider {
 		AccountManager accountManager = AccountManager.get(getContext());
 
 		boolean synced = sp.getBoolean(getContext().getString(R.string.pref_initial_sync_key), false);
-		Log.d("tag", "sync: " + synced);
+		//Log.d("tag", "sync: " + synced);
 		
 		if (synced == false) {
 			Account[] accounts = accountManager.getAccountsByType("com.kiddobloom");		
@@ -200,27 +205,30 @@ public class MyContentProvider extends ContentProvider {
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
 
-		Log.d("tag", "insert Uri " + uri);
+		//Log.d("tag", "insert Uri " + uri);
 		
 		List<String> ls = null;
 		ls = uri.getPathSegments();
 		String command = null;
 		
-		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
+		Log.d("tag", "insert path segments: " + ls + " with size: " + ls.size());
 		
 		for (int i = 0 ; i < ls.size() ; i++) {
-			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
+			//Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
 			if (i == 1) {
 				command = ls.get(i).toString();
 			} 
 		}
 		
+		// insert into our local DB first and sync later
+		// at this stage, the entry's REST_STATE should be inserting and REST_STATUS is transacting
+		// sync adapter will check the local database and process this entry because the REST_STATUS is transacting
 		bucketDB.insert(DATABASE_TABLE, null, values);
 		
 		if (command.equals(PATH_INSERT)) {
 			getContext().getContentResolver().notifyChange(uri, null, true);
 		} else if (command.equals(PATH_INSERT_NO_NOTIFY)) {
-			//getContext().getContentResolver().notifyChange(uri, null, false);
+			// do nothing - local DB already updated above
 		} else {
 			// throw exception here
 		}
@@ -231,16 +239,16 @@ public class MyContentProvider extends ContentProvider {
 	@Override
 	public int delete(Uri uri, String selection, String[] selectionArgs) {
 
-		Log.d("tag", "delete Uri " + uri);
+		//Log.d("tag", "delete Uri " + uri);
 
 		List<String> ls = null;
 		ls = uri.getPathSegments();
 		String command = null;
 		
-		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
+		//Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
 		
 		for (int i = 0 ; i < ls.size() ; i++) {
-			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
+			//Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
 			if (i == 1) {
 				command = ls.get(i).toString();
 			} 
@@ -249,14 +257,12 @@ public class MyContentProvider extends ContentProvider {
 		if (command.equals(PATH_DELETE)) {
 			
 			for (int i = 2 ; i < ls.size() ; i++) {
-				Log.d("tag", "rowID to delete: " + ls.get(i).toString());
+				Log.d("tag", "Delete rest - rowID to delete: " + ls.get(i).toString());
 				
 				ContentValues cv = new ContentValues();	
 				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_DELETE);
 				cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
 				bucketDB.update(DATABASE_TABLE, cv, COLUMN_ID + "=" + ls.get(i).toString(), null);
-							
-				//bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
 			}
 
 			getContext().getContentResolver().notifyChange(uri, null, true);
@@ -264,13 +270,19 @@ public class MyContentProvider extends ContentProvider {
 		} else if (command.equals(PATH_DELETE_DB)) {
 			
 			for (int i = 2 ; i < ls.size() ; i++) {
-				Log.d("tag", "rowID to REALLY delete: " + ls.get(i).toString());
+				Log.d("tag", "Delete DB - rowID to REALLY delete: " + ls.get(i).toString());
 				bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
-				getContext().getContentResolver().notifyChange(uri, null, true);
+				
+				// PATH_DELETE_DB is only called from onPerformSync after the device
+				// has completed delete transaction with the server.  We want to update 
+				// the listview but we do not want to trigger another network update
+				// set the syncToNetwork flag to false				
+				//getContext().getContentResolver().notifyChange(uri, null, false);
 			} 
 		} else if (command.equals(PATH_DELETE_NO_NOTIFY)) {
+			
 			for (int i = 2 ; i < ls.size() ; i++) {
-				Log.d("tag", "rowID to REALLY delete: " + ls.get(i).toString());
+				Log.d("tag", "Delete no notify - rowID to REALLY delete: " + ls.get(i).toString());
 				bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
 			}
 		} else {
@@ -284,17 +296,17 @@ public class MyContentProvider extends ContentProvider {
 	public int update(Uri uri, ContentValues values, String selection,
 			String[] selectionArgs) {
 
-		Log.d("tag", "update Uri " + uri);
+		//Log.d("tag", "update Uri " + uri);
 
 		List<String> ls = null;
 		ls = uri.getPathSegments();
 		String rowId = null;
 		String command = null;
 		
-		Log.d("tag", "path segments: " + ls + " with size: " + ls.size());
+		Log.d("tag", "update path segments: " + ls + " with size: " + ls.size());
 		
 		for (int i = 0 ; i < ls.size() ; i++) {
-			Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
+			//Log.d("tag", "uri path " + i + " is " + ls.get(i).toString());
 			
 			if (i == 1) {
 				command = ls.get(i).toString();
@@ -302,15 +314,29 @@ public class MyContentProvider extends ContentProvider {
 				rowId = ls.get(i).toString();
 			}
 		}
-
-		if (rowId != null) {	
-			bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
-		}
 		
 		if (command.equals(PATH_UPDATE)) {
-			getContext().getContentResolver().notifyChange(uri, null, true);
+			
+			Cursor myCursor = bucketDB.query(DATABASE_TABLE, null, COLUMN_ID + "=" + rowId, null, null, null, COLUMN_RATING + " DESC");
+			
+			Log.d("tag", "cursor count: " + myCursor.getCount());	
+			myCursor.moveToFirst();
+			
+			Log.d("tag", "rest state " + restStateStr[myCursor.getInt(COLUMN_INDEX_REST_STATE)] );
+				
+			if (myCursor.getInt(COLUMN_INDEX_REST_STATE) != REST_STATE_INSERT) {	
+				values.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_UPDATE);
+				values.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
+				bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
+				getContext().getContentResolver().notifyChange(uri, null, true);
+			} else {
+				bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
+				getContext().getContentResolver().notifyChange(uri, null, false);
+			}	
+			
 		} else if (command.equals(PATH_UPDATE_NO_NOTIFY)) {
 			//getContext().getContentResolver().notifyChange(uri, null, false);
+			bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
 		} else {
 			// throw exception here
 		}

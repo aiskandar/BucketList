@@ -96,7 +96,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 					//Log.d("tag", "checkbox clicked for id:" + id + " checked:" + cb.isChecked());
 					
 					Uri base = MyContentProvider.CONTENT_URI;
-					base = Uri.withAppendedPath(base, "edit");
+					base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
 					base = Uri.withAppendedPath(base, Integer.toString(id));
 					
 					ContentValues cv = new ContentValues();
@@ -116,7 +116,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 					Log.d("tag", "star image clicked id: " + ivh.itemId + " rating: " + ivh.rating);
 					
 					Uri base = MyContentProvider.CONTENT_URI;
-					base = Uri.withAppendedPath(base, "edit");
+					base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
 					base = Uri.withAppendedPath(base, Integer.toString(ivh.itemId));
 										
 					ContentValues cv = new ContentValues();
@@ -141,7 +141,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 					Log.d("tag", "share image clicked id: " + ivh.itemId + " share: " + ivh.share);
 					
 					Uri base = MyContentProvider.CONTENT_URI;
-					base = Uri.withAppendedPath(base, "edit");
+					base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
 					base = Uri.withAppendedPath(base, Integer.toString(ivh.itemId));
 										
 					ContentValues cv = new ContentValues();

@@ -45,13 +45,13 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority,
 			ContentProviderClient provider, SyncResult syncResult) {
+		
 		Log.d("tag", "onPerformSync :" + account.name + " " + extras);
         boolean force = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL);
         Cursor c = null;
         
 		try {
-			c = provider.query(MyContentProvider.AUTHORITY_URI, null, null,
-					null, null);
+			c = provider.query(MyContentProvider.CONTENT_URI, null, null, null, null);
 		} catch (RemoteException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -63,7 +63,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         	fetchBucketList(account.name, provider, c);
         	
         } else {
-
+        	// triggered by insert, update, or delete
 			c.moveToFirst();
 			for (int i = 0; i < c.getCount(); i++) {
 				
@@ -155,8 +155,101 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 	}
 
 	private void restUpdate(String id, Cursor c, ContentProviderClient provider) {
+		Gson mJson = new Gson(); 
+		ArrayList<BucketListTable> list = new ArrayList<BucketListTable>();
+        HttpEntity entity = null;
+        HttpResponse resp = null;
+        String response = null;
+
+		BucketListTable data = new BucketListTable();
+
+		data.setFacebookId(id);	
+		data.setDate(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
+		data.setEntry(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
+		data.setDone(c.getString(MyContentProvider.COLUMN_INDEX_DONE));
+		data.setRating(c.getString(MyContentProvider.COLUMN_INDEX_RATING));
+		data.setShare(c.getString(MyContentProvider.COLUMN_INDEX_SHARE));
+		data.setServerId(c.getInt(MyContentProvider.COLUMN_INDEX_SERVER_ID));
+
+		list.add(data);
 		
-		
+		String jsonData = mJson.toJson(list);
+		Log.d("tag", jsonData);
+
+		final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+		nvp.add(new BasicNameValuePair("json", jsonData));
+
+		try {
+			entity = new UrlEncodedFormEntity(nvp);
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		try {
+			// entity = new StringEntity(jsonData);
+			final HttpPost post = new HttpPost(
+					"http://andyiskandar.me/bucketupdate.php");
+			post.addHeader(entity.getContentType());
+			post.setEntity(entity);
+			// post.setHeader("Accept", "application/json");
+			// post.setHeader("Content-type", "application/json");
+
+			HttpClient mHttpClient = new DefaultHttpClient();
+			resp = mHttpClient.execute(post);
+			response = EntityUtils.toString(resp.getEntity());
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+			Log.d("tag", "response: " + response);
+			
+			boolean error = response.startsWith("error:");
+			
+			if (error == true) {
+				String arr[] = response.split(":");
+			
+				Log.d("tag", "error response in restUpdate");
+				for(int i=0; i < arr.length ; i++) {
+					Log.d("tag", "arr[i]");
+				}
+			} else {
+				// the response should contain server_id of the last updated entry
+				int serverId = Integer.parseInt(response);
+				
+				Log.d("tag", "updated server id: " + serverId);
+				
+				ContentValues cv = new ContentValues();
+				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
+				cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
+				//cv.put(MyContentProvider.COLUMN_SERVER_ID, serverId);
+				
+				Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
+				Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+				
+				try {
+					provider.update(uri, cv, null, null);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+		} else {
+			Log.d("tag", "Server error in fetching remote contacts: "
+					+ resp.getStatusLine());
+		}		
 	}
 	
 	private void restInsert(String id, Cursor c, ContentProviderClient provider) {
@@ -291,16 +384,21 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 						break;
 					default:
 				}				
-			}
+			} else {
+				// if the row is not in transacting/retry state, this implies the row is synced with server
+				// delete the row from local DB and sync to the latest updated sets from the server
+				// this is a use-case when a user updates the list on one device and opens the app again on another device
+				// do not notify listview that the entry is deleted because we will update with ones from server
+				Uri base = MyContentProvider.CONTENT_URI;
+				base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_NO_NOTIFY);
+				Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
 
-			Uri base = MyContentProvider.CONTENT_URI;
-			base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_NO_NOTIFY);
-			Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
-			try {
-				provider.delete(uri, null, null);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				try {
+					provider.delete(uri, null, null);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
 			c.moveToNext();
@@ -354,16 +452,14 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 					cv.put(MyContentProvider.COLUMN_RATING, blt.rating);
 					cv.put(MyContentProvider.COLUMN_SHARE, blt.share);
 					cv.put(MyContentProvider.COLUMN_DONE, blt.done);
-					cv.put(MyContentProvider.COLUMN_REST_STATUS,
-							MyContentProvider.REST_STATUS_SYNCED);
-					cv.put(MyContentProvider.COLUMN_REST_STATE,
-							MyContentProvider.REST_STATE_NONE);
+					cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
+					cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
 	
 					cvArray[i] = cv;
 				}
 	
 				Uri base = MyContentProvider.CONTENT_URI;
-				base = Uri.withAppendedPath(base, "insert");
+				base = Uri.withAppendedPath(base, MyContentProvider.PATH_INSERT);
 	
 				try {
 					provider.bulkInsert(base, cvArray);

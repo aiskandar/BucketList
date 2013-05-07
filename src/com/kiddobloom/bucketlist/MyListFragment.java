@@ -45,7 +45,8 @@ public class MyListFragment extends SherlockFragment implements
 	public LoaderManager lm;
 	public SharedPreferences sp;
 	static boolean updateInstead = false;
-	static Uri lastUri;
+	static int rowToUpdate = 0;
+	static int positionToUpdate = 0;
 	
 	public MyListFragment() {
 		// TODO Auto-generated constructor stub
@@ -101,8 +102,8 @@ public class MyListFragment extends SherlockFragment implements
 			@Override
 			public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
 				
-				Log.d("tag", "editText event: " + event + " actionID: "
-						+ actionId + " view: " + tv.getText().toString());
+				//Log.d("tag", "editText event: " + event + " actionID: "
+					//	+ actionId + " view: " + tv.getText().toString());
 
 				// when Enter key is pressed on soft keyboard - the code below
 				// only catch the key up event
@@ -115,8 +116,9 @@ public class MyListFragment extends SherlockFragment implements
 					ContentValues cv = new ContentValues();
 					SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
 					Date date = new Date();
-
-					Log.d("tag", "date : " + sdf.format(date));
+					Uri base = MyContentProvider.CONTENT_URI;
+					
+					//Log.d("tag", "date : " + sdf.format(date));
 
 					cv.put(MyContentProvider.COLUMN_ENTRY, text);
 
@@ -127,15 +129,20 @@ public class MyListFragment extends SherlockFragment implements
 						cv.put(MyContentProvider.COLUMN_DONE, "false");
 						cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_INSERT);
 						cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
-						
-						Uri base = MyContentProvider.CONTENT_URI;
-						base = Uri.withAppendedPath(base, "insert");
+							
+						base = Uri.withAppendedPath(base, MyContentProvider.PATH_INSERT);
 						
 						getSherlockActivity().getContentResolver().insert(base , cv);
 						
 					} else {
-						getSherlockActivity().getContentResolver().update(lastUri, cv, null, null);
-						signalUpdate(false, null);
+											
+						base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
+						base = Uri.withAppendedPath(base, Integer.toString(rowToUpdate));
+							
+						getSherlockActivity().getContentResolver().update(base, cv, null, null);
+
+						signalUpdate(false, 0, 0);						
+						
 					}
 				}
 				
@@ -183,6 +190,11 @@ public class MyListFragment extends SherlockFragment implements
 		myCursor = cursor;
 		la.swapCursor(cursor);
 
+//		if (myCursor != null) {
+//			for (int i=0; i < myCursor.getCount() ; i++) {
+//				Log.d("tag", "row " + i + " rest state " + MyContentProvider.restStateStr[myCursor.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)] );
+//			}
+//		}
 	}
 
 	@Override
@@ -191,10 +203,11 @@ public class MyListFragment extends SherlockFragment implements
 		la.swapCursor(null);
 	}
 
-	public void signalUpdate(boolean b, Uri url) {
+	public void signalUpdate(boolean b, int row, int position) {
 		// TODO Auto-generated method stub
 		updateInstead = b;
-		lastUri = url;
+		rowToUpdate = row;
+		positionToUpdate = position;
 	}
 	
 	public class MyListActionMode implements ActionMode.Callback {
@@ -303,7 +316,7 @@ public class MyListFragment extends SherlockFragment implements
 					et.setSelection(et.getText().length());
 				}
 
-				signalUpdate(true, base);
+				signalUpdate(true, itemId, position);
 
 			} else {
 				Log.d("tag", "menu item share clicked");

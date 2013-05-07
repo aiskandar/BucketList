@@ -42,12 +42,6 @@ public class MyApplication extends Application {
 		AccountManager accountManager = AccountManager.get(getApplicationContext());
 		Account[] accounts = accountManager.getAccountsByType("com.kiddobloom");	
 		ContentResolver.setMasterSyncAutomatically(true);
-		
-		for (int i=0 ; i < accounts.length ; i++) {
-			Log.d("tag", "account: " + accounts[i].name);			
-			//boolean var = ContentResolver.getSyncAutomatically(accounts[i], MyContentProvider.AUTHORITY);
-		}
-		
 	}
 
 

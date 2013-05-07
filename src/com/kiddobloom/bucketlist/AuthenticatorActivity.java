@@ -552,8 +552,7 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 				// create a new account
 				account = new Account(user.getId(), Constants.ACCOUNT_TYPE);
 				am.addAccountExplicitly(account, null, null);
-				ContentResolver.setSyncAutomatically(account,
-						MyContentProvider.AUTHORITY, true);
+				//ContentResolver.setSyncAutomatically(account, MyContentProvider.AUTHORITY, true);
 				registered = false;
 			} else {
 				// get the first account
@@ -569,8 +568,7 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 					// add new account with the new facebook userid
 					account = new Account(user.getId(), Constants.ACCOUNT_TYPE);
 					am.addAccountExplicitly(account, null, null);
-					ContentResolver.setSyncAutomatically(account,
-							MyContentProvider.AUTHORITY, true);
+					//ContentResolver.setSyncAutomatically(account, MyContentProvider.AUTHORITY, true);
 					registered = false;
 				}
 			}
