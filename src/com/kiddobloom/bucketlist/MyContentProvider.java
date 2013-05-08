@@ -165,7 +165,6 @@ public class MyContentProvider extends ContentProvider {
 
 		boolean synced = sp.getBoolean(getContext().getString(R.string.pref_initial_synced_key), false);
 		int state = sp.getInt(getContext().getString(R.string.pref_state_key), 100);
-		//Log.d("tag", "sync: " + synced);
 		
 		if (synced == false && state == StateMachine.ONLINE_STATE) {
 			Account[] accounts = accountManager.getAccountsByType("com.kiddobloom");		

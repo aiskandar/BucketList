@@ -28,7 +28,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.RequestDirector;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -37,12 +36,12 @@ import org.apache.http.util.EntityUtils;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.sip.SipSession.State;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -94,7 +93,9 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
     	Log.d("tag", "authenticator facebook onseesionstatechange:" + session + " state:" + state);    	
     	if (session != null) {
     		if (session.isOpened() == true) {
-    			if (getState() == StateMachine.FB_CLOSED_STATE) {
+    			saveSkip(false);
+    			int st = getState();
+    			if (st == StateMachine.FB_CLOSED_STATE || st == StateMachine.INIT_STATE) {
     				saveState(StateMachine.FB_OPENED_STATE);
     				saveStatus(StateMachine.OK_STATUS);
     				saveError(StateMachine.NO_ERROR);
@@ -143,13 +144,12 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 			
 			// kickstart the state machine
 			Session session = Session.getActiveSession();
-
 			if(session != null && session.isOpened() == true) {
 				saveState(StateMachine.FB_OPENED_STATE);
 				saveStatus(StateMachine.OK_STATUS);
 				saveError(StateMachine.NO_ERROR);
+
 				getFacebookInfo(session);
-				
 			} else {
 				saveState(StateMachine.FB_CLOSED_STATE);
 				saveStatus(StateMachine.OK_STATUS);
@@ -162,6 +162,13 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 			saveError(StateMachine.NO_ERROR);
 			goToBucketListActivity();
 		}
+	}
+	
+	private boolean isNetworkAvailable() {
+	    ConnectivityManager connectivityManager 
+	          = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+	    return activeNetworkInfo != null && activeNetworkInfo.isConnected();
 	}
 	
 	@Override
@@ -238,19 +245,29 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
     // event handler for skip button
     public void handleSkip(View v) {
     	Log.d("tag", "handleSkip");
-		//processStateMachine(StateMachine.SKIP_EVENT);
-    	
-    }
+    	saveSkip(true);
+    	saveState(StateMachine.SKIPPED_STATE);
+		saveStatus(StateMachine.OK_STATUS);
+		saveError(StateMachine.NO_ERROR);
+		goToBucketListActivity();
+   }
 	
 	public void getFacebookInfo(Session session) {
 		
-		// always request facebook user information 
-		// in case the user switches the facebook account
-		saveState(StateMachine.FB_GET_ME_STATE);
-		saveStatus(StateMachine.TRANSACTING_STATUS);
-		saveError(StateMachine.NO_ERROR);
-		Request.executeMeRequestAsync(session, this);
-		
+		if (!isNetworkAvailable()) {
+			Log.d("tag", "network is not available");
+			saveState(StateMachine.OFFLINE_STATE);
+			saveStatus(StateMachine.ERROR_STATUS);
+			saveError(StateMachine.NETWORK_DISCONNECT_ERROR);
+			goToBucketListActivity();
+		} else {
+			// always request facebook user information 
+			// in case the user switches the facebook account
+			saveState(StateMachine.FB_GET_ME_STATE);
+			saveStatus(StateMachine.TRANSACTING_STATUS);
+			saveError(StateMachine.NO_ERROR);
+			Request.executeMeRequestAsync(session, this);
+		}		
 	}
 	
 	private class RegisterTask extends AsyncTask<String, Integer, String> {
@@ -331,7 +348,7 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 					}
 	
 					Toast.makeText(getApplicationContext(),
-			                "Failed to register userid on the server",
+			                "Failed to register userid on the server - OFFLINE mode",
 			                Toast.LENGTH_LONG).show();
 					
 					saveState(StateMachine.OFFLINE_STATE);
@@ -346,7 +363,7 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 					saveUserIdRegistered(true);
 					
 					saveState(StateMachine.ONLINE_STATE);
-					saveStatus(StateMachine.ERROR_STATUS);
+					saveStatus(StateMachine.OK_STATUS);
 					saveError(StateMachine.NO_ERROR);
 					goToBucketListActivity();
 				}
@@ -373,7 +390,7 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 				Log.d("tag", "failed to get friendlist from facebook: " + error);
 				
 				Toast.makeText(getApplicationContext(),
-		                "Failed to retrieve friends list from Facebook",
+		                "Failed to retrieve friends list from Facebook - OFFLINE mode",
 		                Toast.LENGTH_SHORT).show();
 				
 				// I may need to store this permanently in the preference list
@@ -408,9 +425,15 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 				saveError(StateMachine.NO_ERROR);
 				new RegisterTask().execute(getFbUserId());
 			} else {
+				
 				saveState(StateMachine.ONLINE_STATE);
 				saveStatus(StateMachine.OK_STATUS);
 				saveError(StateMachine.NO_ERROR);
+
+				// HACK xxxxxxxxxxxxxxxxxxxxxxxxxx
+//				saveState(StateMachine.OFFLINE_STATE);
+//				saveStatus(StateMachine.ERROR_STATUS);
+//				saveError(StateMachine.FB_GET_FRIENDS_FAILED_ERROR);
 				goToBucketListActivity();
 			}
 			
@@ -420,7 +443,7 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 			Log.d("tag", "failed to get friends list from facebook");
 			
 			Toast.makeText(getApplicationContext(),
-	                "Failed to retrieve friends list from Facebook",
+	                "Failed to retrieve friends list from Facebook - OFFLINE mode",
 	                Toast.LENGTH_SHORT).show();
 
 			saveState(StateMachine.OFFLINE_STATE);
@@ -444,7 +467,7 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 				Log.d("tag", "failed to get user info from facebook: " + error);
 				
 				Toast.makeText(getApplicationContext(),
-		                "Failed to retrieve information from Facebook",
+		                "Failed to retrieve information from Facebook - OFFLINE mode",
 		                Toast.LENGTH_SHORT).show();
 				
 				saveState(StateMachine.OFFLINE_STATE);
@@ -515,7 +538,7 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 
 		} else {
 			// throw an exception here - facebook does not indicate error but user is null 
-			Log.d("tag", "failed to get user info from facebook - user is null");
+			Log.d("tag", "failed to get user info from facebook - OFFLINE mode");
 			
 			Toast.makeText(getApplicationContext(),
 	                "Failed to retrieve information from Facebook",

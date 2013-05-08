@@ -18,25 +18,19 @@
             android:id="@+id/pref_cb_reg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="registered" />
+            android:text="Facebook Id registered" />
 
         <CheckBox
             android:id="@+id/pref_cb_fb"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Skip Facebook" />
+            android:text="Skip" />
 
         <CheckBox
             android:id="@+id/pref_cb_initial_sync"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Init synced" />
-                
-        <CheckBox
-            android:id="@+id/pref_cb_fb_friends_retrieved"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Facebook Friends retrieved" />
         
         <TextView
             android:id="@+id/pref_tv_userid"

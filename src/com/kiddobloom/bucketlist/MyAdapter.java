@@ -21,7 +21,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 
 	LayoutInflater mInflater;		
 	Context context;
-	int resId[] = {R.drawable.path, R.drawable.faith, R.drawable.fear, R.drawable.pray};
+	int resId[] = {R.drawable.path, R.drawable.faith, R.drawable.pray};
 	
 	public MyAdapter(Context c, String[] from, int[] to) {
 		super(c, R.layout.item_layout, null, from, to, 0);
@@ -192,7 +192,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 			vh.tw.setBackgroundResource(R.color.paper);
 		} else {
 			//Log.d("tag2", "white");
-			int resIdx = resId[position % 4];
+			int resIdx = resId[position % 3];
 			vh.tw.setBackgroundResource(resIdx);
 		}
 

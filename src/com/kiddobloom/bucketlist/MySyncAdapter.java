@@ -25,6 +25,7 @@ import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
@@ -46,6 +47,13 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 	public void onPerformSync(Account account, Bundle extras, String authority,
 			ContentProviderClient provider, SyncResult syncResult) {
 		
+		SharedPreferences sp = getContext().getSharedPreferences(getContext().getString(R.string.pref_name), 0);
+		int state = sp.getInt(getContext().getString(R.string.pref_state_key), 100);
+		
+		if (state != StateMachine.ONLINE_STATE) {
+			return;
+		}
+				
 		Log.d("tag", "onPerformSync :" + account.name + " " + extras);
         boolean force = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL);
         Cursor c = null;

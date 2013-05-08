@@ -80,7 +80,7 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 		skip.setChecked(b3);
 		
 		boolean b4 = sp.getBoolean(getString(R.string.pref_initial_synced_key), false);
-		synced.setChecked(b3);
+		synced.setChecked(b4);
 		
 		int text1 = sp.getInt(getString(R.string.pref_state_key), 100);
 		state.setText("state: " + StateMachine.stateStr[text1]);

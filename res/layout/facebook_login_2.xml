@@ -74,15 +74,14 @@
             android:lines="2"
             android:text="Save your bucket list on the cloud"
             android:textSize="17sp" />
-        
-        <Button
-            android:id="@+id/button1"
+
+        <com.facebook.widget.LoginButton
+            android:id="@+id/login_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:onClick="handleJoinEvent"
-            android:layout_marginTop="20dp"
-            android:text="Login to Facebook Now" />
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="30dp" />
 
     </LinearLayout>
 </ScrollView>

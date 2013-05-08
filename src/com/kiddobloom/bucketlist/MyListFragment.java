@@ -209,6 +209,10 @@ public class MyListFragment extends SherlockFragment implements
 		positionToUpdate = position;
 	}
 	
+	public void sync() {
+		getSherlockActivity().getContentResolver().query(MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
+	}
+	
 	public class MyListActionMode implements ActionMode.Callback {
 
 		public final static int MENU_GROUP_ID_MAIN = 0;
