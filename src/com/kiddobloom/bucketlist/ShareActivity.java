@@ -58,10 +58,8 @@ public class ShareActivity extends SherlockActivity implements OnClickListener {
     	am = AccountManager.get(this);
 		sp = getSharedPreferences(getString(R.string.pref_name), 0);
 		
-		boolean share = sp.getBoolean(getString(R.string.pref_share_key), false);
-		boolean skip = sp.getBoolean(getString(R.string.pref_skip_key), false);
 
-
+		
     	setContentView(R.layout.share_activity);
     	
     	// disable all views
@@ -105,7 +103,7 @@ public class ShareActivity extends SherlockActivity implements OnClickListener {
 	
 	public void goNext(View v) {
 		
-		int user_id = sp.getInt(getString(R.string.pref_userid_key), 0);
+		int user_id = sp.getInt(getString(R.string.pref_fb_userid_key), 0);
 		
 		if (cb.isChecked() == true) {
 			// save the settings in preferences

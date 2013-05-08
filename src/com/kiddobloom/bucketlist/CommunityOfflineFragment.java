@@ -32,7 +32,6 @@ public class CommunityOfflineFragment extends SherlockFragment {
 		sp = getSherlockActivity().getSharedPreferences(getString(R.string.pref_name), 0);
 		myApp = (MyApplication) getSherlockActivity().getApplication();
 		
-		boolean share = sp.getBoolean(getString(R.string.pref_share_key), false);
 		boolean skip = sp.getBoolean(getString(R.string.pref_skip_key), false);
 
 		//NavigationTabs.communityTab.setTabListener(this);

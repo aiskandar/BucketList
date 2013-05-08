@@ -31,12 +31,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Init synced" />
-
-        <CheckBox
-            android:id="@+id/pref_cb_fb_me_retrieved"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Facebook ME retrieved" />
                 
         <CheckBox
             android:id="@+id/pref_cb_fb_friends_retrieved"
@@ -46,10 +40,32 @@
         
         <TextView
             android:id="@+id/pref_tv_userid"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="facebook userid"
             android:textAppearance="?android:attr/textAppearanceSmall" />
+        
+        <TextView
+            android:id="@+id/pref_tv_state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="state"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+                
+        <TextView
+            android:id="@+id/pref_tv_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="status"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+                        
+        <TextView
+            android:id="@+id/pref_tv_error"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="error"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
     </LinearLayout>
 
     <LinearLayout

@@ -21,15 +21,11 @@ public class MyContentProvider extends ContentProvider {
     
 	// URI format
 	// base uri - content://com.kiddobloom.bucketlist/bucket
-	
 	// query - content://com.kiddobloom.bucketlist/bucket/query
-	
 	// insert - content://com.kiddobloom.bucketlist/bucket/insert
 	// insert_no_notify - content://com.kiddobloom.bucketlist/bucket/insert_no_notify
-	
 	// update - content://com.kiddobloom.bucketlist/bucket/update/5
 	// update_no_notify - content://com.kiddobloom.bucketlist/bucket/update_no_notify/5
-	
 	// delete (rest) - content://com.kiddobloom.bucketlist/bucket/delete/5/6/9/13
 	// delete_db - content://com.kiddobloom.bucketlist/bucket/delete_db/5/6/9/13
 	// delete_no_notify - content://com.kiddobloom.bucketlist/bucket/delete_no_notify/5/6/9/13
@@ -167,10 +163,11 @@ public class MyContentProvider extends ContentProvider {
 		SharedPreferences sp = getContext().getSharedPreferences(getContext().getString(R.string.pref_name), 0);
 		AccountManager accountManager = AccountManager.get(getContext());
 
-		boolean synced = sp.getBoolean(getContext().getString(R.string.pref_initial_sync_key), false);
+		boolean synced = sp.getBoolean(getContext().getString(R.string.pref_initial_synced_key), false);
+		int state = sp.getInt(getContext().getString(R.string.pref_state_key), 100);
 		//Log.d("tag", "sync: " + synced);
 		
-		if (synced == false) {
+		if (synced == false && state == StateMachine.ONLINE_STATE) {
 			Account[] accounts = accountManager.getAccountsByType("com.kiddobloom");		
 			for (int i=0 ; i < accounts.length ; i++) {
 				Log.d("tag", "requesting query sync for account: " + accounts[i].name);
@@ -178,18 +175,10 @@ public class MyContentProvider extends ContentProvider {
 				Bundle extras = new Bundle();
 				extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
 				ContentResolver.requestSync(accounts[i], MyContentProvider.AUTHORITY, extras);
-//			
-//			boolean var = ContentResolver.isSyncActive(accounts[i], MyContentProvider.AUTHORITY);
-//			boolean var2 = ContentResolver.isSyncPending(accounts[i], MyContentProvider.AUTHORITY);
-//			int var3 = ContentResolver.getIsSyncable(accounts[i], MyContentProvider.AUTHORITY);
-//			
-//			Log.d("tag", " sync active: " + var);
-//			Log.d("tag", " sync pending: " + var2);
-//			Log.d("tag", " syncable: " + var3);
 			}
 			
 			SharedPreferences.Editor editor = sp.edit();			
-			editor.putBoolean(getContext().getString(R.string.pref_initial_sync_key), true);
+			editor.putBoolean(getContext().getString(R.string.pref_initial_synced_key), true);
 			editor.commit();
 			
 		}

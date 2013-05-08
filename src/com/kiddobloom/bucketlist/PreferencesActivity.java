@@ -27,9 +27,10 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 	CheckBox registered;
 	CheckBox skip;
 	CheckBox synced;
-	CheckBox fb_me_retrieved;
-	CheckBox fb_friends_retrieved;
 	TextView tv;
+	TextView state;
+	TextView status;
+	TextView error;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -57,15 +58,12 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 
 		synced = (CheckBox) findViewById(R.id.pref_cb_initial_sync);
 		synced.setOnClickListener(this);
-
-		fb_me_retrieved = (CheckBox) findViewById(R.id.pref_cb_fb_me_retrieved);
-		fb_me_retrieved.setOnClickListener(this);
-		
-		fb_friends_retrieved = (CheckBox) findViewById(R.id.pref_cb_fb_friends_retrieved);
-		fb_friends_retrieved.setOnClickListener(this);
 		
 		tv = (TextView) findViewById(R.id.pref_tv_userid);
-		
+		state = (TextView) findViewById(R.id.pref_tv_state);
+		status = (TextView) findViewById(R.id.pref_tv_status);
+		error = (TextView) findViewById(R.id.pref_tv_error);
+
 		updateUI();
 	
 	}
@@ -75,20 +73,23 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 		boolean b2 = sp.getBoolean(getString(R.string.pref_userid_registered_key), false);
 		registered.setChecked(b2);
 		
-		String text = sp.getString(getString(R.string.pref_userid_key), null);
-		tv.setText(text);
+		String text = sp.getString(getString(R.string.pref_fb_userid_key), null);
+		tv.setText("facebook id: " + text);
 		
 		boolean b3 = sp.getBoolean(getString(R.string.pref_skip_key), false);
 		skip.setChecked(b3);
 		
-		boolean b4 = sp.getBoolean(getString(R.string.pref_initial_sync_key), false);
+		boolean b4 = sp.getBoolean(getString(R.string.pref_initial_synced_key), false);
 		synced.setChecked(b3);
-
-		boolean b5 = sp.getBoolean(getString(R.string.pref_fb_me_retrieved), false);
-		fb_me_retrieved.setChecked(b5);
 		
-		boolean b6 = sp.getBoolean(getString(R.string.pref_fb_friends_retrieved), false);
-		fb_friends_retrieved.setChecked(b6);
+		int text1 = sp.getInt(getString(R.string.pref_state_key), 100);
+		state.setText("state: " + StateMachine.stateStr[text1]);
+		
+		int text2 = sp.getInt(getString(R.string.pref_status_key), 100);
+		status.setText("status: " + StateMachine.statusStr[text2]);
+		
+		int text3 = sp.getInt(getString(R.string.pref_error_key), 100);
+		error.setText("error: " + StateMachine.errorStr[text3]);
 
 	}
 	
@@ -98,10 +99,12 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 		
 		editor.putBoolean(getString(R.string.pref_userid_registered_key), registered.isChecked());
 		editor.putBoolean(getString(R.string.pref_skip_key), skip.isChecked());
-		editor.putString(getString(R.string.pref_userid_key), tv.getText().toString());
-		editor.putBoolean(getString(R.string.pref_initial_sync_key), synced.isChecked());
-		editor.putBoolean(getString(R.string.pref_fb_me_retrieved), fb_me_retrieved.isChecked());
-		editor.putBoolean(getString(R.string.pref_fb_friends_retrieved), fb_friends_retrieved.isChecked());
+		editor.putString(getString(R.string.pref_fb_userid_key), tv.getText().toString());
+		editor.putBoolean(getString(R.string.pref_initial_synced_key), synced.isChecked());
+		
+//		editor.putString(getString(R.string.pref_state_key), state.getText().toString());
+//		editor.putString(getString(R.string.pref_status_key), status.getText().toString());
+//		editor.putString(getString(R.string.pref_error_key), error.getText().toString());
 
 		editor.commit();
 
@@ -126,5 +129,5 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 			CheckBox cb = (CheckBox) v;
 		}
 	}
-
+	
 }

@@ -64,7 +64,6 @@ public class MyListFragment extends SherlockFragment implements
 
 		sp = getSherlockActivity().getSharedPreferences(getString(R.string.pref_name), 0);
 		
-		boolean share = sp.getBoolean(getString(R.string.pref_share_key), false);
 		boolean skip = sp.getBoolean(getString(R.string.pref_skip_key), false);
 
 		// registerForContextMenu(findViewById(android.R.id.list));

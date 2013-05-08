@@ -56,7 +56,7 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 	MyApplication myApp;
 	FragmentManager fm;
 	Fragment[] fmList = new Fragment[4];
-	boolean skip;
+
 	int currentTab;
 	
 	private boolean isResumed = false;
@@ -84,10 +84,13 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 
     	if (session != null) {
     		if (session.isOpened() == true) {
-	    		myApp.currentState = StateMachine.OPENED_STATE;
-	    		goToAuthenticatorActivity();
+	    		//myApp.currentState = StateMachine.FB_OPENED_STATE;
+	    		//goToAuthenticatorActivity();
+    			
     		} else if (session.isClosed() == true){
-    			myApp.currentState = StateMachine.CLOSED_STATE;
+				saveState(StateMachine.FB_CLOSED_STATE);
+				saveStatus(StateMachine.OK_STATUS);
+				saveError(StateMachine.NO_ERROR);
     			goToAuthenticatorActivity();
     		}
     	}
@@ -151,6 +154,43 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
  
 		getSupportActionBar().setTitle("Bucket List");
 		getSupportActionBar().setSubtitle("by kiddoBLOOM");
+		
+		boolean skip;
+		int state;
+		int status;
+		int error;
+		
+		// check how we get here
+		skip = getSkip();
+		state = getState();
+		status = getStatus();
+		error = getError();
+		
+		// are we in online, offline, or skip state?
+		if (getState() == StateMachine.OFFLINE_STATE) {
+			
+			// most likely there is an error
+			if (getStatus() == StateMachine.ERROR_STATUS) {
+				
+				switch (getError()) {
+				
+					case StateMachine.FB_GET_ME_FAILED_ERROR:
+						// retry
+						Log.d("tag", "fb get me failed error");
+					case StateMachine.FB_GET_FRIENDS_FAILED_ERROR:
+						// retry
+						Log.d("tag", "fb get friends failed error");
+					case StateMachine.FBID_SERVER_REGISTER_ERROR:
+						// retry
+						Log.d("tag", "server register error");
+						
+					case StateMachine.NETWORK_DISCONNECT_ERROR:
+						// retry
+					default:
+						
+				}
+			}
+		}
 
 	}
 
@@ -175,6 +215,7 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 			if (session != null && session.isOpened() == true) {
 				session.closeAndClearTokenInformation();
 				myApp.friendsList.clear();
+
 			} else {
 				// toast
 				Log.d("tag", "toast: you are not logged in to facebook - ");
@@ -235,11 +276,14 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
     @Override
     public void onDestroy() {
     	
-
     	super.onDestroy();
        uiHelper.onDestroy();
        
        saveInitialSynced(false);
+       saveState(StateMachine.INIT_STATE);
+       saveStatus(StateMachine.OK_STATUS);
+       saveError(StateMachine.NO_ERROR);
+       myApp.friendsList.clear();
        
        Log.d("tag", "bucketlist activity ondestroy");
     }
@@ -301,22 +345,6 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 		startActivity(intent);
 		
 	}
-
-	private void saveSkip(boolean skip) {
-
-		Log.d("tag", "bucketlist saveskip: " + skip);
-		SharedPreferences.Editor editor = sp.edit();
-		editor.putBoolean(getString(R.string.pref_skip_key), skip);
-		editor.commit();
-	}
-
-	private void saveInitialSynced(boolean synced) {
-
-		Log.d("tag", "bucketlist saveInitialSynced: " + synced);
-		SharedPreferences.Editor editor = sp.edit();
-		editor.putBoolean(getString(R.string.pref_initial_sync_key), synced);
-		editor.commit();
-	}
 	
 	@Override
 	public void onTabSelected(Tab tab, FragmentTransaction ft) {
@@ -338,7 +366,7 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 
 			ft.hide(fmList[MYLIST_FRAGMENT_IDX]);	
 			
-			if(skip == false && session != null && session.isOpened() == true) {
+			if(getState() == StateMachine.ONLINE_STATE) {
 				ft.show(fmList[COMMUNITY_FRAGMENT_IDX]);
 				ft.hide(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
 			} else {
@@ -377,7 +405,7 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 			Log.d("tag", "community re-selected");
 			
 			Session session = Session.getActiveSession();
-			if(skip == false && session != null && session.isOpened() == true) {
+			if(getState() == StateMachine.ONLINE_STATE) {
 				ft.show(fmList[COMMUNITY_FRAGMENT_IDX]);
 				ft.hide(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
 			} else {
@@ -402,4 +430,87 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 		startActivity(launch);
 		finish();		
 	}
+	
+	/* 
+	 * Preferences settings GET/SET methods
+	 * Need to find a way so these GET/SET methods can be used across activities
+	 */
+	
+	// skip
+	public void saveSkip(boolean skip) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putBoolean(getString(R.string.pref_skip_key), skip);
+		editor.commit();
+	}
+	
+	public Boolean getSkip() {
+		return sp.getBoolean(getString(R.string.pref_skip_key), false);
+	}
+	
+	// state
+	public void saveState(int state) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putInt(getString(R.string.pref_state_key), state);
+		editor.commit();
+	}
+	
+	public int getState() {
+		return sp.getInt(getString(R.string.pref_state_key), 100);
+	}
+
+	// status
+	public void saveStatus(int status) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putInt(getString(R.string.pref_status_key), status);
+		editor.commit();
+	}
+	
+	public int getStatus() {
+		return sp.getInt(getString(R.string.pref_status_key), 100);	
+	}
+
+	// error
+	public void saveError(int error) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putInt(getString(R.string.pref_error_key), error);
+		editor.commit();
+	}
+
+	public int getError() {
+		return sp.getInt(getString(R.string.pref_error_key), 100);
+	}
+	
+	// fb_userid
+	public void saveFbUserId(String fbUserid) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putString(getString(R.string.pref_fb_userid_key), fbUserid);
+		editor.commit();
+	}
+
+	public String getFbUserId() {
+		return sp.getString(getString(R.string.pref_fb_userid_key), "invalid");
+	}
+
+	// userid_registered
+	public void saveUserIdRegistered(boolean value) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putBoolean(getString(R.string.pref_userid_registered_key), value);
+		editor.commit();
+	}
+
+	public boolean getUserIdRegistered() {
+		return sp.getBoolean(getString(R.string.pref_userid_registered_key), false);
+	}	
+	
+	// initial_sync
+	public void saveInitialSynced(boolean value) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putBoolean(getString(R.string.pref_initial_synced_key), value);
+		editor.commit();
+	}
+
+	public boolean getInitialSynced() {
+		return sp.getBoolean(getString(R.string.pref_initial_synced_key), false);
+	}			
+
 }

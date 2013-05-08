@@ -19,13 +19,15 @@
     <string name="share_label">Share your bucket list with the community</string>
     <string name="name_label">Name</string>
     <string name="pref_name">USER_PREF</string>
-    <string name="pref_share_key">PREF_SHARE</string>
     <string name="pref_skip_key">PREF_SKIP_ACCOUNT</string>
-    <string name="pref_userid_key">PREF_USERID</string>
-    <string name="pref_initial_sync_key">PREF_SYNCED</string>
-    <string name="pref_fb_me_retrieved">PREF_FB_ME_RETRIEVED</string>
-    <string name="pref_fb_friends_retrieved">PREF_FB_FRIENDS_RETRIEVED</string>
+    <string name="pref_fb_userid_key">PREF_USERID</string>
+    <string name="pref_initial_synced_key">PREF_SYNCED</string>
     <string name="pref_userid_registered_key">PREF_USERID_REGISTERED</string>
+    
+    <string name="pref_state_key">PREF_STATE</string>
+    <string name="pref_status_key">PREF_STATUS</string>
+    <string name="pref_error_key">PREF_ERROR</string>
+    
     <string name="visit_kiddobloom">Visit us on our website <a href="http://www.kiddobloom.com">kiddoBLOOM</a></string>
 
 </resources>
