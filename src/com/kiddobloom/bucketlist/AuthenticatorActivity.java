@@ -101,10 +101,11 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
     				saveError(StateMachine.NO_ERROR);
     				getFacebookInfo(session);
     			} else {
-    				Log.d("tag", "ERRROOOOOOORRRRRRRR prev state: " + getState());
+    				Log.d("tag", "Ignore the FB session open because prev state: " + StateMachine.stateStr[getState()]);
     			}
     			
     		} else if (session.isClosed() == true){
+    			// nothing to do here
     		}
     		
     	}
@@ -132,6 +133,28 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 		am = AccountManager.get(this);
 		myApp = (MyApplication) getApplication();
 		
+	}
+	
+	private boolean isNetworkAvailable() {
+	    ConnectivityManager connectivityManager 
+	          = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+	    return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+	}
+
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+        uiHelper.onResume();
+        isResumed = true;
+        Log.d("tag", "authenticator activity onresume");
+        
 		// only show this screen once when the user installs the app
 		// check to see if skip is already saved in preferences
 		skip = getSkip();
@@ -162,27 +185,6 @@ public class AuthenticatorActivity extends SherlockActivity implements Request.G
 			saveError(StateMachine.NO_ERROR);
 			goToBucketListActivity();
 		}
-	}
-	
-	private boolean isNetworkAvailable() {
-	    ConnectivityManager connectivityManager 
-	          = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-	    NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-	    return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-	}
-	
-	@Override
-	protected void onStop() {
-		super.onStop();
-	}
-
-	@Override
-	protected void onResume() {
-		// TODO Auto-generated method stub
-		super.onResume();
-        uiHelper.onResume();
-        isResumed = true;
-        Log.d("tag", "authenticator activity onresume");
 
 	}
 	

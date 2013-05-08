@@ -392,21 +392,20 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 						break;
 					default:
 				}				
-			} else {
-				// if the row is not in transacting/retry state, this implies the row is synced with server
-				// delete the row from local DB and sync to the latest updated sets from the server
-				// this is a use-case when a user updates the list on one device and opens the app again on another device
-				// do not notify listview that the entry is deleted because we will update with ones from server
-				Uri base = MyContentProvider.CONTENT_URI;
-				base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_NO_NOTIFY);
-				Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+			} 
+			
+			// delete all rows from local DB and sync to the latest updated sets from the server
+			// this is a use-case when a user updates the list on one device and opens the app again on another device
+			// do not notify listview that the entry is deleted because we will update with ones from server
+			Uri base = MyContentProvider.CONTENT_URI;
+			base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_NO_NOTIFY);
+			Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
 
-				try {
-					provider.delete(uri, null, null);
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			try {
+				provider.delete(uri, null, null);
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			
 			c.moveToNext();

@@ -10,6 +10,8 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.SyncStateContract.Columns;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
@@ -23,9 +25,13 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
+
 import android.widget.TextView;
+import android.widget.TabHost.OnTabChangeListener;
 import android.widget.TextView.OnEditorActionListener;
 
+import com.actionbarsherlock.app.ActionBar.Tab;
+import com.actionbarsherlock.app.ActionBar.TabListener;
 import com.actionbarsherlock.app.SherlockFragment;
 import com.actionbarsherlock.view.ActionMode;
 import com.actionbarsherlock.view.ActionMode.Callback;
@@ -172,7 +178,7 @@ public class MyListFragment extends SherlockFragment implements
 	
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle bundle) {
-		// Log.d("tag", "loader manager : oncreateloader");
+		//Log.d("tag", "loader manager : oncreateloader");
 		
 		// filter the entries that are marked for deletion (using the selection field) from displaying in listview
 		// sync adapter will kick in later to send the rest delete command to server
@@ -184,21 +190,23 @@ public class MyListFragment extends SherlockFragment implements
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		// Log.d("tag", "loader manager : onloadfinished cursor= " + cursor);
+		//Log.d("tag", "loader manager : onloadfinished cursor= " + cursor);
 		// save the cursor
 		myCursor = cursor;
 		la.swapCursor(cursor);
-
-//		if (myCursor != null) {
-//			for (int i=0; i < myCursor.getCount() ; i++) {
-//				Log.d("tag", "row " + i + " rest state " + MyContentProvider.restStateStr[myCursor.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)] );
-//			}
+		
+		// dump the db
+//		cursor.moveToFirst();
+//		for (int i=0; i < cursor.getCount(); i++) {
+//			Log.d("tag", "row " + i + " :" + cursor.getInt(MyContentProvider.COLUMN_INDEX_ID) + " " + cursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY) + " " 
+//					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " + MyContentProvider.restStateStr[cursor.getInt(7)]);
+//			cursor.moveToNext();
 //		}
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		Log.d("tag", "loader manager : onloaderreset");
+		//Log.d("tag", "loader manager : onloaderreset");
 		la.swapCursor(null);
 	}
 
@@ -210,6 +218,7 @@ public class MyListFragment extends SherlockFragment implements
 	}
 	
 	public void sync() {
+		Log.d("tag", "sync");
 		getSherlockActivity().getContentResolver().query(MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
 	}
 	
@@ -227,7 +236,7 @@ public class MyListFragment extends SherlockFragment implements
 		@Override
 		public boolean onCreateActionMode(ActionMode mode, Menu menu) {
 
-			Log.d("tag", "actionmode oncreate: " + mode);
+			//Log.d("tag", "actionmode oncreate: " + mode);
 
 			menu.add(MENU_GROUP_ID_MAIN, MENU_ID_SHARE, 0, "Share")
 					.setIcon(R.drawable.content_social)
@@ -266,52 +275,52 @@ public class MyListFragment extends SherlockFragment implements
 			int position = -1;
 
 			int menuItemId = item.getItemId();
-			Log.d("tag", "menu item clicked: " + menuItemId);
+			//Log.d("tag", "menu item clicked: " + menuItemId);
 
 			if (menuItemId == MENU_ID_DELETE) {
 
 				base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE);
 
-				Log.d("tag", "number of checked item Ids: " + itemids.length);
+				//Log.d("tag", "number of checked item Ids: " + itemids.length);
 				for (int i = 0; i < itemids.length; i++) {
-					Log.d("tag", "checked item id: " + itemids[i]);
+					//Log.d("tag", "checked item id: " + itemids[i]);
 					base = Uri.withAppendedPath(base,
 							Integer.toString((int) itemids[i]));
 				}
 
-				Log.d("tag", "uri: " + base);
+				//Log.d("tag", "uri: " + base);
 				
 				getSherlockActivity().getContentResolver().delete(base, null, null);
 
 			} else if (menuItemId == MENU_ID_EDIT) {
 
-				Log.d("tag", "sba size: " + sba.size());
+				//Log.d("tag", "sba size: " + sba.size());
 				for (int i = 0; i < sba.size(); i++) {
 					int key = sba.keyAt(i);
 					// Log.d("tag", "value at key:" + key + " is "+
 					// sba.get(key));
 					if (sba.get(key) == true) {
-						Log.d("tag", "checked item position: " + key);
+						//Log.d("tag", "checked item position: " + key);
 						position = key;
 					}
 				}
 
 				if (position == -1) {
-					Log.d("tag", "nothing to edit");
+					//Log.d("tag", "nothing to edit");
 					mode.finish();
 					return false;
 				}
 
 				Cursor c = (Cursor) la.getItem(position);
 				String text = c.getString(MyContentProvider.COLUMN_INDEX_ENTRY);
-				Log.d("tag", "text to Edit: " + text);
+				//Log.d("tag", "text to Edit: " + text);
 
 				int itemId = (int) la.getItemId(position);
 
 				base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
 				base = Uri.withAppendedPath(base, Integer.toString(itemId));
 
-				Log.d("tag", "uri: " + base);
+				//Log.d("tag", "uri: " + base);
 
 				if (text != null) {
 					
@@ -322,28 +331,28 @@ public class MyListFragment extends SherlockFragment implements
 				signalUpdate(true, itemId, position);
 
 			} else {
-				Log.d("tag", "menu item share clicked");
+				//Log.d("tag", "menu item share clicked");
 
 				StringBuilder textList = new StringBuilder();
 
 				int count = 0;
-				Log.d("tag", "sba size: " + sba.size());
+				//Log.d("tag", "sba size: " + sba.size());
 				for (int i = 0; i < sba.size(); i++) {
 
 					int key = sba.keyAt(i);
-					Log.d("tag", "value at key:" + key + " is " + sba.get(key));
+					//Log.d("tag", "value at key:" + key + " is " + sba.get(key));
 					if (sba.get(key) == true) {
-						Log.d("tag", "checked item position: " + key);
+						//Log.d("tag", "checked item position: " + key);
 						Cursor c = (Cursor) la.getItem(key);
 						String text = c
 								.getString(MyContentProvider.COLUMN_INDEX_ENTRY);
-						Log.d("tag", " text to share: " + text);
+						//Log.d("tag", " text to share: " + text);
 						textList.append(++count);
 						textList.append(". ");
 						textList.append(text);
 						textList.append('\n');
 
-						Log.d("tag", "string to append: " + textList);
+						//Log.d("tag", "string to append: " + textList);
 					}
 				}
 
@@ -366,7 +375,7 @@ public class MyListFragment extends SherlockFragment implements
 		@Override
 		public void onDestroyActionMode(ActionMode mode) {
 			// TODO Auto-generated method stub
-			Log.d("tag", "actionmode ondestroy: " + mode);
+			//Log.d("tag", "actionmode ondestroy: " + mode);
 			mMode = null;
 
 			SparseBooleanArray sba = lv.getCheckedItemPositions();
@@ -448,6 +457,10 @@ public class MyListFragment extends SherlockFragment implements
 		 */
 		la.notifyDataSetChanged();
 		
+	}
+	
+	public void refreshList() {
+		lm.restartLoader(0, null, this);
 	}
 
 }

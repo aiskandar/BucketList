@@ -192,8 +192,7 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 			Session session = Session.getActiveSession();
 			if (session != null && session.isOpened() == true) {
 				session.closeAndClearTokenInformation();
-				myApp.friendsList.clear();				
-				
+				myApp.friendsList.clear();	
 			} else {
 				// toast
 				Log.d("tag", "toast: you are not logged in to facebook - ");
@@ -271,6 +270,7 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 		    				}
         				}
         				
+        				// restart timer
         				mHandler.removeCallbacks(this);
         		        mHandler.postDelayed(this, TIMER_INTERVAL); 
 	            	}
@@ -278,26 +278,32 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
         			// it seems our timer callback has successfully delivered us to ONLINE mode
         			// re-select the tab and DO not restart timer
         			Log.d("tag", "timer event online");
+        			
+        			switch(currentTab) {
+        			case MYLIST_NAV_TAB_IDX:
+        				NavigationTabs.myListTab.select();
+        				break;
+        			case COMMUNITY_NAV_TAB_IDX:
+        				NavigationTabs.communityTab.select();
+        				break;
+        			case ABOUT_NAV_TAB_IDX:
+        				NavigationTabs.aboutTab.select();
+        				break;
+        			default:
+        				//throw exception here
+        			}	
     			}  
-        		
-    			switch(currentTab) {
-    			case MYLIST_NAV_TAB_IDX:
-    				NavigationTabs.myListTab.select();
-    				break;
-    			case COMMUNITY_NAV_TAB_IDX:
-    				NavigationTabs.communityTab.select();
-    				break;
-    			case ABOUT_NAV_TAB_IDX:
-    				NavigationTabs.aboutTab.select();
-    				break;
-    			default:
-    				//throw exception here
-    			}	
 			} 
 		};
 		
-        mHandler.removeCallbacks(mUpdate);
-        mHandler.postDelayed(mUpdate, TIMER_INTERVAL); 
+		if (getState() == StateMachine.OFFLINE_STATE) {
+			// most likely there is an error
+			if (getStatus() == StateMachine.ERROR_STATUS) {
+				Log.d("tag", "trigger a timer to retry");
+				mHandler.removeCallbacks(mUpdate);
+				mHandler.postDelayed(mUpdate, TIMER_INTERVAL);
+			}
+		}
 	}
 	
 	private boolean isNetworkAvailable() {
@@ -332,10 +338,6 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
        uiHelper.onDestroy();
        
        saveInitialSynced(false);
-       //saveState(StateMachine.INIT_STATE);
-       //saveStatus(StateMachine.OK_STATUS);
-       //saveError(StateMachine.NO_ERROR);
-       myApp.friendsList.clear();
        
        Log.d("tag", "bucketlist activity ondestroy");
     }
@@ -388,8 +390,6 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 	public void handleFbLike(View v) {
 		Log.d("tag", "handle FB like");
 		
-		FriendData fd = myApp.friendsList.get(0); 
-		
 		String kiddobloom_fb_id = "208086305947271";
 		String uri = "fb://page/" + kiddobloom_fb_id;
 		Log.d("tag", "uri: " +uri);
@@ -406,7 +406,10 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 		if (tab.getText().equals("My List")) {
 			Log.d("tag", "my list selected");
 			
-			ft.show(fmList[MYLIST_FRAGMENT_IDX]);			
+			ft.show(fmList[MYLIST_FRAGMENT_IDX]);	
+			MyListFragment mf = (MyListFragment) fmList[MYLIST_FRAGMENT_IDX];
+			mf.refreshList();
+			
 			ft.hide(fmList[COMMUNITY_FRAGMENT_IDX]);
 			ft.hide(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
 			ft.hide(fmList[ABOUT_FRAGMENT_IDX]);
@@ -421,6 +424,8 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 			if(getState() == StateMachine.ONLINE_STATE) {
 				ft.show(fmList[COMMUNITY_FRAGMENT_IDX]);
 				ft.hide(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
+				CommunityFragment cf = (CommunityFragment) fmList[COMMUNITY_FRAGMENT_IDX];
+				cf.dataChange();
 			} else {
 				ft.hide(fmList[COMMUNITY_FRAGMENT_IDX]);
 				ft.show(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
@@ -460,6 +465,8 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 			if(getState() == StateMachine.ONLINE_STATE) {
 				ft.show(fmList[COMMUNITY_FRAGMENT_IDX]);
 				ft.hide(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
+				CommunityFragment cf = (CommunityFragment) fmList[COMMUNITY_FRAGMENT_IDX];
+				cf.dataChange();
 			} else {
 				ft.hide(fmList[COMMUNITY_FRAGMENT_IDX]);
 				ft.show(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
@@ -482,6 +489,9 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 	
 	public void getFacebookFriends() {
 		
+		// this is called from error state
+		// if the app error state is failed to get facebook friends
+		// clear facebook friends first before 
 		myApp.friendsList.clear();
 		
 		Session session = Session.getActiveSession();
@@ -613,10 +623,6 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 	    			default:
 	    				//throw exception here
 	    			}	
-	    			
-	    			CommunityFragment cf = (CommunityFragment) fmList[COMMUNITY_FRAGMENT_IDX];
-	    			cf.dataChange();
-	    			
 					//goToBucketListActivity();
 				}
 			} else {
@@ -695,9 +701,6 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
     			default:
     				//throw exception here
     			}	
-    			
-    			CommunityFragment cf = (CommunityFragment) fmList[COMMUNITY_FRAGMENT_IDX];
-    			cf.dataChange();
 				
 				// HACK xxxxxxxxxxxxxxxxxxxxxxxxxx
 //				saveState(StateMachine.OFFLINE_STATE);
@@ -798,7 +801,10 @@ public class BucketListActivity extends SherlockFragmentActivity implements TabL
 			// store the userid and registered boolean in preferences db
 			saveFbUserId(user.getId());
 			saveUserIdRegistered(registered);
-						
+				
+			// clear facebook friends first before conducting another get request
+			myApp.friendsList.clear();
+			
 			saveState(StateMachine.FB_GET_FRIENDS_STATE);
 			saveStatus(StateMachine.TRANSACTING_STATUS);
 			saveError(StateMachine.NO_ERROR);
