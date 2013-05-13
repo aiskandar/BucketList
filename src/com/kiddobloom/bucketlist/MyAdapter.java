@@ -3,7 +3,16 @@ package com.kiddobloom.bucketlist;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.net.Uri;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
@@ -31,6 +40,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 	
 	public class ViewHolder {
 		LinearLayout tw;
+		//RelativeLayout tw;
 		CheckBox cb;
 		ImageButton ib1;
 		ImageButton ib2;
@@ -75,7 +85,8 @@ public class MyAdapter extends SimpleCursorAdapter {
 			// Purpose of the ViewHolder is to save the findViewById for these child views
 			// The ViewHolder object will be saved in the tag of the baseview by calling setTag
 			vh = new ViewHolder();
-			vh.tw = (LinearLayout) baseview.findViewById(R.id.textWrapper);
+			//vh.tw = (RelativeLayout) baseview.findViewById(R.id.entryWrapper);
+			vh.tw = (LinearLayout) baseview.findViewById(R.id.inner);
 			vh.cb = (CheckBox) baseview.findViewById(R.id.ctv1);
 			vh.tv1 = (TextView) baseview.findViewById(R.id.blogHeader);
 			vh.tv2 = (TextView) baseview.findViewById(R.id.textView2);
@@ -193,6 +204,11 @@ public class MyAdapter extends SimpleCursorAdapter {
 		} else {
 			//Log.d("tag2", "white");
 			int resIdx = resId[position % 3];
+			
+//			Bitmap bm = BitmapFactory.decodeResource(context.getResources(), resIdx);
+//			bm = getRoundedCornerBitmap(bm);
+//			BitmapDrawable bd = new BitmapDrawable(context.getResources(), bm);
+//			vh.tw.setBackgroundDrawable(bd);
 			vh.tw.setBackgroundResource(resIdx);
 		}
 
@@ -235,4 +251,25 @@ public class MyAdapter extends SimpleCursorAdapter {
 		return baseview;
 	}
 	
+	  public static Bitmap getRoundedCornerBitmap(Bitmap bitmap) {
+		    Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
+		        bitmap.getHeight(), Config.ARGB_8888);
+		    Canvas canvas = new Canvas(output);
+		 
+		    final int color = 0xff424242;
+		    final Paint paint = new Paint();
+		    final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+		    final RectF rectF = new RectF(rect);
+		    final float roundPx = 12;
+		 
+		    paint.setAntiAlias(true);
+		    canvas.drawARGB(0, 0, 0, 0);
+		    paint.setColor(color);
+		    canvas.drawRoundRect(rectF, roundPx, roundPx, paint);
+		 
+		    paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
+		    canvas.drawBitmap(bitmap, rect, rect, paint);
+		 
+		    return output;
+		  }
 }

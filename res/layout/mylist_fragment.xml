@@ -25,6 +25,7 @@
         android:layout_marginTop="5dp"
         android:drawSelectorOnTop="false"
         android:listSelector="@drawable/list_item_selector" >
+
     </com.kiddobloom.bucketlist.SelectListView>
 
 </LinearLayout>
