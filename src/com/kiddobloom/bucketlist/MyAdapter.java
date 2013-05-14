@@ -219,7 +219,6 @@ public class MyAdapter extends SimpleCursorAdapter {
 		} else {
 			//Log.d("tag2", "white");
 			int resIdx = resId[position % 3];
-			
 //			Bitmap bm = BitmapFactory.decodeResource(context.getResources(), resIdx);
 //			bm = getRoundedCornerBitmap(bm);
 //			BitmapDrawable bd = new BitmapDrawable(context.getResources(), bm);
