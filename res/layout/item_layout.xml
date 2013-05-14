@@ -2,7 +2,7 @@
 <com.kiddobloom.bucketlist.BucketlistRowLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/row"
     android:layout_width="match_parent"
-    android:layout_height="200dp"
+    android:layout_height="300dp"
     android:layout_weight="0"
     android:clickable="false"
     android:focusable="false"
@@ -15,6 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="10dp"
+        android:background="@drawable/row_item_bg"
         android:orientation="vertical" >
 
         <LinearLayout
@@ -22,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_margin="10dp"
-            android:layout_weight="3"
+            android:layout_weight="5"
             android:clickable="false"
             android:focusable="false"
             android:focusableInTouchMode="false"
@@ -48,7 +49,7 @@
             android:id="@+id/metaWrapper"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginLeft="5dp"
+            android:layout_marginLeft="10dp"
             android:layout_weight="1"
             android:orientation="horizontal" >
 
@@ -56,38 +57,67 @@
                 android:id="@+id/ib2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentTop="true"
+                android:layout_below="@id/textWrapper"
+                android:layout_centerVertical="true"
                 android:layout_gravity="left"
+                android:layout_marginBottom="10dp"
                 android:layout_marginRight="5dp"
+                android:background="@drawable/row_item_bg"
                 android:scaleType="center"
                 android:src="@drawable/share" />
+
+            <TextView
+                android:id="@+id/TextView01"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/textWrapper"
+                android:layout_centerVertical="true"
+                android:layout_marginBottom="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_toRightOf="@id/ib2"
+                android:clickable="false"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:longClickable="false"
+                android:text="share"
+                android:textAppearance="?android:attr/textAppearanceSmallInverse" />
 
             <ImageButton
                 android:id="@+id/ib1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/ib2"
-                android:layout_alignParentTop="true"
-                android:layout_gravity="left"
+                android:layout_centerVertical="true"
+                android:layout_marginBottom="10dp"
                 android:layout_marginRight="5dp"
-                android:layout_toRightOf="@+id/ib2"
+                android:layout_toRightOf="@id/TextView01"
+                android:background="@drawable/row_item_bg"
                 android:scaleType="center"
                 android:src="@drawable/rating_not_important" />
+
+            <TextView
+                android:id="@+id/TextView02"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginBottom="10dp"
+                android:layout_marginRight="5dp"
+                android:layout_toRightOf="@id/ib1"
+                android:clickable="false"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:longClickable="false"
+                android:text="must-do"
+                android:textAppearance="?android:attr/textAppearanceSmallInverse" />
 
             <CheckBox
                 android:id="@+id/ctv1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/ib1"
-                android:layout_centerVertical="true"
-                android:layout_gravity="center"
-                android:layout_toRightOf="@+id/ib1"
+                android:layout_alignParentBottom="true"
+                android:layout_toRightOf="@+id/TextView02"
                 android:clickable="false"
-                android:duplicateParentState="true"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
-                android:gravity="center_vertical"
                 android:longClickable="false" />
 
             <TextView
@@ -98,6 +128,7 @@
                 android:layout_below="@id/textWrapper"
                 android:layout_centerVertical="true"
                 android:layout_gravity="right"
+                android:layout_marginBottom="10dp"
                 android:layout_marginRight="10dp"
                 android:clickable="false"
                 android:focusable="false"

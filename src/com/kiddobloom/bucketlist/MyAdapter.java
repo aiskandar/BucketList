@@ -30,7 +30,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 
 	LayoutInflater mInflater;		
 	Context context;
-	int resId[] = {R.drawable.path, R.drawable.faith, R.drawable.pray};
+	int resId[] = {R.drawable.ansel1, R.drawable.ansel2, R.drawable.ansel3};
 	
 	public MyAdapter(Context c, String[] from, int[] to) {
 		super(c, R.layout.item_layout, null, from, to, 0);
@@ -52,8 +52,10 @@ public class MyAdapter extends SimpleCursorAdapter {
 	
 	public class ImageViewHolder {
 		int itemId;
+		int pos;
 		String rating;
 		String share;
+		ListView listview;
 	}	
 	
 	@Override
@@ -85,8 +87,8 @@ public class MyAdapter extends SimpleCursorAdapter {
 			// Purpose of the ViewHolder is to save the findViewById for these child views
 			// The ViewHolder object will be saved in the tag of the baseview by calling setTag
 			vh = new ViewHolder();
-			//vh.tw = (RelativeLayout) baseview.findViewById(R.id.entryWrapper);
-			vh.tw = (LinearLayout) baseview.findViewById(R.id.inner);
+			vh.tw = (LinearLayout) baseview.findViewById(R.id.textWrapper);
+			//vh.tw = (LinearLayout) baseview.findViewById(R.id.inner);
 			vh.cb = (CheckBox) baseview.findViewById(R.id.ctv1);
 			vh.tv1 = (TextView) baseview.findViewById(R.id.blogHeader);
 			vh.tv2 = (TextView) baseview.findViewById(R.id.textView2);
@@ -166,6 +168,19 @@ public class MyAdapter extends SimpleCursorAdapter {
 					cv.put(MyContentProvider.COLUMN_SHARE, ivh.share);					
 					context.getContentResolver().update(base, cv, null, null);				}
 			});
+			
+			vh.tw.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+
+					ImageViewHolder vh = (ImageViewHolder) v.getTag();
+					Log.d("tag", "onclick row for id:" + vh.itemId + " position:" + vh.pos);
+					
+					ListView lv = (ListView) vh.listview;
+					lv.performItemClick(v, vh.pos, vh.itemId);
+				}
+			});
 		} else {	
 			// the row view has been inflated before - get the saved child views
 			vh = (ViewHolder) baseview.getTag();
@@ -219,18 +234,6 @@ public class MyAdapter extends SimpleCursorAdapter {
 			vh.ib2.setImageResource(R.drawable.share);
 		}
 
-		baseview.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-
-				ViewHolder vh = (ViewHolder) v.getTag();
-				Log.d("tag", "onclick row for id:" + vh.itemId + " position:" + vh.pos);
-				
-				ListView lv = (ListView) v.getParent();
-				lv.performItemClick(v, vh.pos, vh.itemId);
-			}
-		});
 		
 		// save the itemId of the data in the adapter into the child views
 		// purpose is for the checkbox and ratingbar event listeners to understand the
@@ -239,12 +242,15 @@ public class MyAdapter extends SimpleCursorAdapter {
 		
 		ImageViewHolder ivh = new ImageViewHolder();
 		ivh.itemId = itemId;
+		ivh.pos = position;
 		ivh.rating = rating_str;
 		ivh.share = share_str;
+		ivh.listview = lv;
 		
 		vh.cb.setTag(itemId);
 		vh.ib1.setTag(ivh);
 		vh.ib2.setTag(ivh);
+		vh.tw.setTag(ivh);
 		vh.itemId = itemId;
 		vh.pos = position;
 		
