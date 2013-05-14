@@ -2,7 +2,7 @@
 <com.kiddobloom.bucketlist.BucketlistRowLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/row"
     android:layout_width="match_parent"
-    android:layout_height="300dp"
+    android:layout_height="wrap_content"
     android:layout_weight="0"
     android:clickable="false"
     android:focusable="false"
@@ -21,9 +21,9 @@
         <LinearLayout
             android:id="@+id/textWrapper"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_margin="10dp"
-            android:layout_weight="5"
+            android:layout_height="200dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:clickable="false"
             android:focusable="false"
             android:focusableInTouchMode="false"
@@ -35,7 +35,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:layout_margin="5dp"
+                android:layout_marginLeft="10dp"
                 android:clickable="false"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
@@ -48,20 +48,19 @@
         <RelativeLayout
             android:id="@+id/metaWrapper"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="50dp"
             android:layout_marginLeft="10dp"
-            android:layout_weight="1"
+            android:layout_marginRight="10dp"
             android:orientation="horizontal" >
 
             <ImageButton
                 android:id="@+id/ib2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/textWrapper"
+                android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
                 android:layout_gravity="left"
-                android:layout_marginBottom="10dp"
-                android:layout_marginRight="5dp"
+                android:layout_marginRight="2dp"
                 android:background="@drawable/row_item_bg"
                 android:scaleType="center"
                 android:src="@drawable/share" />
@@ -70,9 +69,7 @@
                 android:id="@+id/TextView01"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/textWrapper"
                 android:layout_centerVertical="true"
-                android:layout_marginBottom="10dp"
                 android:layout_marginRight="10dp"
                 android:layout_toRightOf="@id/ib2"
                 android:clickable="false"
@@ -80,15 +77,14 @@
                 android:focusableInTouchMode="false"
                 android:longClickable="false"
                 android:text="share"
-                android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+                android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <ImageButton
                 android:id="@+id/ib1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_marginBottom="10dp"
-                android:layout_marginRight="5dp"
+                android:layout_marginRight="2dp"
                 android:layout_toRightOf="@id/TextView01"
                 android:background="@drawable/row_item_bg"
                 android:scaleType="center"
@@ -99,7 +95,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_marginBottom="10dp"
                 android:layout_marginRight="5dp"
                 android:layout_toRightOf="@id/ib1"
                 android:clickable="false"
@@ -107,13 +102,14 @@
                 android:focusableInTouchMode="false"
                 android:longClickable="false"
                 android:text="must-do"
-                android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+                android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <CheckBox
                 android:id="@+id/ctv1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="2dp"
                 android:layout_toRightOf="@+id/TextView02"
                 android:clickable="false"
                 android:focusable="false"
@@ -125,16 +121,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
-                android:layout_below="@id/textWrapper"
                 android:layout_centerVertical="true"
                 android:layout_gravity="right"
-                android:layout_marginBottom="10dp"
-                android:layout_marginRight="10dp"
                 android:clickable="false"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:longClickable="false"
-                android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+                android:textAppearance="?android:attr/textAppearanceSmall" />
 
         </RelativeLayout>
 
