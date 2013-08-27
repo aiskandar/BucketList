@@ -9,10 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.app.Fragment;
 
-import com.actionbarsherlock.app.SherlockFragment;
-
-public class CommunityFragment extends SherlockFragment {
+public class CommunityFragment extends Fragment {
 
 	SharedPreferences sp;
 	private MyApplication myApp;
@@ -30,8 +29,8 @@ public class CommunityFragment extends SherlockFragment {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 
-		sp = getSherlockActivity().getSharedPreferences(getString(R.string.pref_name), 0);
-		myApp = (MyApplication) getSherlockActivity().getApplication();
+		sp = getActivity().getSharedPreferences(getString(R.string.pref_name), 0);
+		myApp = (MyApplication) getActivity().getApplication();
 		
 		boolean skip = sp.getBoolean(getString(R.string.pref_skip_key), false);
 
@@ -45,7 +44,7 @@ public class CommunityFragment extends SherlockFragment {
 		View v = inflater.inflate (R.layout.community_fragment, container, false);
 		
 		ad = new FacebookFriendsAdapter (getActivity(), R.layout.facebook_friends_item_layout, myApp.friendsList);		
-		lv = (ListView) v.findViewById(android.R.id.list);
+		lv = (ListView) v.findViewById(R.id.fbfriendslist);
 		
 		return v;
 	}

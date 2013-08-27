@@ -33,9 +33,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 
-import com.actionbarsherlock.app.SherlockActivity;
+import android.app.Activity;
 
-public class ShareActivity extends SherlockActivity implements OnClickListener {
+public class ShareActivity extends Activity implements OnClickListener {
 
 	LinearLayout name = null;
 	//LinearLayout radio = null;
@@ -52,8 +52,8 @@ public class ShareActivity extends SherlockActivity implements OnClickListener {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		
-	  	getSupportActionBar().setTitle("Bucket List");
-    	getSupportActionBar().setSubtitle("by kiddoBLOOM");   
+	  	getActionBar().setTitle("Bucket List");
+    	getActionBar().setSubtitle("by kiddoBLOOM");   
     	
     	am = AccountManager.get(this);
 		sp = getSharedPreferences(getString(R.string.pref_name), 0);

@@ -1,6 +1,7 @@
 package com.kiddobloom.bucketlist;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -10,9 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.actionbarsherlock.app.SherlockFragment;
-
-public class AboutFragment extends SherlockFragment {
+public class AboutFragment extends Fragment {
 
 	SharedPreferences sp;
 	
@@ -25,7 +24,7 @@ public class AboutFragment extends SherlockFragment {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 
-		sp = getSherlockActivity().getSharedPreferences(getString(R.string.pref_name), 0);
+		sp = getActivity().getSharedPreferences(getString(R.string.pref_name), 0);
 		
 		boolean skip = sp.getBoolean(getString(R.string.pref_skip_key), false);
 

@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="paper">#eef8e0a0</color>
-    <color name="lines">#ff0000ff</color>
-    <color name="margin">#90ff0000</color>
-    <color name="text">#aa0000ff</color>
+ 	<color name="itemcolor">#9ccc</color>
+ 	
+ 	<color name="lightergrey">#eee</color>
+    <color name="lightgrey">#ddd</color>
+    <color name="grey">#aaa</color>
+    <color name="darkgrey">#777</color>
+    <color name="darkergrey">#555</color>
 </resources>

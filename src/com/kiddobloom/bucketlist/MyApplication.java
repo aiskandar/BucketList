@@ -14,17 +14,23 @@ import android.util.Log;
 public class MyApplication extends Application {
 
 	public ArrayList<FriendData> friendsList;
+	private static MyApplication mApp = null;
 	
 	public MyApplication() {
 		// TODO Auto-generated constructor stub
 	}
+	
+    public static Context context()
+    {
+        return mApp.getApplicationContext();
+    }
 	
 	@Override
 	public void onCreate() {
 		// TODO Auto-generated method stub
 		super.onCreate();
 		
-		Log.d("tag", "MyApplication oncreate");
+		Log.d("tagaa", "MyApplication oncreate");
 		
 		friendsList = new ArrayList<FriendData>();
 			
@@ -64,8 +70,9 @@ public class MyApplication extends Application {
 
 			editor.commit();	
 		} 
+		
+		mApp = this;
 			
 	}
-
 
 }

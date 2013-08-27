@@ -1,6 +1,6 @@
 package com.kiddobloom.bucketlist;
 
-import com.actionbarsherlock.app.ActionBar;
+import android.app.ActionBar;
 
 public class NavigationTabs {
 

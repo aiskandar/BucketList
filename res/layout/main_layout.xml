@@ -2,23 +2,30 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
-        
-    <fragment android:name="com.kiddobloom.bucketlist.MyListFragment"
-              android:id="@+id/mylistFragment"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent" />
-    <fragment android:name="com.kiddobloom.bucketlist.CommunityFragment"
-              android:id="@+id/commFragment"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent" />
-     <fragment android:name="com.kiddobloom.bucketlist.CommunityOfflineFragment"
-              android:id="@+id/commOfflineFragment"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent" />
-    <fragment android:name="com.kiddobloom.bucketlist.AboutFragment"
-              android:id="@+id/aboutFragment"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent" />
+    android:orientation="vertical" >
 
+    <fragment
+        android:id="@+id/mylistFragment"
+        android:name="com.kiddobloom.bucketlist.MyListFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <fragment
+        android:id="@+id/commFragment"
+        android:name="com.kiddobloom.bucketlist.CommunityFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <fragment
+        android:id="@+id/commOfflineFragment"
+        android:name="com.kiddobloom.bucketlist.CommunityOfflineFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="com.kiddobloom.bucketlist.AboutFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    
 </LinearLayout>

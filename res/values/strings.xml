@@ -3,7 +3,7 @@
 
     <string name="service_name">kiddoBLOOM</string>
     <string name="app_name">Bucket List</string>
-    <string name="app_id">150619161779623</string>
+    <string name="app_id">516138461779452</string>
 
     <!-- Button for going to the previous screen or step -->
     <string name="back_button_label">Back</string>
@@ -27,7 +27,8 @@
     <string name="pref_state_key">PREF_STATE</string>
     <string name="pref_status_key">PREF_STATUS</string>
     <string name="pref_error_key">PREF_ERROR</string>
-    
+ 
+    <string name="pref_image_counter">PREF_IMAGE_COUNTER</string>
     <string name="visit_kiddobloom">Visit us on our website <a href="http://www.kiddobloom.com">kiddoBLOOM</a></string>
 
 </resources>

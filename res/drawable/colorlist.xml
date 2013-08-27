@@ -1,18 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    
 
-    
-    <item android:state_focused="true"
-        	android:drawable="@color/paper"/>
-    
-    <item android:state_activated="true"
-        	android:drawable="@color/lines"/>
-    
-	<item android:state_checked="true"
-        	android:drawable="@color/lines"/>
+    <item android:drawable="@color/lightergrey" android:state_focused="true"/>
+    <item android:drawable="@color/grey" android:state_activated="true"/>
+    <item android:drawable="@color/darkgrey" android:state_checked="true"/>
 
- 
-
-    
 </selector>

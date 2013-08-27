@@ -25,6 +25,18 @@ public class BucketListTable {
 	@Expose
 	public String share;
 	
+	@Expose
+	public String imagepath;
+	
+	@Expose
+	public String date_completed;
+	
+	@Expose
+	public String imagecache;
+	
+	@Expose
+	public byte[] image;
+
 	void setServerId(int server_id) {
 		this.server_id = server_id;
 	}
@@ -45,6 +57,10 @@ public class BucketListTable {
 		this.rating = rating;
 	}
 	
+	void setImagecache(String ic) {
+		this.imagecache = ic;
+	}
+	
 	void setDone(String done) {
 		this.done = done;
 	}
@@ -52,5 +68,18 @@ public class BucketListTable {
 	void setShare(String share) {
 		this.share = share;
 	}
+	
+	void setImagepath(String imagepath) {
+		this.imagepath = imagepath;
+	}
+	
+	void setDatecompleted(String datecompleted) {
+		this.date_completed = datecompleted;
+	}
+	
+	void setImage(byte[] image) {
+		this.image = image.clone();
+	}
+	
 	
 }

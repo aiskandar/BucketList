@@ -2,18 +2,23 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="20dp"
+    android:background="@drawable/main_background"
     android:orientation="vertical" >
 
     <EditText
         android:id="@+id/editText1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/edit_text_bg"
         android:hint="Type here to add ..."
-        android:inputType="none" >
+        android:imeOptions="actionDone"
+        android:inputType="textCapSentences"
+        android:padding="5dp"
+        android:textAllCaps="false" >
 
     </EditText>
 
@@ -21,8 +26,6 @@
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginLeft="0dp"
-        android:layout_marginTop="0dp"
         android:drawSelectorOnTop="false"
         android:listSelector="@drawable/list_item_selector" >
 

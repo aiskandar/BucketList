@@ -1,20 +1,36 @@
 package com.kiddobloom.bucketlist;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.provider.MediaStore.Audio.Media;
 import android.provider.SyncStateContract.Columns;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.Loader;
+import android.app.FragmentTransaction;
+import android.app.LoaderManager;
+import android.app.LoaderManager.LoaderCallbacks;
+import android.content.Loader;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.KeyEvent;
@@ -30,17 +46,18 @@ import android.widget.TextView;
 import android.widget.TabHost.OnTabChangeListener;
 import android.widget.TextView.OnEditorActionListener;
 
-import com.actionbarsherlock.app.ActionBar.Tab;
-import com.actionbarsherlock.app.ActionBar.TabListener;
-import com.actionbarsherlock.app.SherlockFragment;
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.ActionMode.Callback;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
+import android.app.ActionBar.Tab;
+import android.app.ActionBar.TabListener;
+import android.app.Fragment;
+import android.view.ActionMode;
+import android.view.ActionMode.Callback;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.inputmethod.InputMethodManager;
 
 //import com.kiddobloom.bucketlist.MyAdapter.OnItemClickListener;
 
-public class MyListFragment extends SherlockFragment implements 
+public class MyListFragment extends Fragment implements 
 						OnItemClickListener, LoaderCallbacks<Cursor> {
 
 	public MyAdapter la;
@@ -53,6 +70,8 @@ public class MyListFragment extends SherlockFragment implements
 	static boolean updateInstead = false;
 	static int rowToUpdate = 0;
 	static int positionToUpdate = 0;
+	static int RESULT_LOAD_IMAGE = 1;
+	static int rowItemId = -1;
 	
 	public MyListFragment() {
 		// TODO Auto-generated constructor stub
@@ -63,57 +82,119 @@ public class MyListFragment extends SherlockFragment implements
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		
+		Log.d("tag", "MyListFragment: onCreate");
+		
 		String from[] = { MyContentProvider.COLUMN_ENTRY, MyContentProvider.COLUMN_DATE };
-		int to[] = { R.id.blogHeader, R.id.textView2 };
+		int to[] = { R.id.fblistitems, R.id.listItemDate };
 
-		la = new MyAdapter(getSherlockActivity(), from, to);
+		la = new MyAdapter(getActivity(), from, to);
 
-		sp = getSherlockActivity().getSharedPreferences(getString(R.string.pref_name), 0);
+		sp = getActivity().getSharedPreferences(getString(R.string.pref_name), 0);
 		
 		boolean skip = sp.getBoolean(getString(R.string.pref_skip_key), false);
 
 		// registerForContextMenu(findViewById(android.R.id.list));
-		lm = getSherlockActivity().getSupportLoaderManager();
+		lm = getActivity().getLoaderManager();
 		LoaderCallbacks<Cursor> loaderCallback = this;
 		lm.initLoader(0, null, loaderCallback);
 		// lm.enableDebugLogging(true);
 
 	}
 	
+	
 	@Override
 	public View onCreateView(LayoutInflater inflater, 
 			ViewGroup container, Bundle savedInstanceState) {
+		
+		Log.d("tag", "MyListFragment: onCreateView");
 		
 		View v = inflater.inflate(R.layout.mylist_fragment, container, false);	
 		
 		lv = (SelectListView) v.findViewById(android.R.id.list);
 		et = (EditText) v.findViewById(R.id.editText1);
-		
-		getSherlockActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN); 
 
 		if (lv==null || et==null) {
 			return null;
 		}
 		
+		getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN); 
 		
 		// register on item click listener on listview 
 		lv.setOnItemClickListener(this);
 		lv.setAdapter(la);
 		//lv.setOnClickListenerCallback(this);
 			
+//		// register soft enter key event
+//		et.addTextChangedListener(new TextWatcher() {
+//			
+//			@Override
+//			public void onTextChanged(CharSequence s, int start, int before, int count) {
+//				// TODO Auto-generated method stub
+//				
+//			}
+//			
+//			@Override
+//			public void beforeTextChanged(CharSequence s, int start, int count,
+//					int after) {
+//				// TODO Auto-generated method stub
+//				
+//			}
+//			
+//			@Override
+//			public void afterTextChanged(Editable s) {
+//				// TODO Auto-generated method stub
+//				
+//				if (s.charAt(s.length() - 1) == '\n') {
+//	                  Log.d("tag", "Enter was pressed");
+//	            } else {
+//	            	return;
+//	            }
+//				
+//				String text = s.toString();
+//				s.clear();
+//
+//				ContentValues cv = new ContentValues();
+//				SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
+//				Date date = new Date();
+//				Uri base = MyContentProvider.CONTENT_URI;
+//				
+//				//Log.d("tag", "date : " + sdf.format(date));
+//
+//				cv.put(MyContentProvider.COLUMN_ENTRY, text);
+//
+//				if (updateInstead == false) {
+//					cv.put(MyContentProvider.COLUMN_DATE, sdf.format(date));
+//					cv.put(MyContentProvider.COLUMN_RATING, "false");
+//					cv.put(MyContentProvider.COLUMN_SHARE, "true");
+//					cv.put(MyContentProvider.COLUMN_DONE, "false");
+//					cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_INSERT);
+//					cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
+//						
+//					base = Uri.withAppendedPath(base, MyContentProvider.PATH_INSERT);
+//					
+//					getActivity().getContentResolver().insert(base , cv);
+//					
+//				} else {
+//										
+//					base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
+//					base = Uri.withAppendedPath(base, Integer.toString(rowToUpdate));
+//						
+//					getActivity().getContentResolver().update(base, cv, null, null);
+//
+//					signalUpdate(false, 0, 0);						
+//					
+//				}
+//			}
+//		});
+		
 		// register editor listener for keyboard presses
 		et.setOnEditorActionListener(new OnEditorActionListener() {
 
 			@Override
 			public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
 				
-				//Log.d("tag", "editText event: " + event + " actionID: "
-					//	+ actionId + " view: " + tv.getText().toString());
-
-				// when Enter key is pressed on soft keyboard - the code below
-				// only catch the key up event
-				if (event.getAction() == KeyEvent.ACTION_UP
-						&& event.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+				Log.d("tag", "editText event: " + event + " actionID: "
+						+ actionId + " view: " + tv.getText().toString());
 
 					String text = tv.getText().toString();
 					tv.setText("");
@@ -127,29 +208,46 @@ public class MyListFragment extends SherlockFragment implements
 
 					cv.put(MyContentProvider.COLUMN_ENTRY, text);
 
+					Random r = new Random();
+					int rdIdx = r.nextInt(Constants.resId.length);
+					int resId = Constants.resId[rdIdx];
+					Log.d("tag", "resid selected: " + resId);
+					//byte[] value = {'d','u','m','m','y'}; 
+					
 					if (updateInstead == false) {
+						
+						String fbid = getFbUserId();
+						Log.d("tag", "inserting fbid: " + fbid);
+						
 						cv.put(MyContentProvider.COLUMN_DATE, sdf.format(date));
 						cv.put(MyContentProvider.COLUMN_RATING, "false");
 						cv.put(MyContentProvider.COLUMN_SHARE, "true");
 						cv.put(MyContentProvider.COLUMN_DONE, "false");
 						cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_INSERT);
 						cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
+						cv.put(MyContentProvider.COLUMN_IMG_PATH, rdIdx);
+						cv.put(MyContentProvider.COLUMN_DATE_COMPLETED, sdf.format(date));
+						cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
+						//cv.put(MyContentProvider.COLUMN_IMG, value);
+						cv.put(MyContentProvider.COLUMN_FACEBOOK_ID, fbid);
 							
 						base = Uri.withAppendedPath(base, MyContentProvider.PATH_INSERT);
-						
-						getSherlockActivity().getContentResolver().insert(base , cv);
+						getActivity().getContentResolver().insert(base , cv);
 						
 					} else {
-											
+						
+						//cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_UPDATE);
+						//cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
 						base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
 						base = Uri.withAppendedPath(base, Integer.toString(rowToUpdate));
 							
-						getSherlockActivity().getContentResolver().update(base, cv, null, null);
-
+						getActivity().getContentResolver().update(base, cv, null, null);
+						
 						signalUpdate(false, 0, 0);						
 						
 					}
-				}
+				InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+				imm.hideSoftInputFromWindow(tv.getWindowToken(), 0);	
 				
 				return true;
 			}
@@ -157,6 +255,7 @@ public class MyListFragment extends SherlockFragment implements
 
 		return v;
 	}
+	
 	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -178,35 +277,35 @@ public class MyListFragment extends SherlockFragment implements
 	
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle bundle) {
-		//Log.d("tag", "loader manager : oncreateloader");
+		Log.d("tag", "LoaderManager : oncreateloader");
 		
 		// filter the entries that are marked for deletion (using the selection field) from displaying in listview
 		// sync adapter will kick in later to send the rest delete command to server
 		// once we get confirmation from the server that deletion succeeds, the entry in the db will be deleted
-		Loader<Cursor> loader = new MyLoader(getSherlockActivity(),
-				MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
+		//Loader<Cursor> loader = new MyLoader(getActivity(), MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
+		Loader<Cursor> loader = new MyLoader(getActivity(), MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_FACEBOOK_ID + "=" + getFbUserId() + " AND " + MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE , null, null);
 		return loader;
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		//Log.d("tag", "loader manager : onloadfinished cursor= " + cursor);
+		Log.d("tag", "LoaderManager : onloadfinished cursor= " + cursor);
 		// save the cursor
 		myCursor = cursor;
 		la.swapCursor(cursor);
 		
 		// dump the db
-//		cursor.moveToFirst();
-//		for (int i=0; i < cursor.getCount(); i++) {
-//			Log.d("tag", "row " + i + " :" + cursor.getInt(MyContentProvider.COLUMN_INDEX_ID) + " " + cursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY) + " " 
-//					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " + MyContentProvider.restStateStr[cursor.getInt(7)]);
-//			cursor.moveToNext();
-//		}
+		cursor.moveToFirst();
+		for (int i=0; i < cursor.getCount(); i++) {
+			Log.d("tag", "row " + i + " :" + cursor.getInt(MyContentProvider.COLUMN_INDEX_ID) + " " + cursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY) + " " 
+					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " + MyContentProvider.restStateStr[cursor.getInt(7)]);
+			cursor.moveToNext();
+		}
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		//Log.d("tag", "loader manager : onloaderreset");
+		Log.d("tag", "LoaderManager : onloaderreset");
 		la.swapCursor(null);
 	}
 
@@ -219,7 +318,7 @@ public class MyListFragment extends SherlockFragment implements
 	
 	public void sync() {
 		Log.d("tag", "sync");
-		getSherlockActivity().getContentResolver().query(MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
+		getActivity().getContentResolver().query(MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
 	}
 	
 	public class MyListActionMode implements ActionMode.Callback {
@@ -228,6 +327,8 @@ public class MyListFragment extends SherlockFragment implements
 		public final static int MENU_ID_EDIT = 0;
 		public final static int MENU_ID_DELETE = 1;
 		public final static int MENU_ID_SHARE = 2;
+		public final static int MENU_ID_PHOTO = 3;
+
 
 		public MyListActionMode() {
 			Log.d("tag", "constructor for actionmode");
@@ -238,12 +339,12 @@ public class MyListFragment extends SherlockFragment implements
 
 			//Log.d("tag", "actionmode oncreate: " + mode);
 
-			menu.add(MENU_GROUP_ID_MAIN, MENU_ID_SHARE, 0, "Share")
-					.setIcon(R.drawable.content_social)
-					.setShowAsAction(
-							MenuItem.SHOW_AS_ACTION_IF_ROOM
-									| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
-
+			menu.add(MENU_GROUP_ID_MAIN, MENU_ID_PHOTO, 0, "Change Picture")
+			.setIcon(R.drawable.content_picture)
+			.setShowAsAction(
+					MenuItem.SHOW_AS_ACTION_IF_ROOM
+							| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+			
 			menu.add(MENU_GROUP_ID_MAIN, MENU_ID_DELETE, 0, "Delete")
 					.setIcon(R.drawable.content_discard)
 					.setShowAsAction(
@@ -255,6 +356,13 @@ public class MyListFragment extends SherlockFragment implements
 					.setShowAsAction(
 							MenuItem.SHOW_AS_ACTION_IF_ROOM
 									| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+			
+			menu.add(MENU_GROUP_ID_MAIN, MENU_ID_SHARE, 0, "Share")
+			.setIcon(R.drawable.content_social)
+			.setShowAsAction(
+					MenuItem.SHOW_AS_ACTION_IF_ROOM
+							| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+
 
 			return true;
 		}
@@ -290,7 +398,7 @@ public class MyListFragment extends SherlockFragment implements
 
 				//Log.d("tag", "uri: " + base);
 				
-				getSherlockActivity().getContentResolver().delete(base, null, null);
+				getActivity().getContentResolver().delete(base, null, null);
 
 			} else if (menuItemId == MENU_ID_EDIT) {
 
@@ -317,24 +425,27 @@ public class MyListFragment extends SherlockFragment implements
 
 				int itemId = (int) la.getItemId(position);
 
-				base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
-				base = Uri.withAppendedPath(base, Integer.toString(itemId));
-
-				//Log.d("tag", "uri: " + base);
+//				base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
+//				base = Uri.withAppendedPath(base, Integer.toString(itemId));
+//
+//				Log.d("tag", "uri: " + base);
 
 				if (text != null) {
 					
 					et.setText(text.toString());
 					et.setSelection(et.getText().length());
-				}
+					InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+					imm.showSoftInput(et, InputMethodManager.SHOW_IMPLICIT);
+				}	
 
 				signalUpdate(true, itemId, position);
 
-			} else {
-				//Log.d("tag", "menu item share clicked");
+			} else if (menuItemId == MENU_ID_SHARE){
+				Log.d("tag", "menu item share clicked");
 
 				StringBuilder textList = new StringBuilder();
 
+				textList.append("I would like to share my bucket list:\n");
 				int count = 0;
 				//Log.d("tag", "sba size: " + sba.size());
 				for (int i = 0; i < sba.size(); i++) {
@@ -342,18 +453,19 @@ public class MyListFragment extends SherlockFragment implements
 					int key = sba.keyAt(i);
 					//Log.d("tag", "value at key:" + key + " is " + sba.get(key));
 					if (sba.get(key) == true) {
-						//Log.d("tag", "checked item position: " + key);
+						Log.d("tag", "checked item position: " + key);
 						Cursor c = (Cursor) la.getItem(key);
 						String text = c
 								.getString(MyContentProvider.COLUMN_INDEX_ENTRY);
-						//Log.d("tag", " text to share: " + text);
+						Log.d("tag", " text to share: " + text);
 						textList.append(++count);
 						textList.append(". ");
 						textList.append(text);
 						textList.append('\n');
 
-						//Log.d("tag", "string to append: " + textList);
+						Log.d("tag", "string to append: " + textList);
 					}
+					//textList.append("http://m");
 				}
 
 				if (textList != null) {
@@ -361,16 +473,71 @@ public class MyListFragment extends SherlockFragment implements
 					Intent share = new Intent(
 							android.content.Intent.ACTION_SEND);
 					share.setType("text/plain");
-					share.putExtra(Intent.EXTRA_SUBJECT, "my bucket list");
+					share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+					share.putExtra(Intent.EXTRA_SUBJECT, "bucket list");
 					share.putExtra(Intent.EXTRA_TEXT, textList.toString());
 					startActivity(Intent.createChooser(share,
 							"Share Your dreams"));
 				}
+			} else {
+				
+				Log.d("tag", "menu item picture clicked");
+				
+				for (int i = 0; i < sba.size(); i++) {
+					int key = sba.keyAt(i);
+					Log.d("tag", "value at key:" + key + " is "+ sba.get(key));
+					if (sba.get(key) == true) {
+						Log.d("tag", "checked item position: " + key);
+						position = key;
+					}
+				}
+
+				if (position == -1) {
+					Log.d("tag", "nothing to select");
+					mode.finish();
+					return false;
+				}
+				
+				int itemId = (int) la.getItemId(position);				
+				//Log.d("tag","item id: " + itemId);
+				
+				int icounter = getImageCounter();
+				
+				Intent i = new Intent(Intent.ACTION_PICK ,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+	            String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+				path += "/picture" + icounter++ + ".jpg";
+	            
+				saveImageCounter(icounter);
+				
+				File file = new File(path);
+	            Uri outputFileUri = Uri.fromFile( file );
+				
+	            i.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+				i.setType("image/*");
+				i.putExtra("crop", "true");
+				i.putExtra("aspectX", 16);
+	            i.putExtra("aspectY", 9);
+	            i.putExtra("outputX", 533);
+	            i.putExtra("outputY", 300);
+	            i.putExtra("scale", true);
+	            i.putExtra("scaleUpIfNeeded", true);
+				i.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
+				
+				// ugly - pass in data when callback for activityresult is called
+				rowItemId = itemId;
+						
+				startActivityForResult(i, RESULT_LOAD_IMAGE);
+				
 			}
 
 			mode.finish();
 			return true;
 		}
+
+//		private void setRowToSelect(int itemId) {
+//			// TODO Auto-generated method stub
+//			rowToSelect = itemId;
+//		}
 
 		@Override
 		public void onDestroyActionMode(ActionMode mode) {
@@ -393,6 +560,72 @@ public class MyListFragment extends SherlockFragment implements
 		}
 	}
 
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		// TODO Auto-generated method stub
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		Log.d("tagab", "onactivity result");
+
+	    if (requestCode == MyListFragment.RESULT_LOAD_IMAGE) {
+
+            if (data != null && resultCode == Activity.RESULT_OK) {  
+            	  
+            	int icounter = getImageCounter();
+            	icounter--;
+            	
+	            String filePath = Environment.getExternalStorageDirectory().getAbsolutePath();
+            	filePath += "/picture" + icounter + ".jpg";
+
+				Log.d("tagab", "image path: " + filePath + " rowid: " + rowItemId);
+				Bitmap image = BitmapFactory.decodeFile(filePath);
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				image.compress(Bitmap.CompressFormat.JPEG, 75, out);
+
+				Uri base = MyContentProvider.CONTENT_URI;
+				ContentValues cv = new ContentValues();
+				cv.put(MyContentProvider.COLUMN_IMG_PATH, filePath);
+				cv.put(MyContentProvider.COLUMN_IMG, out.toByteArray());
+				cv.put(MyContentProvider.COLUMN_IMG_CACHE, "true");
+				//cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_UPDATE);
+				//cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
+				
+				base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
+				base = Uri.withAppendedPath(base, Integer.toString(rowItemId));
+
+				getActivity().getContentResolver().update(base, cv, null, null);
+				
+			}
+		}
+        		
+		
+//        if (requestCode == MyListFragment.RESULT_LOAD_IMAGE && resultCode == Activity.RESULT_OK && null != data) {
+// 
+//            Uri selectedImage = data.getData();
+//            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+//            Cursor cursor = getActivity().getContentResolver().query(selectedImage,filePathColumn, null, null, null);
+//            cursor.moveToFirst();
+//            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+//            String picturePath = cursor.getString(columnIndex);
+//            cursor.close();
+//            Log.d("tag", "image path: " + picturePath + " rowid: " + rowToSelect);
+//            
+//            Uri base = MyContentProvider.CONTENT_URI;
+//            ContentValues cv = new ContentValues();
+//			cv.put(MyContentProvider.COLUMN_IMG_PATH, picturePath);
+//			
+//            base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
+//			base = Uri.withAppendedPath(base, Integer.toString(rowToSelect));
+//            
+//			getActivity().getContentResolver().update(base, cv, null, null);
+//			
+//            //ImageView imageView = (ImageView) findViewById(R.id.imgView);
+//            //imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+//     }
+     
+	}
+	
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
@@ -428,7 +661,7 @@ public class MyListFragment extends SherlockFragment implements
 
 		if (mMode == null) {
 			callback = new MyListActionMode();
-			mMode = getSherlockActivity().startActionMode(callback);
+			mMode = getActivity().startActionMode(callback);
 		}
 
 		if (count > 1) {
@@ -460,7 +693,42 @@ public class MyListFragment extends SherlockFragment implements
 	}
 	
 	public void refreshList() {
-		lm.restartLoader(0, null, this);
+		// only restart loader if the account has been synced
+		if (getInitialSynced() == true) {
+			Log.d("tag", "LoaderManager: restarting loader");
+			lm.restartLoader(0, null, this);
+			saveInitialSynced(false);
+		}
 	}
 
+	public boolean getInitialSynced() {
+		return sp.getBoolean(getString(R.string.pref_initial_synced_key), false);
+	}
+	
+	public void saveInitialSynced(boolean value) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putBoolean(getString(R.string.pref_initial_synced_key), value);
+		editor.commit();
+	}
+
+	public void saveImageCounter(int count) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putInt(getString(R.string.pref_image_counter), count);
+		editor.commit();
+	}
+	
+	public int getImageCounter() {
+		return sp.getInt(getString(R.string.pref_image_counter), 100);	
+	}
+	
+	// fb_userid
+	public void saveFbUserId(String fbUserid) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putString(getString(R.string.pref_fb_userid_key), fbUserid);
+		editor.commit();
+	}
+
+	public String getFbUserId() {
+		return sp.getString(getString(R.string.pref_fb_userid_key), "invalid");
+	}
 }

@@ -10,10 +10,10 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.actionbarsherlock.app.SherlockFragment;
+import android.app.Fragment;
 import com.facebook.widget.FriendPickerFragment;
 
-public class CommunityOfflineFragment extends SherlockFragment {
+public class CommunityOfflineFragment extends Fragment {
 
 	SharedPreferences sp;
 	private MyApplication myApp;
@@ -29,8 +29,8 @@ public class CommunityOfflineFragment extends SherlockFragment {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 
-		sp = getSherlockActivity().getSharedPreferences(getString(R.string.pref_name), 0);
-		myApp = (MyApplication) getSherlockActivity().getApplication();
+		sp = getActivity().getSharedPreferences(getString(R.string.pref_name), 0);
+		myApp = (MyApplication) getActivity().getApplication();
 		
 		boolean skip = sp.getBoolean(getString(R.string.pref_skip_key), false);
 

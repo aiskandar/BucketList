@@ -14,51 +14,54 @@
         android:id="@+id/inner"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="10dp"
-        android:background="@drawable/row_item_bg"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/image_button_background"
         android:orientation="vertical" >
 
         <LinearLayout
-            android:id="@+id/textWrapper"
+            android:id="@+id/Container"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="match_parent"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
+            android:layout_marginTop="10dp"
             android:clickable="false"
             android:focusable="false"
             android:focusableInTouchMode="false"
             android:longClickable="false"
             android:orientation="vertical" >
 
-            <TextView
-                android:id="@+id/blogHeader"
+            <ImageView
+                android:id="@+id/blPhoto"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="80dp"
-                android:layout_weight="5"
-                android:clickable="false"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:longClickable="false"
-                android:text="test"
-                android:textAppearance="?android:attr/textAppearanceMediumInverse" />
-
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_gravity="bottom|right"
-                android:layout_marginLeft="10dp"
-                android:layout_weight="1"
-                android:clickable="false"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:longClickable="false"
-                android:text="test2"
-                android:textAppearance="?android:attr/textAppearanceSmallInverse" />
+                android:layout_height="180dp"
+                android:scaleType="centerCrop" />
 
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/fblistitems"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
+            android:clickable="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:longClickable="false"
+            android:text="list item"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/listItemDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:text="list item date"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <RelativeLayout
             android:id="@+id/metaWrapper"
@@ -76,12 +79,12 @@
                 android:layout_centerVertical="true"
                 android:layout_gravity="left"
                 android:layout_marginRight="2dp"
-                android:background="@drawable/row_item_bg"
+                android:background="@drawable/image_button_background"
                 android:scaleType="center"
                 android:src="@drawable/share" />
 
             <TextView
-                android:id="@+id/TextView01"
+                android:id="@+id/ib2tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
@@ -100,13 +103,13 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="2dp"
-                android:layout_toRightOf="@id/TextView01"
-                android:background="@drawable/row_item_bg"
+                android:layout_toRightOf="@id/ib2tv"
+                android:background="@drawable/image_button_background"
                 android:scaleType="center"
                 android:src="@drawable/rating_not_important" />
 
             <TextView
-                android:id="@+id/TextView02"
+                android:id="@+id/ib1tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
@@ -125,14 +128,14 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="2dp"
-                android:layout_toRightOf="@+id/TextView02"
+                android:layout_toRightOf="@+id/ib1tv"
                 android:clickable="false"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:longClickable="false" />
 
             <TextView
-                android:id="@+id/TextView03"
+                android:id="@+id/ctv1tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="false"
@@ -143,7 +146,7 @@
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 android:longClickable="false"
-                android:text="done"
+                android:text="completed"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
         </RelativeLayout>

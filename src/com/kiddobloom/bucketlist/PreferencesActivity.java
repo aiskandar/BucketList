@@ -1,7 +1,5 @@
 package com.kiddobloom.bucketlist;
 
-import com.actionbarsherlock.app.SherlockActivity;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -21,7 +19,7 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-public class PreferencesActivity extends SherlockActivity implements OnClickListener {
+public class PreferencesActivity extends Activity implements OnClickListener {
 
 	SharedPreferences sp;
 	CheckBox registered;
@@ -38,9 +36,9 @@ public class PreferencesActivity extends SherlockActivity implements OnClickList
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.preferences);
 		
-		getSupportActionBar().setTitle("User Preferences");
-		getSupportActionBar().setSubtitle("by kiddoBLOOM");
-		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		getActionBar().setTitle("User Preferences");
+		getActionBar().setSubtitle("by kiddoBLOOM");
+		//getActionBar().setDisplayHomeAsUpEnabled(true);
 			
 		sp = getSharedPreferences(getString(R.string.pref_name), Context.MODE_PRIVATE);
 		

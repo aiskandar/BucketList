@@ -31,6 +31,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.util.Base64;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -67,18 +68,19 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
         if (force == true) {
         	// this was triggered by a query - the only place I set force to true
-        	Log.d("tag", "db query");
+        	Log.d("tag", "onPerformSync: db query");
         	fetchBucketList(account.name, provider, c);
-        	
         } else {
         	// triggered by insert, update, or delete
 			c.moveToFirst();
 			for (int i = 0; i < c.getCount(); i++) {
 				
+				Log.d("tag", "onPerformSync: processing row ID = " + c.getInt(MyContentProvider.COLUMN_INDEX_ID));
+				
 				if (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATUS) == MyContentProvider.REST_STATUS_TRANSACTING) {
 					
-					Log.d("tag", "the following row ID: " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + " is transacting");
-					Log.d("tag", "transaction type: " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+					Log.d("tag", "onPerformSync: the following row ID = " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + " is transacting");
+					Log.d("tag", "onPerformSync: transaction type = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
 					
 					switch (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)) {
 						case MyContentProvider.REST_STATE_INSERT:
@@ -113,9 +115,11 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         HttpResponse resp = null;
         String response = null;
 
+        Log.d("tag", "restDelete : rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+        
 		try {
 			final HttpGet get = new HttpGet(
-					"http://andyiskandar.me/bucketdelete.php?serverid=" + c.getInt(MyContentProvider.COLUMN_INDEX_SERVER_ID));
+					"http://23.20.35.242/bucketdelete.php?serverid=" + c.getInt(MyContentProvider.COLUMN_INDEX_SERVER_ID));
 			HttpClient mHttpClient = new DefaultHttpClient();
 			resp = mHttpClient.execute(get);
 			response = EntityUtils.toString(resp.getEntity());
@@ -131,14 +135,14 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 
 		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			Log.d("tag", "response: " + response);
+			Log.d("tag", "restDelete: response = " + response);
 
 			boolean error = response.startsWith("error:");
 			
 			if (error == true) {
 				String arr[] = response.split(":");
 			
-				Log.d("tag", "error response in restDelete");
+				Log.d("tag", "restDelete: error response in restDelete");
 				for(int i=0; i < arr.length ; i++) {
 					Log.d("tag", "error: " + arr[i]);
 				}
@@ -157,7 +161,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 				}
 			}
 		} else {
-			Log.d("tag", "Server error in fetching remote contacts: "
+			Log.d("tag", "restDelete: server error in fetching remote contacts: "
 					+ resp.getStatusLine());
 		}		
 	}
@@ -169,24 +173,50 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         HttpResponse resp = null;
         String response = null;
 
+        Log.d("tag", "restUpdate : rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+        
 		BucketListTable data = new BucketListTable();
 
-		data.setFacebookId(id);	
 		data.setDate(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
 		data.setEntry(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
 		data.setDone(c.getString(MyContentProvider.COLUMN_INDEX_DONE));
 		data.setRating(c.getString(MyContentProvider.COLUMN_INDEX_RATING));
 		data.setShare(c.getString(MyContentProvider.COLUMN_INDEX_SHARE));
 		data.setServerId(c.getInt(MyContentProvider.COLUMN_INDEX_SERVER_ID));
+		data.setImagepath(c.getString(MyContentProvider.COLUMN_INDEX_IMG_PATH));
+		data.setDatecompleted(c.getString(MyContentProvider.COLUMN_INDEX_DATE_COMPLETED));
+		data.setImagecache(c.getString(MyContentProvider.COLUMN_INDEX_IMG_CACHE));
+		//data.setImage(c.getBlob(MyContentProvider.COLUMN_INDEX_IMG));
+		data.setFacebookId(c.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID));
 
+		String imgpath = c.getString(MyContentProvider.COLUMN_INDEX_IMG_PATH);
+		String image64 = null;
+		
+		Log.d("tag", "restUpdate imgpath: " + imgpath);
+		if (imgpath.startsWith("/")) {
+			Log.d("tag", "restUpdate starts with /");
+			byte[] image = c.getBlob(MyContentProvider.COLUMN_INDEX_IMG);
+			image64 = Base64.encodeToString(image, Base64.DEFAULT);
+		} else if (imgpath.startsWith("http")) {
+			// do nothing - if the imagepath is updated by the user on the app, 
+			// the variable will be a filesystem path as opposed http url
+			// if it is http url, means there is no update
+			Log.d("tag", "restUpdate starts with http");
+		} else {
+			// do nothing
+		}
+				
 		list.add(data);
 		
 		String jsonData = mJson.toJson(list);
-		Log.d("tag", jsonData);
+		Log.d("tag", "restUpdate :" + jsonData);
 
 		final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
 		nvp.add(new BasicNameValuePair("json", jsonData));
-
+		if (image64 != null) {
+			nvp.add(new BasicNameValuePair("image64", image64));
+		}
+		
 		try {
 			entity = new UrlEncodedFormEntity(nvp);
 		} catch (UnsupportedEncodingException e1) {
@@ -197,11 +227,9 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		try {
 			// entity = new StringEntity(jsonData);
 			final HttpPost post = new HttpPost(
-					"http://andyiskandar.me/bucketupdate.php");
+					"http://23.20.35.242/bucketupdate.php");
 			post.addHeader(entity.getContentType());
 			post.setEntity(entity);
-			// post.setHeader("Accept", "application/json");
-			// post.setHeader("Content-type", "application/json");
 
 			HttpClient mHttpClient = new DefaultHttpClient();
 			resp = mHttpClient.execute(post);
@@ -221,7 +249,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 
 		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			Log.d("tag", "response: " + response);
+			Log.d("tag", "restUpdate: server response: " + response);
 			
 			boolean error = response.startsWith("error:");
 			
@@ -233,15 +261,14 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 					Log.d("tag", "arr[i]");
 				}
 			} else {
-				// the response should contain server_id of the last updated entry
-				int serverId = Integer.parseInt(response);
-				
-				Log.d("tag", "updated server id: " + serverId);
+				// the response should contain fileurl of the last updated entry		
+				//Log.d("tag", "restUpdate: updated fileurl: " + response);
 				
 				ContentValues cv = new ContentValues();
 				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
 				cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
-				//cv.put(MyContentProvider.COLUMN_SERVER_ID, serverId);
+				cv.put(MyContentProvider.COLUMN_IMG_PATH, response);
+				cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
 				
 				Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
 				Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
@@ -268,23 +295,49 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         HttpResponse resp = null;
         String response = null;
 
+        Log.d("tag", "restInsert : rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+        
 		BucketListTable data = new BucketListTable();
 
-		data.setFacebookId(id);	
+		data.setFacebookId(c.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID));
 		data.setDate(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
 		data.setEntry(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
 		data.setDone(c.getString(MyContentProvider.COLUMN_INDEX_DONE));
 		data.setRating(c.getString(MyContentProvider.COLUMN_INDEX_RATING));
 		data.setShare(c.getString(MyContentProvider.COLUMN_INDEX_SHARE));
+		data.setImagepath(c.getString(MyContentProvider.COLUMN_INDEX_IMG_PATH));
+		data.setDatecompleted(c.getString(MyContentProvider.COLUMN_INDEX_DATE_COMPLETED));
+		//data.setImage(c.getBlob(MyContentProvider.COLUMN_INDEX_IMG));
+		data.setImagecache(c.getString(MyContentProvider.COLUMN_INDEX_IMG_CACHE));
 
+		String imgpath = c.getString(MyContentProvider.COLUMN_INDEX_IMG_PATH);
+		String image64 = null;
+		
+		Log.d("tag", "restinsert imgpath: " + imgpath);
+		if (imgpath.startsWith("/")) {
+			Log.d("tag", "restinsert starts with /");
+			byte[] image = c.getBlob(MyContentProvider.COLUMN_INDEX_IMG);
+			image64 = Base64.encodeToString(image, Base64.DEFAULT);
+		} else if (imgpath.startsWith("http")) {
+			// do nothing - if the imagepath is updated by the user on the app, 
+			// the variable will be a filesystem path as opposed http url
+			// if it is http url, means there is no update
+			Log.d("tag", "restinsert starts with http");
+		} else {
+			// do nothing
+		}
+		
 		list.add(data);
 		
 		String jsonData = mJson.toJson(list);
-		Log.d("tag", jsonData);
+		Log.d("tag", "restInsert :" + jsonData);
 
 		final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
 		nvp.add(new BasicNameValuePair("json", jsonData));
-
+		if (image64 != null) {
+			nvp.add(new BasicNameValuePair("image64", image64));
+		}
+		
 		try {
 			entity = new UrlEncodedFormEntity(nvp);
 		} catch (UnsupportedEncodingException e1) {
@@ -295,11 +348,9 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		try {
 			// entity = new StringEntity(jsonData);
 			final HttpPost post = new HttpPost(
-					"http://andyiskandar.me/bucket.php");
+					"http://23.20.35.242/bucket.php");
 			post.addHeader(entity.getContentType());
 			post.setEntity(entity);
-			// post.setHeader("Accept", "application/json");
-			// post.setHeader("Content-type", "application/json");
 
 			HttpClient mHttpClient = new DefaultHttpClient();
 			resp = mHttpClient.execute(post);
@@ -319,27 +370,45 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 
 		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			Log.d("tag", "response: " + response);
+			//Log.d("tag", "restinsert response: " + response);
 			
 			boolean error = response.startsWith("error:");
 			
 			if (error == true) {
 				String arr[] = response.split(":");
 			
-				Log.d("tag", "error response in restDelete");
+				Log.d("tag", "error response in restinsert");
 				for(int i=0; i < arr.length ; i++) {
 					Log.d("tag", "arr[i]");
 				}
 			} else {
 				// the response should contain server_id of the last inserted entry
-				int serverId = Integer.parseInt(response);
 				
-				Log.d("tag", "server id: " + serverId);
+				Log.d("tag", "restInsert: server response: " + response);
+				
+				String arr[] = response.split("\\|");
+				
+				if (arr.length == 3) {
+					Log.d("tag", arr[0] + " " + arr[1] + " " + arr[2]);
+				} else if (arr.length == 2) {
+					Log.d("tag", arr[0] + " " + arr[1]);
+				} else if (arr.length == 1) {
+					Log.d("tag", arr[0]);
+				} else {
+					Log.d("tag", "split response array size: " + arr.length);
+				}
+				
+				String serverId = arr[0];
+				String fileurl = arr[1];
+				
+				Log.d("tag", "restInsert: server response serverid: " + serverId);
 				
 				ContentValues cv = new ContentValues();
 				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
 				cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
 				cv.put(MyContentProvider.COLUMN_SERVER_ID, serverId);
+				cv.put(MyContentProvider.COLUMN_IMG_PATH, fileurl);
+				cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
 				
 				Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
 				Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
@@ -359,7 +428,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		
 	}
 	
-	
 	private void fetchBucketList(String id, ContentProviderClient provider, Cursor c) {
 
 		// before we do anything to fetch all the bucket list from the cloud
@@ -370,11 +438,13 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		c.moveToFirst();
 		for (int i = 0; i < c.getCount(); i++) {
 			
+			Log.d("tag", "fetchBucketList: processing row ID = " + c.getInt(MyContentProvider.COLUMN_INDEX_ID));
+			
 			if (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATUS) == MyContentProvider.REST_STATUS_TRANSACTING || 
 					c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATUS) == MyContentProvider.REST_STATUS_RETRY) {
 				
-				Log.d("tag", "the following row ID: " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + " is transacting/retry");
-				Log.d("tag", "transaction type: " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+				Log.d("tag", "fetchBucketList: the following row ID: " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + " is transacting/retry");
+				Log.d("tag", "fetchBucketList: rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
 				
 				switch (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)) {
 					case MyContentProvider.REST_STATE_INSERT:
@@ -383,6 +453,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 					case MyContentProvider.REST_STATE_UPDATE:
 						restUpdate(id, c, provider);
 						break;
+						
 					case MyContentProvider.REST_STATE_DELETE:
 						restDelete(id, c, provider);
 						break;
@@ -394,13 +465,16 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 				}				
 			} 
 			
+			//Log.d("tag", "fetchBucketList: server has been updated for rowID " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + "... deleting from local DB");
+			
 			// delete all rows from local DB and sync to the latest updated sets from the server
 			// this is a use-case when a user updates the list on one device and opens the app again on another device
 			// do not notify listview that the entry is deleted because we will update with ones from server
 			Uri base = MyContentProvider.CONTENT_URI;
 			base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_NO_NOTIFY);
+			//base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_DB);
 			Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
-
+			
 			try {
 				provider.delete(uri, null, null);
 			} catch (RemoteException e) {
@@ -417,7 +491,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		try {
 			final HttpGet get = new HttpGet(
-					"http://andyiskandar.me/bucketget.php?id=" + id);
+					"http://23.20.35.242/bucketget.php?id=" + id);
 			HttpClient mHttpClient = new DefaultHttpClient();
 			resp = mHttpClient.execute(get);
 			response = EntityUtils.toString(resp.getEntity());
@@ -433,7 +507,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 
 		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			Log.d("tag", "response: " + response);
+			Log.d("tagbg", "fetchBucketList: bucketget.php server response: " + response);
 
 			Gson mJson = new Gson();
 
@@ -441,6 +515,9 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 					new TypeToken<Collection<BucketListTable>>() {
 					}.getType());
 
+			if (blList == null)
+				return;
+			
 			int size = blList.size();
 			
 			if (size > 0) {
@@ -451,8 +528,9 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 	
 					ContentValues cv = new ContentValues();
 	
-					Log.d("tag", "server id: " + blt.server_id);
+					Log.d("tag", "fetchBucketList response serverId: " + blt.server_id);
 					
+					cv.put(MyContentProvider.COLUMN_FACEBOOK_ID, blt.facebook_id);
 					cv.put(MyContentProvider.COLUMN_SERVER_ID, blt.server_id);
 					cv.put(MyContentProvider.COLUMN_ENTRY, blt.entry);
 					cv.put(MyContentProvider.COLUMN_DATE, blt.date);
@@ -461,10 +539,14 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 					cv.put(MyContentProvider.COLUMN_DONE, blt.done);
 					cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
 					cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
+					cv.put(MyContentProvider.COLUMN_IMG_PATH, blt.imagepath);
+					cv.put(MyContentProvider.COLUMN_DATE_COMPLETED, blt.date_completed);
+					cv.put(MyContentProvider.COLUMN_IMG_CACHE, blt.imagecache);
+					//cv.put(MyContentProvider.COLUMN_IMG, blt.image);
 	
 					cvArray[i] = cv;
 				}
-	
+				
 				Uri base = MyContentProvider.CONTENT_URI;
 				base = Uri.withAppendedPath(base, MyContentProvider.PATH_INSERT);
 	

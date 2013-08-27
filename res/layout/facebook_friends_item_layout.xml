@@ -1,52 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/outercontainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
     android:layout_weight="0"
-    android:orientation="horizontal" >
+    android:orientation="vertical" >
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="10dp"
-            android:orientation="horizontal" >
-
-        <com.facebook.widget.ProfilePictureView
-                android:id="@+id/profilepic"
-                android:layout_height="wrap_content"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                app:preset_size="small"
-                app:is_cropped="true"
-                />
-
-    </LinearLayout>
-    
     <LinearLayout
-        android:id="@+id/textWrapper"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
-        android:clickable="false"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:longClickable="false"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/border"
         android:orientation="vertical" >
 
-        <TextView
-            android:id="@+id/blogHeader"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:clickable="false"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
-            android:longClickable="false"
-            android:text="test"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:layout_height="100dp"
+            android:layout_margin="5dp"
+            android:orientation="horizontal" >
+
+            <com.facebook.widget.ProfilePictureView
+                android:id="@+id/fbprofilepic"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="4"
+                app:is_cropped="true"
+                app:preset_size="large" >
+            </com.facebook.widget.ProfilePictureView>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_margin="5dp"
+                android:layout_weight="8"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/fbprofile"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_weight="3"
+                    android:text="TextView"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textColor="@color/darkgrey" />
+
+                <TextView
+                    android:id="@+id/fblistitems"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_weight="4"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false"
+                    android:longClickable="false"
+                    android:text="test"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/fbinvitebutton"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_gravity="bottom|fill_vertical"
+                    android:layout_margin="15dp"
+                    android:layout_weight="4"
+                    android:text="Invite"
+                    android:textAppearance="?android:attr/textAppearanceSmallInverse"
+                    android:textColor="@color/darkgrey" />
+
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
+
+ <!-- <View
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/drop_shadow" /> -->
 
 </LinearLayout>
