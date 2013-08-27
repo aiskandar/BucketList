@@ -20,7 +20,7 @@
         android:background="@drawable/image_button_background"
         android:orientation="vertical" >
 
-        <LinearLayout
+        <FrameLayout
             android:id="@+id/Container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -30,8 +30,7 @@
             android:clickable="false"
             android:focusable="false"
             android:focusableInTouchMode="false"
-            android:longClickable="false"
-            android:orientation="vertical" >
+            android:longClickable="false" >
 
             <ImageView
                 android:id="@+id/blPhoto"
@@ -39,7 +38,17 @@
                 android:layout_height="180dp"
                 android:scaleType="centerCrop" />
 
-        </LinearLayout>
+            <TextView
+                android:id="@+id/ap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|bottom"
+                android:layout_marginBottom="10dp"
+                android:text="Add Photo"
+                android:textColor="@color/darkergrey"
+                android:visibility="invisible" />
+
+        </FrameLayout>
 
         <TextView
             android:id="@+id/fblistitems"
@@ -148,9 +157,7 @@
                 android:longClickable="false"
                 android:text="completed"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
-
         </RelativeLayout>
-
     </LinearLayout>
 
 </com.kiddobloom.bucketlist.BucketlistRowLayout>

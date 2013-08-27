@@ -74,6 +74,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 	
 	public class ViewHolder {
 		ImageView tw;
+		TextView ap;
 		//View transparency;
 		//RelativeLayout tw;
 		CheckBox cb;
@@ -129,6 +130,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 			// The ViewHolder object will be saved in the tag of the baseview by calling setTag
 			vh = new ViewHolder();
 			vh.tw = (ImageView) baseview.findViewById(R.id.blPhoto);
+			vh.ap = (TextView) baseview.findViewById(R.id.ap);
 			//vh.transparency = (View) baseview.findViewById(R.id.transparency);
 			vh.cb = (CheckBox) baseview.findViewById(R.id.ctv1);
 			vh.tv1 = (TextView) baseview.findViewById(R.id.fblistitems);
@@ -281,6 +283,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 				Bitmap bmp = BitmapFactory.decodeByteArray (byteimage, 0, byteimage.length);
 				BitmapDrawable bd = new BitmapDrawable(bmp);
 				vh.tw.setImageDrawable(bd);
+				vh.ap.setVisibility(View.INVISIBLE);
 			} else if (resStr.startsWith("/")) {
 				//Log.d("tag", "loading image from local filesystem");
 				Bitmap selectedImage = BitmapFactory.decodeFile(resStr);
@@ -291,6 +294,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 				
 				BitmapDrawable bd = new BitmapDrawable(selectedImage);
 				vh.tw.setImageDrawable(bd);
+				vh.ap.setVisibility(View.INVISIBLE);
 			} else if (resStr.startsWith("http")) {
 				//Log.d("tag", "loading image from http");
 				//imageDownloader.download(resStr, vh.tw);
@@ -299,10 +303,13 @@ public class MyAdapter extends SimpleCursorAdapter {
 				
 				// temporary placeholder
 				vh.tw.setImageResource(R.drawable.placeholder);
+				vh.ap.setVisibility(View.INVISIBLE);
 			} else {
 				//Log.d("tag", "loading image from resource");
-				int resIdx = Integer.parseInt(resStr); 
-				vh.tw.setImageResource(Constants.resId[resIdx]);
+				//int resIdx = Integer.parseInt(resStr); 
+				int resId = Integer.parseInt(resStr);
+				vh.tw.setImageResource(resId);
+				vh.ap.setVisibility(View.VISIBLE);
 			}
 			
 			vh.tw.setAlpha((float)1.0);

@@ -47,7 +47,7 @@ public class MyContentProvider extends ContentProvider {
 	public static final String PATH_DELETE_NO_NOTIFY = "delete_no_notify";
 	
 	private static final String DATABASE_NAME = "bucketList.db";
-	private static final int DATABASE_VERSION = 40;
+	private static final int DATABASE_VERSION = 41;
 	
 	// Database table name
 	public static final String DATABASE_TABLE = "bucket";

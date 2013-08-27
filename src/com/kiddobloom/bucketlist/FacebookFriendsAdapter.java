@@ -85,7 +85,7 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 			vh = new ViewHolder();
 			vh.qb =  (ProfilePictureView) baseview.findViewById(R.id.fbprofilepic);
 			vh.tv1 = (TextView) baseview.findViewById(R.id.fbprofile);
-			vh.ib = (Button) baseview.findViewById(R.id.fbinvitebutton);
+			vh.ib = (Button) baseview.findViewById(R.id.skipbutton);
 			vh.tv2 = (TextView) baseview.findViewById(R.id.fblistitems);
 			
 			// save the ViewHolder

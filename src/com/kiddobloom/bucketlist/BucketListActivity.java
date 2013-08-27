@@ -70,6 +70,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	Fragment[] fmList = new Fragment[4];
 	Handler mHandler;
 	Runnable mUpdate;
+//	private MenuItem logout;
 	
 	public static int currentTab;
 	
@@ -107,11 +108,13 @@ public class BucketListActivity extends Activity implements TabListener {
 				// disable timer
 				mHandler.removeCallbacks(mUpdate);
 				//getFacebookInfo();
+
 				goToAuthenticatorActivity();
     		} else if (session.isClosed() == true){
 				saveState(StateMachine.FB_CLOSED_STATE);
 				saveStatus(StateMachine.OK_STATUS);
 				saveError(StateMachine.NO_ERROR);
+
     			goToAuthenticatorActivity();
     		}
     	}
@@ -245,6 +248,7 @@ public class BucketListActivity extends Activity implements TabListener {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
+		
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.main, menu);
 	    return true;
@@ -272,12 +276,12 @@ public class BucketListActivity extends Activity implements TabListener {
 		                Toast.LENGTH_SHORT).show();
 			}
 
-		} else if (id == R.id.menu_update) {
-			MyListFragment mf = (MyListFragment) fmList[MYLIST_FRAGMENT_IDX];
-			mf.sync();
-		} else if (id == R.id.menu_preferences) {
-			Intent i = new Intent(this, PreferencesActivity.class);
-			startActivityForResult(i, 0);
+//		} else if (id == R.id.menu_update) {
+//			MyListFragment mf = (MyListFragment) fmList[MYLIST_FRAGMENT_IDX];
+//			mf.sync();
+//		} else if (id == R.id.menu_preferences) {
+//			Intent i = new Intent(this, PreferencesActivity.class);
+//			startActivityForResult(i, 0);
 		}
 		
 		return true;
@@ -404,11 +408,21 @@ public class BucketListActivity extends Activity implements TabListener {
 	public void handleFbLike(View v) {
 		Log.d("tag", "handle FB like");
 		
+		Intent intent;
 		String kiddobloom_fb_id = "208086305947271";
 		String uri = "fb://page/" + kiddobloom_fb_id;
-		Log.d("tagaa", "uri: " +uri);
-		Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));		
-		startActivity(intent);
+		String url = "https://www.facebook.com/kiddobloom";
+			
+		try {
+			Log.d("tag", "uri: " + uri);
+			intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+			startActivity(intent);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();Log.d("tag", "url: " + url);
+		    intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+		    startActivity(intent);
+		}
 		
 	}
 	

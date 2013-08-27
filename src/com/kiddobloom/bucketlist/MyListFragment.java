@@ -196,8 +196,12 @@ public class MyListFragment extends Fragment implements
 				Log.d("tag", "editText event: " + event + " actionID: "
 						+ actionId + " view: " + tv.getText().toString());
 
-					String text = tv.getText().toString();
-					tv.setText("");
+					String text = tv.getText().toString();				
+					tv.setText("");					
+					
+					if(text.isEmpty()) {
+						return true;
+					}
 
 					ContentValues cv = new ContentValues();
 					SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
@@ -208,9 +212,11 @@ public class MyListFragment extends Fragment implements
 
 					cv.put(MyContentProvider.COLUMN_ENTRY, text);
 
-					Random r = new Random();
-					int rdIdx = r.nextInt(Constants.resId.length);
-					int resId = Constants.resId[rdIdx];
+					//Random r = new Random();
+					//int rdIdx = r.nextInt(Constants.resId.length);
+					//int resId = Constants.resId[rdIdx];
+					//int rdIdx = 0;
+					int resId = R.drawable.placeholder;
 					Log.d("tag", "resid selected: " + resId);
 					//byte[] value = {'d','u','m','m','y'}; 
 					
@@ -225,7 +231,7 @@ public class MyListFragment extends Fragment implements
 						cv.put(MyContentProvider.COLUMN_DONE, "false");
 						cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_INSERT);
 						cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
-						cv.put(MyContentProvider.COLUMN_IMG_PATH, rdIdx);
+						cv.put(MyContentProvider.COLUMN_IMG_PATH, resId);
 						cv.put(MyContentProvider.COLUMN_DATE_COMPLETED, sdf.format(date));
 						cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
 						//cv.put(MyContentProvider.COLUMN_IMG, value);
@@ -282,7 +288,7 @@ public class MyListFragment extends Fragment implements
 		// filter the entries that are marked for deletion (using the selection field) from displaying in listview
 		// sync adapter will kick in later to send the rest delete command to server
 		// once we get confirmation from the server that deletion succeeds, the entry in the db will be deleted
-		//Loader<Cursor> loader = new MyLoader(getActivity(), MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
+		// Loader<Cursor> loader = new MyLoader(getActivity(), MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
 		Loader<Cursor> loader = new MyLoader(getActivity(), MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_FACEBOOK_ID + "=" + getFbUserId() + " AND " + MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE , null, null);
 		return loader;
 	}
@@ -298,7 +304,7 @@ public class MyListFragment extends Fragment implements
 		cursor.moveToFirst();
 		for (int i=0; i < cursor.getCount(); i++) {
 			Log.d("tag", "row " + i + " :" + cursor.getInt(MyContentProvider.COLUMN_INDEX_ID) + " " + cursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY) + " " 
-					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " + MyContentProvider.restStateStr[cursor.getInt(7)]);
+					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " + MyContentProvider.restStateStr[cursor.getInt(7)] + " " + cursor.getInt(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID));
 			cursor.moveToNext();
 		}
 	}
@@ -729,6 +735,14 @@ public class MyListFragment extends Fragment implements
 	}
 
 	public String getFbUserId() {
-		return sp.getString(getString(R.string.pref_fb_userid_key), "invalid");
+		String id = sp.getString(getString(R.string.pref_fb_userid_key), "0");
+		//Log.d("tag", "fb userid: " + id);
+		
+		// If fb_userid is not yet saved to preferences db, this will return the string "none".
+		// the mysql WHERE clause does not like this.  
+		if (id.equals("none")) {
+			return "0";
+		} 
+		return id;
 	}
 }

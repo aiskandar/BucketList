@@ -23,14 +23,35 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="The Bucket List app we developed is not only about listing random goals. We categorize this Bucket List into Must Do List and Nice to Do List. We can easily marked goals that fall under Must Do List by a touch of a finger.  We jot down all things that satisfy our senses in the Nice to Do List.  Must Do List should list things that really matter; it makes us evaluate our priorities in life. Checking off our Must Do List will create a sense of meaning to our life. We still want to do the Nice to Do List because there are times that we should rest and rewind. Categorizing our Bucket List will create a sense of balance in our life. We will not miss things that really matter in life while still enjoying our life. " />
+            android:text="We develop this app with the intent to inspire you to dream the impossible, take a leap of faith, and do something outside of your comfort zone.  We want this app to remind you to keep asking the questions 'would I be satisfied with what I have done in my life if I were to die tomorrow?' " />
 
+        <TextView
+            android:id="@+id/blogP3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="With this in mind, this app enables you to upload inspirational photos from your gallery so they can motivate you to take immediate action. " />
+        
+        <TextView
+            android:id="@+id/blogP4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="The app also categorizes your bucket list into Must Do and Nice to Do List so you can easily mark dreams that fall under Must Do List by a touch of a finger.  You can jot down all things that satisfy your senses in the Nice to Do List.  Must Do List should list things that really matter; it should make you evaluate your priorities in life. Checking off dreams in the Must Do section should create a sense of meaning to your life. You still want to do the things in the Nice to Do list because there are times that we should rest and rewind." />
+        
+        <TextView
+            android:id="@+id/blogP5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="We also want this app to be fun and allow you to share your bucket list with your friends and to see your friends' public bucket list.  You get to choose which entries in your bucket list that you want to make public or keep private. You can also choose to share some private dreams with certain individuals via emails or other means." />
+        
         <TextView
             android:id="@+id/blogP12"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="If you like our app, please Like us in Facebook and follow up on Twitter." />
+            android:text="If you like our app, please Like us in Facebook and follow us on Twitter." />
 
         <ImageButton
             android:id="@+id/imageButton1"

@@ -64,6 +64,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -256,31 +257,29 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
     }
     
     
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.main, menu);
-	    return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// TODO Auto-generated method stub
-		
-		Log.d("tagaa", "menu item selected :" + item.getItemId());
-		
-		int id = item.getItemId();
-		
-		if (id == R.id.menu_logout) {
-		} else if (id == R.id.menu_update) {
-			
-		} else if (id == R.id.menu_preferences) {
-			Intent i = new Intent(this, PreferencesActivity.class);
-			startActivityForResult(i, 0);
-		}
-		
-		return true;
-	}	
+//	@Override
+//	public boolean onCreateOptionsMenu(Menu menu) {
+//	    
+//		MenuInflater inflater = getMenuInflater();
+//	    inflater.inflate(R.menu.main, menu);
+//	    
+//	    return true;
+//	}
+//	
+//	@Override
+//	public boolean onOptionsItemSelected(MenuItem item) {
+//		// TODO Auto-generated method stub
+//		
+//		Log.d("tagaa", "menu item selected :" + item.getItemId());
+//		
+//		int id = item.getItemId();
+//		
+//		if (id == R.id.menu_logout) {
+//
+//		}
+//		
+//		return true;
+//	}	
 	
     // event handler for skip button
     public void handleSkip(View v) {
@@ -783,6 +782,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 	public void goToBucketListActivity() {
 		
 		setProgressBarIndeterminateVisibility(false);
+		
 		Intent launch = new Intent(this, BucketListActivity.class);
 		launch.putExtra("current_tab", bucketListTab);
 		startActivity(launch);
