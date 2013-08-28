@@ -19,16 +19,27 @@
         android:inputType="textCapSentences"
         android:padding="5dp"
         android:textAllCaps="false" >
-
     </EditText>
 
     <com.kiddobloom.bucketlist.SelectListView
         android:id="@android:id/list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="12"
         android:drawSelectorOnTop="false"
         android:listSelector="@drawable/list_item_selector" >
 
     </com.kiddobloom.bucketlist.SelectListView>
+
+    <WebView
+        android:id="@+id/webView1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_weight="1"
+        android:background="@color/lightgrey" />
 
 </LinearLayout>

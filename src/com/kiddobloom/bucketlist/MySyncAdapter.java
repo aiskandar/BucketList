@@ -2,6 +2,7 @@ package com.kiddobloom.bucketlist;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.io.ObjectInputStream.GetField;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -457,29 +458,34 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 					case MyContentProvider.REST_STATE_DELETE:
 						restDelete(id, c, provider);
 						break;
+
+					case MyContentProvider.REST_STATE_SKIPPED:
+						// do not sync with server
+						break;
 					case MyContentProvider.REST_STATE_NONE:	
 					case MyContentProvider.REST_STATE_QUERY:
+				
 						// throw exception here - when transacting, it cannot be in these 2 states
 						break;
 					default:
 				}				
 			} 
-			
-			//Log.d("tag", "fetchBucketList: server has been updated for rowID " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + "... deleting from local DB");
-			
-			// delete all rows from local DB and sync to the latest updated sets from the server
+						
+			// Now delete all rows from local DB and sync to the latest updated sets from the server
 			// this is a use-case when a user updates the list on one device and opens the app again on another device
 			// do not notify listview that the entry is deleted because we will update with ones from server
-			Uri base = MyContentProvider.CONTENT_URI;
-			base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_NO_NOTIFY);
-			//base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_DB);
-			Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+			// exception: do not delete entries that are in REST_STATE_SKIPPED - these entries are created in SKIPPED states so keep them local and do not sync to server
+			if (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE) != MyContentProvider.REST_STATE_SKIPPED) {
+				Uri base = MyContentProvider.CONTENT_URI;
+				base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_NO_NOTIFY);
+				Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
 			
-			try {
-				provider.delete(uri, null, null);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				try {
+					provider.delete(uri, null, null);
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
 			c.moveToNext();
@@ -562,9 +568,9 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 							+ resp.getStatusLine());
 		}
 	
+	
 	}
 	
-
 //	public void requestSync() {
 //		
 //		AccountManager accountManager = AccountManager.get(getContext());

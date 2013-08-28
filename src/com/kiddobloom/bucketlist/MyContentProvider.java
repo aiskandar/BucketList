@@ -95,14 +95,16 @@ public class MyContentProvider extends ContentProvider {
 	public static final int REST_STATE_UPDATE = 2;
 	public static final int REST_STATE_QUERY = 3;
 	public static final int REST_STATE_NONE = 4;
+	public static final int REST_STATE_SKIPPED = 5;
 
 	public static final String REST_STATE_INSERT_STR = "insert";
 	public static final String REST_STATE_DELETE_STR = "delete";
 	public static final String REST_STATE_UPDATE_STR = "update";
 	public static final String REST_STATE_QUERY_STR = "query";
 	public static final String REST_STATE_NONE_STR = "none";
+	public static final String REST_STATE_SKIPPED_STR = "skipped";
 	
-    public static final String restStateStr[] = {REST_STATE_INSERT_STR, REST_STATE_DELETE_STR, REST_STATE_UPDATE_STR, REST_STATE_QUERY_STR, REST_STATE_NONE_STR };
+    public static final String restStateStr[] = {REST_STATE_INSERT_STR, REST_STATE_DELETE_STR, REST_STATE_UPDATE_STR, REST_STATE_QUERY_STR, REST_STATE_NONE_STR, REST_STATE_SKIPPED_STR };
 	
 	// REST RESULTS constants
 	public static final int REST_STATUS_TRANSACTING = 0;
@@ -372,6 +374,12 @@ public class MyContentProvider extends ContentProvider {
 			} else if (myCursor.getInt(COLUMN_INDEX_REST_STATE) == REST_STATE_UPDATE){
 				bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
 				getContext().getContentResolver().notifyChange(uri, null, true);
+			} else if (myCursor.getInt(COLUMN_INDEX_REST_STATE) == REST_STATE_SKIPPED) {
+				// the row is created in SKIPPED state
+				// update the entries and keep the state as REST_STATE_SKIPPED
+				// do not sync to network but notify change so the listview is updated
+				bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
+				getContext().getContentResolver().notifyChange(uri, null, false);
 			} else {
 				Log.d("tag", "error - db update - but row is in state " + restStateStr[myCursor.getInt(COLUMN_INDEX_REST_STATE)]);
 			}
@@ -385,7 +393,6 @@ public class MyContentProvider extends ContentProvider {
 		} else {
 			// throw exception here
 		}
-		
 		
 		return Integer.parseInt(rowId);
 	}

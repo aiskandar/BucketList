@@ -38,6 +38,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
@@ -63,6 +64,7 @@ public class MyListFragment extends Fragment implements
 	public MyAdapter la;
 	public SelectListView lv;
 	public EditText et;
+	public WebView wv;
 	public Cursor myCursor;
 	public ActionMode mMode;
 	public LoaderManager lm;
@@ -112,7 +114,13 @@ public class MyListFragment extends Fragment implements
 		
 		lv = (SelectListView) v.findViewById(android.R.id.list);
 		et = (EditText) v.findViewById(R.id.editText1);
+		wv = (WebView) v.findViewById(R.id.webView1);
 
+		String id = getFbUserId();
+		//wv.loadUrl("http://andyiskandar.me/adget.php?id=" + "100002870863505");
+		
+		wv.loadUrl("http://andyiskandar.me/adget.php?id=" + id);
+		
 		if (lv==null || et==null) {
 			return null;
 		}
@@ -121,71 +129,10 @@ public class MyListFragment extends Fragment implements
 		
 		// register on item click listener on listview 
 		lv.setOnItemClickListener(this);
-		lv.setAdapter(la);
-		//lv.setOnClickListenerCallback(this);
-			
-//		// register soft enter key event
-//		et.addTextChangedListener(new TextWatcher() {
-//			
-//			@Override
-//			public void onTextChanged(CharSequence s, int start, int before, int count) {
-//				// TODO Auto-generated method stub
-//				
-//			}
-//			
-//			@Override
-//			public void beforeTextChanged(CharSequence s, int start, int count,
-//					int after) {
-//				// TODO Auto-generated method stub
-//				
-//			}
-//			
-//			@Override
-//			public void afterTextChanged(Editable s) {
-//				// TODO Auto-generated method stub
-//				
-//				if (s.charAt(s.length() - 1) == '\n') {
-//	                  Log.d("tag", "Enter was pressed");
-//	            } else {
-//	            	return;
-//	            }
-//				
-//				String text = s.toString();
-//				s.clear();
-//
-//				ContentValues cv = new ContentValues();
-//				SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
-//				Date date = new Date();
-//				Uri base = MyContentProvider.CONTENT_URI;
-//				
-//				//Log.d("tag", "date : " + sdf.format(date));
-//
-//				cv.put(MyContentProvider.COLUMN_ENTRY, text);
-//
-//				if (updateInstead == false) {
-//					cv.put(MyContentProvider.COLUMN_DATE, sdf.format(date));
-//					cv.put(MyContentProvider.COLUMN_RATING, "false");
-//					cv.put(MyContentProvider.COLUMN_SHARE, "true");
-//					cv.put(MyContentProvider.COLUMN_DONE, "false");
-//					cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_INSERT);
-//					cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
-//						
-//					base = Uri.withAppendedPath(base, MyContentProvider.PATH_INSERT);
-//					
-//					getActivity().getContentResolver().insert(base , cv);
-//					
-//				} else {
-//										
-//					base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
-//					base = Uri.withAppendedPath(base, Integer.toString(rowToUpdate));
-//						
-//					getActivity().getContentResolver().update(base, cv, null, null);
-//
-//					signalUpdate(false, 0, 0);						
-//					
-//				}
-//			}
-//		});
+		lv.setAdapter(la);			
+		
+		// webview
+		//wv.setVisibility(View.GONE);
 		
 		// register editor listener for keyboard presses
 		et.setOnEditorActionListener(new OnEditorActionListener() {
@@ -229,7 +176,14 @@ public class MyListFragment extends Fragment implements
 						cv.put(MyContentProvider.COLUMN_RATING, "false");
 						cv.put(MyContentProvider.COLUMN_SHARE, "true");
 						cv.put(MyContentProvider.COLUMN_DONE, "false");
-						cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_INSERT);
+						
+						// if the user skips facebook login, mark the rest_state column of the entry to skipped state
+						// if the user decides to login to facebook later, these entries will be local and not synced to server
+						if (false == sp.getBoolean(getString(R.string.pref_skip_key), false)) {
+							cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_INSERT);
+						} else {
+							cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_SKIPPED);
+						}
 						cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
 						cv.put(MyContentProvider.COLUMN_IMG_PATH, resId);
 						cv.put(MyContentProvider.COLUMN_DATE_COMPLETED, sdf.format(date));
@@ -290,6 +244,7 @@ public class MyListFragment extends Fragment implements
 		// once we get confirmation from the server that deletion succeeds, the entry in the db will be deleted
 		// Loader<Cursor> loader = new MyLoader(getActivity(), MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
 		Loader<Cursor> loader = new MyLoader(getActivity(), MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_FACEBOOK_ID + "=" + getFbUserId() + " AND " + MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE , null, null);
+		//Loader<Cursor> loader = new MyLoader(getActivity(), MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE , null, null);
 		return loader;
 	}
 
@@ -393,8 +348,14 @@ public class MyListFragment extends Fragment implements
 
 			if (menuItemId == MENU_ID_DELETE) {
 
-				base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE);
-
+				Cursor c = (Cursor) la.getItem(position);
+				String state = c.getString(MyContentProvider.COLUMN_INDEX_REST_STATE);
+				
+				if (state.equals(MyContentProvider.REST_STATE_SKIPPED)) {
+					base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_DB);
+				} else {
+					base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE);
+				}
 				//Log.d("tag", "number of checked item Ids: " + itemids.length);
 				for (int i = 0; i < itemids.length; i++) {
 					//Log.d("tag", "checked item id: " + itemids[i]);
@@ -744,5 +705,16 @@ public class MyListFragment extends Fragment implements
 			return "0";
 		} 
 		return id;
+	}
+	
+	// skip
+	public void saveSkip(boolean skip) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putBoolean(getString(R.string.pref_skip_key), skip);
+		editor.commit();
+	}
+	
+	public Boolean getSkip() {
+		return sp.getBoolean(getString(R.string.pref_skip_key), false);
 	}
 }
