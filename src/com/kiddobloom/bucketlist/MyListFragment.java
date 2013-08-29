@@ -118,8 +118,7 @@ public class MyListFragment extends Fragment implements
 
 		String id = getFbUserId();
 		//wv.loadUrl("http://andyiskandar.me/adget.php?id=" + "100002870863505");
-		
-		wv.loadUrl("http://andyiskandar.me/adget.php?id=" + id);
+		//wv.loadUrl("http://andyiskandar.me/adget.php?id=" + id);
 		
 		if (lv==null || et==null) {
 			return null;
@@ -132,7 +131,7 @@ public class MyListFragment extends Fragment implements
 		lv.setAdapter(la);			
 		
 		// webview
-		//wv.setVisibility(View.GONE);
+		wv.setVisibility(View.GONE);
 		
 		// register editor listener for keyboard presses
 		et.setOnEditorActionListener(new OnEditorActionListener() {
@@ -342,40 +341,44 @@ public class MyListFragment extends Fragment implements
 			SparseBooleanArray sba = lv.getCheckedItemPositions();
 			long[] itemids = lv.getCheckedItemIds();
 			int position = -1;
+			int itemId;
 
 			int menuItemId = item.getItemId();
 			//Log.d("tag", "menu item clicked: " + menuItemId);
 
 			if (menuItemId == MENU_ID_DELETE) {
 
-				Cursor c = (Cursor) la.getItem(position);
-				String state = c.getString(MyContentProvider.COLUMN_INDEX_REST_STATE);
-				
-				if (state.equals(MyContentProvider.REST_STATE_SKIPPED)) {
-					base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_DB);
-				} else {
-					base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE);
-				}
-				//Log.d("tag", "number of checked item Ids: " + itemids.length);
-				for (int i = 0; i < itemids.length; i++) {
-					//Log.d("tag", "checked item id: " + itemids[i]);
-					base = Uri.withAppendedPath(base,
-							Integer.toString((int) itemids[i]));
-				}
+				for (int i = 0; i < sba.size(); i++) {
+					int key = sba.keyAt(i);
+					//Log.d("tag", "value at key:" + key + " is " + sba.get(key));
+					if (sba.get(key) == true) {
+						Log.d("tag", "MENU_DELETE: checked item position = " + key);
+						position = key;
+						
+						Cursor c = (Cursor) la.getItem(position);
+						String state = c.getString(MyContentProvider.COLUMN_INDEX_REST_STATE);
 
-				//Log.d("tag", "uri: " + base);
-				
-				getActivity().getContentResolver().delete(base, null, null);
+						if (state.equals(MyContentProvider.REST_STATE_SKIPPED)) {
+							base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_DB);
+						} else {
+							base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE);
+						}
+						
+						itemId = (int) la.getItemId(position);
+						base = Uri.withAppendedPath(base, Integer.toString(itemId));
+						
+						getActivity().getContentResolver().delete(base, null, null);
+					}
+					
+				}
 
 			} else if (menuItemId == MENU_ID_EDIT) {
 
 				//Log.d("tag", "sba size: " + sba.size());
 				for (int i = 0; i < sba.size(); i++) {
 					int key = sba.keyAt(i);
-					// Log.d("tag", "value at key:" + key + " is "+
-					// sba.get(key));
 					if (sba.get(key) == true) {
-						//Log.d("tag", "checked item position: " + key);
+						Log.d("tag", "MENU_EDIT: checked item position = " + key);
 						position = key;
 					}
 				}
@@ -390,12 +393,7 @@ public class MyListFragment extends Fragment implements
 				String text = c.getString(MyContentProvider.COLUMN_INDEX_ENTRY);
 				//Log.d("tag", "text to Edit: " + text);
 
-				int itemId = (int) la.getItemId(position);
-
-//				base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
-//				base = Uri.withAppendedPath(base, Integer.toString(itemId));
-//
-//				Log.d("tag", "uri: " + base);
+				itemId = (int) la.getItemId(position);
 
 				if (text != null) {
 					
@@ -420,19 +418,18 @@ public class MyListFragment extends Fragment implements
 					int key = sba.keyAt(i);
 					//Log.d("tag", "value at key:" + key + " is " + sba.get(key));
 					if (sba.get(key) == true) {
-						Log.d("tag", "checked item position: " + key);
+						Log.d("tag", "MENU_SHARE: checked item position = " + key);
 						Cursor c = (Cursor) la.getItem(key);
 						String text = c
 								.getString(MyContentProvider.COLUMN_INDEX_ENTRY);
-						Log.d("tag", " text to share: " + text);
+						Log.d("tag", "MENU_SHARE: text to share = " + text);
 						textList.append(++count);
 						textList.append(". ");
 						textList.append(text);
 						textList.append('\n');
 
-						Log.d("tag", "string to append: " + textList);
+						Log.d("tag", "MENU_SHARE: string to append = " + textList);
 					}
-					//textList.append("http://m");
 				}
 
 				if (textList != null) {
@@ -448,13 +445,13 @@ public class MyListFragment extends Fragment implements
 				}
 			} else {
 				
-				Log.d("tag", "menu item picture clicked");
+				//Log.d("tag", "menu item picture clicked");
 				
 				for (int i = 0; i < sba.size(); i++) {
 					int key = sba.keyAt(i);
 					Log.d("tag", "value at key:" + key + " is "+ sba.get(key));
 					if (sba.get(key) == true) {
-						Log.d("tag", "checked item position: " + key);
+						Log.d("tag", "MENU_PICTURE: checked item position = " + key);
 						position = key;
 					}
 				}
@@ -465,7 +462,7 @@ public class MyListFragment extends Fragment implements
 					return false;
 				}
 				
-				int itemId = (int) la.getItemId(position);				
+				itemId = (int) la.getItemId(position);				
 				//Log.d("tag","item id: " + itemId);
 				
 				int icounter = getImageCounter();
