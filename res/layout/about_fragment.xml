@@ -58,10 +58,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
-            android:maxWidth="100dp"
+            android:layout_marginBottom="10dp"
+            android:background="@android:color/white"
             android:onClick="handleFbLike"
-            android:src="@drawable/fblike2" />
+            android:scaleType="centerInside"
+            android:src="@drawable/fb_likebutton_2" />
+
     </LinearLayout>
 
 </ScrollView>

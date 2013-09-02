@@ -11,6 +11,9 @@ public class BucketListTable {
 	public String facebook_id;
 	
 	@Expose
+	public String facebook_pending_announce;
+	
+	@Expose
 	public String date;
 
 	@Expose
@@ -43,6 +46,10 @@ public class BucketListTable {
 
 	void setFacebookId(String fbid) {
 		this.facebook_id = fbid;
+	}
+	
+	void setFacebookPendingAnnounce(String pending) {
+		this.facebook_pending_announce = pending;
 	}
 
 	void setEntry(String entry) {

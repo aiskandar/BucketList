@@ -47,7 +47,7 @@ public class MyContentProvider extends ContentProvider {
 	public static final String PATH_DELETE_NO_NOTIFY = "delete_no_notify";
 	
 	private static final String DATABASE_NAME = "bucketList.db";
-	private static final int DATABASE_VERSION = 41;
+	private static final int DATABASE_VERSION = 42;
 	
 	// Database table name
 	public static final String DATABASE_TABLE = "bucket";
@@ -67,6 +67,7 @@ public class MyContentProvider extends ContentProvider {
 	public static final String COLUMN_DATE_COMPLETED = "date_completed";
 	public static final String COLUMN_IMG_CACHE = "image_cache";
 	public static final String COLUMN_FACEBOOK_ID = "facebook_id";
+	public static final String COLUMN_FACEBOOK_PENDING_ANNOUNCE = "facebook_pending_announce";
 	public static final String COLUMN_IMG = "image";
 
 	// Database column index
@@ -83,11 +84,13 @@ public class MyContentProvider extends ContentProvider {
 	public static final int COLUMN_INDEX_DATE_COMPLETED = 10;
 	public static final int COLUMN_INDEX_IMG_CACHE = 11;
 	public static final int COLUMN_INDEX_FACEBOOK_ID = 12;
-	public static final int COLUMN_INDEX_IMG = 13;
+	public static final int COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE = 13;
+	public static final int COLUMN_INDEX_IMG = 14;
 
 	public static final String dbColumnStr[] = {COLUMN_ID, COLUMN_SERVER_ID, COLUMN_DATE, COLUMN_ENTRY, 
 										COLUMN_DONE, COLUMN_RATING, COLUMN_SHARE, COLUMN_REST_STATE, COLUMN_REST_STATUS, 
-										COLUMN_IMG_PATH, COLUMN_DATE_COMPLETED, COLUMN_IMG_CACHE, COLUMN_FACEBOOK_ID, COLUMN_IMG };
+										COLUMN_IMG_PATH, COLUMN_DATE_COMPLETED, COLUMN_IMG_CACHE, COLUMN_FACEBOOK_ID, 
+										COLUMN_FACEBOOK_PENDING_ANNOUNCE, COLUMN_IMG };
 	
 	// REST STATUS constants
 	public static final int REST_STATE_INSERT = 0;
@@ -407,7 +410,7 @@ public class MyContentProvider extends ContentProvider {
 		@Override
 		public void onCreate(SQLiteDatabase db) {	
 			// sqlite command: create table DATABASE_TABLE(KEY_ID INTEGER PRIMARY KEY, COLUMN_ENTRY TEXT, COLUMN_DATE TEXT, COLUMN_RATING TEXT, COLUMN_DONE TEXT, COLUMN_REST_STATUS TEXT, COLUMN_REST_RESULT TEXT);
-			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_SERVER_ID + " INTEGER, " + COLUMN_DATE + " TEXT, " + COLUMN_ENTRY + " TEXT, " + COLUMN_DONE + " TEXT, " + COLUMN_RATING + " TEXT, " +  COLUMN_SHARE + " TEXT, " + COLUMN_REST_STATE + " INTEGER, " + COLUMN_REST_STATUS + " INTEGER, " + COLUMN_IMG_PATH + " TEXT, " + COLUMN_DATE_COMPLETED + " TEXT, " + COLUMN_IMG_CACHE + " TEXT, " + COLUMN_FACEBOOK_ID + " TEXT, " + COLUMN_IMG + " BLOB);" ;
+			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_SERVER_ID + " INTEGER, " + COLUMN_DATE + " TEXT, " + COLUMN_ENTRY + " TEXT, " + COLUMN_DONE + " TEXT, " + COLUMN_RATING + " TEXT, " +  COLUMN_SHARE + " TEXT, " + COLUMN_REST_STATE + " INTEGER, " + COLUMN_REST_STATUS + " INTEGER, " + COLUMN_IMG_PATH + " TEXT, " + COLUMN_DATE_COMPLETED + " TEXT, " + COLUMN_IMG_CACHE + " TEXT, " + COLUMN_FACEBOOK_ID + " TEXT, " + COLUMN_FACEBOOK_PENDING_ANNOUNCE + " TEXT, " + COLUMN_IMG + " BLOB);" ;
 			db.execSQL(sqlCreateTable);
 			Log.d("tag", "sqllite new database generated");
 		}

@@ -7,25 +7,40 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
+
+import com.facebook.FacebookRequestError;
+import com.facebook.HttpMethod;
+import com.facebook.Request;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.SessionDefaultAudience;
+import com.facebook.model.GraphObject;
 
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Audio.Media;
 import android.provider.SyncStateContract.Columns;
+import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager;
+import android.app.ProgressDialog;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Loader;
 import android.text.Editable;
@@ -158,13 +173,11 @@ public class MyListFragment extends Fragment implements
 
 					cv.put(MyContentProvider.COLUMN_ENTRY, text);
 
-					//Random r = new Random();
-					//int rdIdx = r.nextInt(Constants.resId.length);
-					//int resId = Constants.resId[rdIdx];
-					//int rdIdx = 0;
-					int resId = R.drawable.placeholder;
+					int resIdx = getResIdCounterAndIncrement();
+					int resId = Constants.resId[resIdx];
+					
+					//int resId = R.drawable.placeholder;
 					Log.d("tag", "resid selected: " + resId);
-					//byte[] value = {'d','u','m','m','y'}; 
 					
 					if (updateInstead == false) {
 						
@@ -189,6 +202,7 @@ public class MyListFragment extends Fragment implements
 						cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
 						//cv.put(MyContentProvider.COLUMN_IMG, value);
 						cv.put(MyContentProvider.COLUMN_FACEBOOK_ID, fbid);
+						cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "false");
 							
 						base = Uri.withAppendedPath(base, MyContentProvider.PATH_INSERT);
 						getActivity().getContentResolver().insert(base , cv);
@@ -258,8 +272,16 @@ public class MyListFragment extends Fragment implements
 		cursor.moveToFirst();
 		for (int i=0; i < cursor.getCount(); i++) {
 			Log.d("tag", "row " + i + " :" + cursor.getInt(MyContentProvider.COLUMN_INDEX_ID) + " " + cursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY) + " " 
-					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " + MyContentProvider.restStateStr[cursor.getInt(7)] + " " + cursor.getInt(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID));
+					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " + MyContentProvider.restStateStr[cursor.getInt(7)] + " " + cursor.getInt(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID) 
+					+ " " + cursor.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE));
+			if (cursor.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE).equals("retry")) {
+				publishStoryOrStop(cursor.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID), String.valueOf(cursor.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+			} else if (cursor.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE).equals("true")) {
+				publishStory(cursor.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID), String.valueOf(cursor.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+			}
+			
 			cursor.moveToNext();
+			
 		}
 	}
 
@@ -358,23 +380,26 @@ public class MyListFragment extends Fragment implements
 						Cursor c = (Cursor) la.getItem(position);
 						String state = c.getString(MyContentProvider.COLUMN_INDEX_REST_STATE);
 
-						if (state.equals(MyContentProvider.REST_STATE_SKIPPED)) {
+						itemId = (int) la.getItemId(position);
+						
+					    if (state.equals(MyContentProvider.REST_STATE_SKIPPED)) {
 							base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE_DB);
 						} else {
 							base = Uri.withAppendedPath(base, MyContentProvider.PATH_DELETE);
 						}
 						
-						itemId = (int) la.getItemId(position);
 						base = Uri.withAppendedPath(base, Integer.toString(itemId));
 						
 						getActivity().getContentResolver().delete(base, null, null);
+						
+						base = MyContentProvider.CONTENT_URI;
 					}
 					
 				}
 
 			} else if (menuItemId == MENU_ID_EDIT) {
 
-				//Log.d("tag", "sba size: " + sba.size());
+				//Log.d("tag", "sb size: " + sba.size());
 				for (int i = 0; i < sba.size(); i++) {
 					int key = sba.keyAt(i);
 					if (sba.get(key) == true) {
@@ -552,8 +577,6 @@ public class MyListFragment extends Fragment implements
 				cv.put(MyContentProvider.COLUMN_IMG_PATH, filePath);
 				cv.put(MyContentProvider.COLUMN_IMG, out.toByteArray());
 				cv.put(MyContentProvider.COLUMN_IMG_CACHE, "true");
-				//cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_UPDATE);
-				//cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
 				
 				base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
 				base = Uri.withAppendedPath(base, Integer.toString(rowItemId));
@@ -561,33 +584,10 @@ public class MyListFragment extends Fragment implements
 				getActivity().getContentResolver().update(base, cv, null, null);
 				
 			}
+		} else {
+			Log.d("tag", "onActivityResult for " + requestCode);
 		}
         		
-		
-//        if (requestCode == MyListFragment.RESULT_LOAD_IMAGE && resultCode == Activity.RESULT_OK && null != data) {
-// 
-//            Uri selectedImage = data.getData();
-//            String[] filePathColumn = { MediaStore.Images.Media.DATA };
-//            Cursor cursor = getActivity().getContentResolver().query(selectedImage,filePathColumn, null, null, null);
-//            cursor.moveToFirst();
-//            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-//            String picturePath = cursor.getString(columnIndex);
-//            cursor.close();
-//            Log.d("tag", "image path: " + picturePath + " rowid: " + rowToSelect);
-//            
-//            Uri base = MyContentProvider.CONTENT_URI;
-//            ContentValues cv = new ContentValues();
-//			cv.put(MyContentProvider.COLUMN_IMG_PATH, picturePath);
-//			
-//            base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
-//			base = Uri.withAppendedPath(base, Integer.toString(rowToSelect));
-//            
-//			getActivity().getContentResolver().update(base, cv, null, null);
-//			
-//            //ImageView imageView = (ImageView) findViewById(R.id.imgView);
-//            //imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
-//     }
-     
 	}
 	
 	@Override
@@ -714,4 +714,263 @@ public class MyListFragment extends Fragment implements
 	public Boolean getSkip() {
 		return sp.getBoolean(getString(R.string.pref_skip_key), false);
 	}
+	
+	// res_id counter
+	
+	public int getResIdCounterAndIncrement() {
+		int count = sp.getInt(getString(R.string.pref_res_id_counter), 0);
+		int next_count = count + 1;
+		if (next_count == Constants.resId.length) {
+			//recycle photo
+			next_count = 0;
+		}
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putInt(getString(R.string.pref_res_id_counter), next_count);
+		editor.commit();
+		return count;
+	}
+
+	// facebook publish permission 
+	public void saveFbPublishPermission(boolean value) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putBoolean(getString(R.string.pref_facebook_publish_permission), value);
+		editor.commit();
+	}
+
+	public boolean getFbPublishPermission() {
+		return sp.getBoolean(getString(R.string.pref_facebook_publish_permission), false);
+	}
+	
+	/*
+	 * facebook announce related code
+	 */
+	private static final List<String> PERMISSIONS = Arrays.asList("publish_actions");
+    private static final Uri M_FACEBOOK_URL = Uri.parse("http://m.facebook.com");
+    private static final int REAUTH_ACTIVITY_CODE = 100;
+    private ProgressDialog progressDialog;
+    
+    /**
+     * Used to inspect the response from posting an action
+     */
+    private interface PostResponse extends GraphObject {
+        String getId();
+    }
+    
+    private void publishStoryOrStop(String serverId, String rowId) {
+	
+	    boolean publish_actions_permission = false;
+	    
+	    // we get here if have already asked the user's permission to publish on their behalf (facebook_pending_announce = retry)
+	    // the onstatestatuschange callback has been called and the permission for publish_actions was stored in pref.db
+	    // we retrieve the saved permission from pref.db to determine whether we should stop or publish the story
+	    publish_actions_permission = getFbPublishPermission();
+
+		Log.d("tag", "publishStoryOrStop rowid: " + rowId + " serverId: " + serverId + " publish_actions permission: " + publish_actions_permission);
+		
+	    if (publish_actions_permission == false) {
+	    	// reset the facebook_pending_announce to false and do not try to post on user's behalf
+    		ContentValues cv = new ContentValues();
+    		Uri base = MyContentProvider.CONTENT_URI;
+    		base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
+    		base = Uri.withAppendedPath(base, rowId);
+    		
+    		cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "false");
+    		getActivity().getContentResolver().update(base, cv, null, null);	    	
+	    } else {
+	    	publishStory(serverId, rowId);
+	    }
+	    
+    }
+    
+	private void publishStory(String serverId, String rowId) {
+		
+		Log.d("tag", "publishStory rowid: " + rowId + " serverId: " + serverId);
+		
+	    Session session = Session.getActiveSession();
+
+	    if (session != null) {
+	        
+	        // Run this in a background thread since some of the populate methods may take
+	        // a non-trivial amount of time.
+	        AsyncTask<String, Void, Response> FacebookAnnounceTask = new AsyncTask<String, Void, Response>() {
+
+	        	String rowid;
+	        	
+	            @Override
+	            protected Response doInBackground(String... arg0) {
+	                
+	            	Log.d("tagaa", "FacebookAnnounceTask: rowid = " + arg0[1].toString());
+	            	rowid = arg0[1].toString();
+	            	
+	        		ContentValues cv = new ContentValues();
+	        		Uri base = MyContentProvider.CONTENT_URI;
+	        		base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
+	        		base = Uri.withAppendedPath(base, rowid);
+	        		
+	        		cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "pending");
+	        		getActivity().getContentResolver().update(base, cv, null, null);
+	        		
+	    	        Bundle params = new Bundle();
+	    	        params.putString("dream", "http://samples.ogp.me/574651899261441");
+
+	                Request request = new Request(Session.getActiveSession(),
+	                		"me/kiddobloom:complete", params, HttpMethod.POST);
+	                return request.executeAndWait();
+	            }
+
+	            @Override
+	            protected void onPostExecute(Response response) {
+	            	Log.d("tag", "FacebookAnnounceTask: rowid: " + rowid + " response: " + response);
+	                onPostActionResponse(response, rowid);
+	             }
+	        };
+
+	        FacebookAnnounceTask.execute(serverId, rowId);
+
+	    } else {
+	    	Log.d("tag", "FacebookAnnounceTask: session is null");
+	    }
+	}
+	
+    private void requestPublishPermissions(Session session) {
+        if (session != null) {
+            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(getActivity(), PERMISSIONS)
+                    // demonstrate how to set an audience for the publish permissions,
+                    // if none are set, this defaults to FRIENDS
+                    .setDefaultAudience(SessionDefaultAudience.FRIENDS)
+                    .setRequestCode(REAUTH_ACTIVITY_CODE);
+            Log.d("tag", "requesting new permission");
+            session.requestNewPublishPermissions(newPermissionsRequest);
+        }
+    }
+
+    private void onPostActionResponse(Response response, String rowid) {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
+        
+        if (getActivity() == null) {
+            // if the user removes the app from the website, then a request will
+            // have caused the session to close (since the token is no longer valid),
+            // which means the splash fragment will be shown rather than this one,
+            // causing activity to be null. If the activity is null, then we cannot
+            // show any dialogs, so we return.
+            return;
+        }
+
+
+        PostResponse postResponse = response.getGraphObjectAs(PostResponse.class);
+
+        if (postResponse != null && postResponse.getId() != null) {
+            String dialogBody = String.format(getActivity().getString(R.string.result_dialog_text), postResponse.getId());
+            new AlertDialog.Builder(getActivity())
+                    .setPositiveButton(R.string.result_dialog_button_text, null)
+                    .setTitle(R.string.result_dialog_title)
+                    .setMessage(dialogBody)
+                    .show();
+            
+    		ContentValues cv = new ContentValues();
+    		Uri base = MyContentProvider.CONTENT_URI;
+    		base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
+    		base = Uri.withAppendedPath(base, rowid);
+    		
+    		cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "false");
+    		getActivity().getContentResolver().update(base, cv, null, null);
+
+        } else {
+            handleError(response.getError(), rowid);
+        }
+    }
+
+    private void handleError(FacebookRequestError error, String rowid) {
+        DialogInterface.OnClickListener listener = null;
+        String dialogBody = null;
+
+        if (error == null) {
+            dialogBody = getActivity().getString(R.string.error_dialog_default_text);
+        } else {
+            switch (error.getCategory()) {
+                case AUTHENTICATION_RETRY:
+                    // tell the user what happened by getting the message id, and
+                    // retry the operation later
+                    Log.d("tag", "Error FacebookAnnounceTask: authentication retry");
+//                	String userAction = (error.shouldNotifyUser()) ? "" :
+//                            getActivity().getString(error.getUserActionMessageId());
+//                    dialogBody = getActivity().getString(R.string.error_authentication_retry, userAction);
+//                    listener = new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, M_FACEBOOK_URL);
+                    getActivity().startActivity(intent);
+//                        }
+//                    };
+                    break;
+
+                case AUTHENTICATION_REOPEN_SESSION:
+                    // close the session and reopen it.
+                    Log.d("tag", "Error FacebookAnnounceTask: authentication reopen session");
+//                    dialogBody = getActivity().getString(R.string.error_authentication_reopen);
+//                    listener = new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+                    Session session = Session.getActiveSession();
+                    if (session != null && !session.isClosed()) {
+                        session.closeAndClearTokenInformation();
+                    }
+//                        }
+//                    };
+                    break;
+
+                case PERMISSION:
+                    // request the publish permission
+                    Log.d("tag", "Error FacebookAnnounceTask: error permission");
+                    //dialogBody = getActivity().getString(R.string.error_permission);
+                    //listener = new DialogInterface.OnClickListener() {
+                      //  @Override
+                        //public void onClick(DialogInterface dialogInterface, int i) {
+                    requestPublishPermissions(Session.getActiveSession());
+                    
+	        		ContentValues cv = new ContentValues();
+	        		Uri base = MyContentProvider.CONTENT_URI;
+	        		base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
+	        		base = Uri.withAppendedPath(base, rowid);
+	        		
+	        		cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "retry");
+	        		getActivity().getContentResolver().update(base, cv, null, null);
+                        //}
+                    //};
+                    break;
+
+                case SERVER:
+                case THROTTLING:
+                    // this is usually temporary, don't clear the fields, and
+                    // ask the user to try again
+                    Log.d("tag", "Error FacebookAnnounceTask: server/throttling");
+                    dialogBody = getActivity().getString(R.string.error_server);
+                    break;
+
+                case BAD_REQUEST:
+                    // this is likely a coding error, ask the user to file a bug
+                    dialogBody = getActivity().getString(R.string.error_bad_request, error.getErrorMessage());
+                    break;
+
+                case OTHER:
+                case CLIENT:
+                default:
+                    // an unknown issue occurred, this could be a code error, or
+                    // a server side issue, log the issue, and either ask the
+                    // user to retry, or file a bug
+                    dialogBody = getActivity().getString(R.string.error_unknown, error.getErrorMessage());
+                    break;
+            }
+        }
+
+//        new AlertDialog.Builder(getActivity())
+//                .setPositiveButton(R.string.error_dialog_button_text, listener)
+//                .setTitle(R.string.error_dialog_title)
+//                .setMessage(dialogBody)
+//                .show();
+    }
+
 }

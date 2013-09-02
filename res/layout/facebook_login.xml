@@ -38,9 +38,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginRight="10dp"
                 android:gravity="center"
-                android:src="@drawable/ic_launcher" />
+                android:src="@drawable/bucket_trans" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -78,8 +77,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:minHeight="32dp"
             android:onClick="handleSkip"
-            android:text="Skip" />
+            android:text="Skip"
+            android:textColor="@color/darkergrey" />
 
     </LinearLayout>
 </ScrollView>

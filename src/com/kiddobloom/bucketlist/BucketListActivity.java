@@ -97,10 +97,32 @@ public class BucketListActivity extends Activity implements TabListener {
     
     private void onSessionStateChange(Session session, SessionState state, Exception exception) {
     	
-    	Log.d("tagaa", "bucketlist facebook onseesionstatechange:" + session + " state:" + state);
+    	Log.d("tag", "bucketlist facebook onseesionstatechange:" + session + " state:" + state);
 
     	if (session != null) {
-    		if (session.isOpened() == true) {
+    		
+    		//List<String> list = session.getPermissions();
+    		//Log.d("tag", "bucketlist facebook onseesionstatechange permission: " + list);
+    		
+    		if (state == SessionState.OPENED_TOKEN_UPDATED) {
+    			// check to see what level of permissions are granted
+    			List<String> list = session.getPermissions();
+    			Log.d("tag", "bucketlist facebook onseesionstatechange OPENED_TOKEN_UPDATED permission: " + list);
+    			
+    			boolean publish_actions_found = false;
+    			for (int i=0; i < list.size(); i++) {
+    				if (list.get(i).equals("publish_actions")) {
+    					Log.d("tag", "bucketlist facebook onsessionstatechange PUBLISH_ACTIONS permission found");
+    					publish_actions_found = true;
+    				}
+    			}
+    			// everytime OPENED_TOKEN is updated, we also permanently store the state in pref. db
+    			if (publish_actions_found == true) {
+    				saveFbPublishPermission(true);
+    			} else {
+    				saveFbPublishPermission(false);
+    			}
+    		} else if (session.isOpened() == true) {
 				saveState(StateMachine.FB_OPENED_STATE);
 				saveStatus(StateMachine.OK_STATUS);
 				saveError(StateMachine.NO_ERROR);
@@ -116,7 +138,7 @@ public class BucketListActivity extends Activity implements TabListener {
 				saveError(StateMachine.NO_ERROR);
 
     			goToAuthenticatorActivity();
-    		}
+    		} 
     	}
     }
 	
@@ -150,7 +172,7 @@ public class BucketListActivity extends Activity implements TabListener {
 		uiHelper = new UiLifecycleHelper(this, callback);		
 		uiHelper.onCreate(savedInstanceState);
 
-		Log.d("tagaa", "bucketlist activity created - currentTab: " + currentTab);
+		Log.d("tag", "bucketlist activity created - currentTab: " + currentTab);
 
 		sp = getSharedPreferences(getString(R.string.pref_name), 0);
 
@@ -158,7 +180,7 @@ public class BucketListActivity extends Activity implements TabListener {
 		myApp = (MyApplication) getApplication();
 		
 		getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		getActionBar().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.grey)));
+		getActionBar().setBackgroundDrawable(new ColorDrawable(getResources().getColor(android.R.color.white)));
         
         NavigationTabs.myListTab = getActionBar().newTab();
         NavigationTabs.myListTab.setText("My List");
@@ -187,29 +209,29 @@ public class BucketListActivity extends Activity implements TabListener {
         		
         		// are we in online, offline, or skip state?
         		if (getState() == StateMachine.OFFLINE_STATE) {
-        			Log.d("tagaa", "timer event offline");
+        			Log.d("tag", "timer event offline");
         			// most likely there is an error
         			if (getStatus() == StateMachine.ERROR_STATUS) {
 
         				if (!isNetworkAvailable()) {
-        					Log.d("tagaa", "network is not available");
+        					Log.d("tag", "network is not available");
         				} else {
 	        				
 	        				switch (getError()) {
 	        					case StateMachine.NETWORK_DISCONNECT_ERROR:
-	        						Log.d("tagaa", "retry - network disconnect error");
+	        						Log.d("tag", "retry - network disconnect error");
 	        						//getFacebookInfo();
 	        						break;
 								case StateMachine.FB_GET_ME_FAILED_ERROR:
-									Log.d("tagaa", "retry - fb get me failed error");
+									Log.d("tag", "retry - fb get me failed error");
 									//getFacebookInfo();
 									break;
 								case StateMachine.FB_GET_FRIENDS_FAILED_ERROR:
-									Log.d("tagaa", "retry - fb get friends failed error");
+									Log.d("tag", "retry - fb get friends failed error");
 									//getFacebookFriends();
 									break;
 								case StateMachine.FBID_SERVER_REGISTER_ERROR:
-									Log.d("tagaa", "retry - server register error");
+									Log.d("tag", "retry - server register error");
 									//registerUserId();
 									break;
 								default:
@@ -225,7 +247,7 @@ public class BucketListActivity extends Activity implements TabListener {
         		} else if (getState() == StateMachine.ONLINE_STATE) {
         			// it seems our timer callback has successfully delivered us to ONLINE mode
         			// re-select the tab and DO not restart timer
-        			Log.d("tagaa", "timer event online");
+        			Log.d("tag", "timer event online");
         			
         			switch(currentTab) {
         			case MYLIST_NAV_TAB_IDX:
@@ -258,7 +280,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// TODO Auto-generated method stub
 		
-		Log.d("tagaa", "menu item selected :" + item.getItemId());
+		Log.d("tag", "menu item selected :" + item.getItemId());
 		
 		int id = item.getItemId();
 		
@@ -270,7 +292,7 @@ public class BucketListActivity extends Activity implements TabListener {
 				myApp.friendsList.clear();	
 			} else {
 				// toast
-				Log.d("tagaa", "toast: you are not logged in to facebook - ");
+				Log.d("tag", "toast: you are not logged in to facebook - ");
 				Toast.makeText(this,
 		                "You are not currently Logged in to Facebook",
 		                Toast.LENGTH_SHORT).show();
@@ -293,8 +315,8 @@ public class BucketListActivity extends Activity implements TabListener {
 		super.onResume();
         uiHelper.onResume();
         isResumed = true;
-        Log.d("tagaa", "bucketlist activity is resumed - currentTab: " + currentTab);
-        Log.d("tagaa", "bucketlist resuming from " + StateMachine.stateStr[getState()]);
+        Log.d("tag", "bucketlist activity is resumed - currentTab: " + currentTab);
+        Log.d("tag", "bucketlist resuming from " + StateMachine.stateStr[getState()]);
         
 		switch(currentTab) {
 		case MYLIST_NAV_TAB_IDX:
@@ -313,7 +335,7 @@ public class BucketListActivity extends Activity implements TabListener {
 		if (getState() == StateMachine.OFFLINE_STATE) {
 			// most likely there is an error
 			if (getStatus() == StateMachine.ERROR_STATUS) {
-				Log.d("tagaa", "trigger a timer to retry");
+				Log.d("tag", "trigger a timer to retry");
 				mHandler.removeCallbacks(mUpdate);
 				mHandler.postDelayed(mUpdate, TIMER_INTERVAL);
 			}
@@ -338,7 +360,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	        
 	    // remove timer callback if the activity is paused
 	    mHandler.removeCallbacks(mUpdate);
-		Log.d("tagaa", "bucketlist activity is paused");
+		Log.d("tag", "bucketlist activity is paused");
 	}
 
 
@@ -359,27 +381,27 @@ public class BucketListActivity extends Activity implements TabListener {
        // clear facebook friends when activity is destroyed
 	   myApp.friendsList.clear();
        saveInitialSynced(false);
-       Log.d("tagaa", "bucketlist activity ondestroy");
+       Log.d("tag", "bucketlist activity ondestroy");
     }
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		Log.d("tagaa", "bucketlist activity is stopped");
+		Log.d("tag", "bucketlist activity is stopped");
 	}
 	
 	@Override
 	protected void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
-		Log.d("tagaa", "bucketlist activity is started");
+		Log.d("tag", "bucketlist activity is started");
 
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		// TODO Auto-generated method stub
-		Log.d("tagaa", "bucketlist activity onsaveinstancestate");
+		Log.d("tag", "bucketlist activity onsaveinstancestate");
 		
 
 	 	// save the currently selected fragment
@@ -393,13 +415,13 @@ public class BucketListActivity extends Activity implements TabListener {
 	@Override
 	protected void onRestoreInstanceState(Bundle state) {
 		// TODO Auto-generated method stub
-		Log.d("tagaa", "bucketlist activity onrestoreinstancestate");
+		Log.d("tag", "bucketlist activity onrestoreinstancestate");
 
 		super.onRestoreInstanceState(state);
 	}
 
 	public void handleVisit(View v) {
-		Log.d("tagaa", "handle visit");
+		Log.d("tag", "handle visit");
 		
 	    TextView t2 = (TextView) v;
 	    t2.setMovementMethod(LinkMovementMethod.getInstance());
@@ -432,7 +454,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	    Session session = Session.getActiveSession();
 	       
 		if (tab.getText().equals("My List")) {
-			Log.d("tagaa", "My List selected");
+			Log.d("tag", "My List selected");
 			
 			ft.show(fmList[MYLIST_FRAGMENT_IDX]);	
 			MyListFragment mf = (MyListFragment) fmList[MYLIST_FRAGMENT_IDX];
@@ -445,7 +467,7 @@ public class BucketListActivity extends Activity implements TabListener {
 			currentTab = MYLIST_NAV_TAB_IDX;
 			
 		} else if (tab.getText().equals("Community")) {
-			Log.d("tagaa", "community selected");
+			Log.d("tag", "community selected");
 
 			ft.hide(fmList[MYLIST_FRAGMENT_IDX]);	
 			
@@ -453,7 +475,7 @@ public class BucketListActivity extends Activity implements TabListener {
 				ft.show(fmList[COMMUNITY_FRAGMENT_IDX]);
 				ft.hide(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
 				CommunityFragment cf = (CommunityFragment) fmList[COMMUNITY_FRAGMENT_IDX];
-				cf.dataChange();
+				//cf.dataChange();
 			} else {
 				ft.hide(fmList[COMMUNITY_FRAGMENT_IDX]);
 				ft.show(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
@@ -464,7 +486,7 @@ public class BucketListActivity extends Activity implements TabListener {
 			currentTab = COMMUNITY_NAV_TAB_IDX;
 
 		} else {
-			Log.d("tagaa", "about selected");
+			Log.d("tag", "about selected");
 			
 			ft.hide(fmList[MYLIST_FRAGMENT_IDX]);			
 			ft.hide(fmList[COMMUNITY_FRAGMENT_IDX]);
@@ -494,7 +516,7 @@ public class BucketListActivity extends Activity implements TabListener {
 				ft.show(fmList[COMMUNITY_FRAGMENT_IDX]);
 				ft.hide(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
 				CommunityFragment cf = (CommunityFragment) fmList[COMMUNITY_FRAGMENT_IDX];
-				cf.dataChange();
+				//cf.dataChange();
 			} else {
 				ft.hide(fmList[COMMUNITY_FRAGMENT_IDX]);
 				ft.show(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
@@ -505,487 +527,6 @@ public class BucketListActivity extends Activity implements TabListener {
 		}
 	
 	}
-	
-/*	public void getFacebookInfo() {
-		
-		Session session = Session.getActiveSession();
-		
-		if (session != null && session.isOpened()) {		
-			saveState(StateMachine.FB_GET_ME_STATE);
-			saveStatus(StateMachine.TRANSACTING_STATUS);
-			saveError(StateMachine.NO_ERROR);
-			Request.executeMeRequestAsync(session, this);
-		}
-	}
-	
-	public void getFacebookFriends() {
-		
-		// this is called from error state
-		// if the app error state failed to get facebook friends
-		// clear facebook friends first before 
-		myApp.friendsList.clear();
-		
-		Session session = Session.getActiveSession();
-		
-		if (session != null && session.isOpened()) {		
-		
-			saveState(StateMachine.FB_GET_FRIENDS_STATE);
-			saveStatus(StateMachine.TRANSACTING_STATUS);
-			saveError(StateMachine.NO_ERROR);
-			Request.executeMyFriendsRequestAsync(session, this);
-		}		
-	}
-	
-	public void registerUserId() {
-		
-		saveState(StateMachine.FBID_REGISTER_STATE);
-		saveStatus(StateMachine.TRANSACTING_STATUS);
-		saveError(StateMachine.NO_ERROR);
-		new RegisterTask().execute(getFbUserId());
-		
-	}
-	
-	private class RegisterTask extends AsyncTask<String, Integer, String> {
-
-		@Override
-		protected String doInBackground(String... arg0) {
-
-			Log.d("tagaa", "facebook id: " + arg0[0].toString());
-
-			final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-			nvp.add(new BasicNameValuePair("fbid", arg0[0].toString()));
-			//nvp.add(new BasicNameValuePair("fbid", "100001573160170"));
-
-			HttpEntity entity = null;
-			HttpResponse resp = null;
-			String response = null;
-
-			try {
-				entity = new UrlEncodedFormEntity(nvp);
-			} catch (UnsupportedEncodingException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
-			try {
-				final HttpPost post = new HttpPost(
-						"http://andyiskandar.me/register.php");
-				post.addHeader(entity.getContentType());
-				post.setEntity(entity);
-
-				HttpClient mHttpClient = new DefaultHttpClient();
-				resp = mHttpClient.execute(post);
-				response = EntityUtils.toString(resp.getEntity());
-
-			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			if (resp != null) {
-				if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-					if (response != null) {
-						Log.d("tag", "server response:" + response);
-					}
-				} else {
-					Log.d("tagaa", "server error " + resp.getStatusLine());
-					response = "error:" + resp.getStatusLine();
-				}
-			}
-			return response;
-		}
-
-		protected void onProgressUpdate(Integer... progress) {
-			// setProgressPercent(progress[0]);
-			Log.d("tagaa", "progress: " + progress[0]);
-		}
-
-		protected void onPostExecute(String result) {
-
-			if (result != null) {
-				boolean error = result.startsWith("error:");
-				
-				if (error == true) {
-					String arr[] = result.split(":");
-					
-					if (arr.length == 3) {
-						Log.d("tagaa", arr[0] + " " + arr[1] + " " + arr[2]);
-					} else if (arr.length == 2) {
-						Log.d("tagaa", arr[0] + " " + arr[1]);
-					} else if (arr.length == 1) {
-						Log.d("tagaa", arr[0]);
-					}
-	
-					Toast.makeText(getApplicationContext(),
-			                "Failed to register userid on the server - OFFLINE mode",
-			                Toast.LENGTH_LONG).show();
-					
-					saveState(StateMachine.OFFLINE_STATE);
-					saveStatus(StateMachine.ERROR_STATUS);
-					saveError(StateMachine.FBID_SERVER_REGISTER_ERROR);
-					//goToBucketListActivity();
-	
-				} else {
-					Log.d("tagaa", "facebook id is registered");
-					
-					// save the registered flag to true in preferences db
-					saveUserIdRegistered(true);
-					
-					saveState(StateMachine.ONLINE_STATE);
-					saveStatus(StateMachine.OK_STATUS);
-					saveError(StateMachine.NO_ERROR);
-					
-	    			switch(currentTab) {
-	    			case MYLIST_NAV_TAB_IDX:
-	    				NavigationTabs.myListTab.select();
-	    				break;
-	    			case COMMUNITY_NAV_TAB_IDX:
-	    				NavigationTabs.communityTab.select();
-	    				break;
-	    			case ABOUT_NAV_TAB_IDX:
-	    				NavigationTabs.aboutTab.select();
-	    				break;
-	    			default:
-	    				//throw exception here
-	    			}	
-					//goToBucketListActivity();
-				}
-			} else {
-				// no response from the server
-				saveState(StateMachine.OFFLINE_STATE);
-				saveStatus(StateMachine.ERROR_STATUS);
-				saveError(StateMachine.FBID_SERVER_REGISTER_ERROR);
-				//goToBucketListActivity();
-			}
-		}
-	}
-	
-	private class CheckFriendsTask extends AsyncTask<String, Integer, String> {
-
-		@Override
-		protected String doInBackground(String... arg0) {
-
-			Log.d("tagcf", "facebook friends data: " + myApp.friendsList);
-
-			final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-			
-			for (int i=0; i<myApp.friendsList.size() ; i++) {
-				Log.d("tagcf", "add fbid: " + myApp.friendsList.get(i).userId);
-				nvp.add(new BasicNameValuePair("fbid" + i, myApp.friendsList.get(i).userId));
-			}
-
-			HttpEntity entity = null;
-			HttpResponse resp = null;
-			String response = null;
-
-			try {
-				entity = new UrlEncodedFormEntity(nvp);
-			} catch (UnsupportedEncodingException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
-			try {
-				final HttpPost post = new HttpPost(
-						"http://andyiskandar.me/check_friends.php");
-				post.addHeader(entity.getContentType());
-				post.setEntity(entity);
-
-				HttpClient mHttpClient = new DefaultHttpClient();
-				resp = mHttpClient.execute(post);
-				response = EntityUtils.toString(resp.getEntity());
-
-			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			if (resp != null) {
-				if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-					if (response != null) {
-						Log.d("tagcf", "server response:" + response);
-					}
-				} else {
-					Log.d("tagcf", "server error " + resp.getStatusLine());
-					response = "error:" + resp.getStatusLine();
-				}
-			}
-			return response;
-		}
-
-		protected void onProgressUpdate(Integer... progress) {
-			// setProgressPercent(progress[0]);
-			Log.d("tagcf", "progress: " + progress[0]);
-		}
-
-		protected void onPostExecute(String result) {
-
-			if (result != null) {
-				boolean error = result.startsWith("error:");
-				
-				if (error == true) {
-					String arr[] = result.split(":");
-					
-					if (arr.length == 3) {
-						Log.d("tagaa", arr[0] + " " + arr[1] + " " + arr[2]);
-					} else if (arr.length == 2) {
-						Log.d("tagaa", arr[0] + " " + arr[1]);
-					} else if (arr.length == 1) {
-						Log.d("tagaa", arr[0]);
-					}
-	
-//					Toast.makeText(getApplicationContext(),
-//			                "Failed to register userid on the server - OFFLINE mode",
-//			                Toast.LENGTH_LONG).show();
-//					
-//					saveState(StateMachine.OFFLINE_STATE);
-//					saveStatus(StateMachine.ERROR_STATUS);
-//					saveError(StateMachine.FBID_SERVER_REGISTER_ERROR);
-					//goToBucketListActivity();
-	
-				} else {
-//					Log.d("tagaa", "facebook id is registered");
-//					
-//					// save the registered flag to true in preferences db
-//					saveUserIdRegistered(true);
-//					
-//					saveState(StateMachine.ONLINE_STATE);
-//					saveStatus(StateMachine.OK_STATUS);
-//					saveError(StateMachine.NO_ERROR);
-//					
-//	    			switch(currentTab) {
-//	    			case MYLIST_NAV_TAB_IDX:
-//	    				NavigationTabs.myListTab.select();
-//	    				break;
-//	    			case COMMUNITY_NAV_TAB_IDX:
-//	    				NavigationTabs.communityTab.select();
-//	    				break;
-//	    			case ABOUT_NAV_TAB_IDX:
-//	    				NavigationTabs.aboutTab.select();
-//	    				break;
-//	    			default:
-//	    				//throw exception here
-//	    			}	
-					//goToBucketListActivity();
-				}
-			} else {
-				// no response from the server
-//				saveState(StateMachine.OFFLINE_STATE);
-//				saveStatus(StateMachine.ERROR_STATUS);
-//				saveError(StateMachine.FBID_SERVER_REGISTER_ERROR);
-				//goToBucketListActivity();
-			}
-		}
-	}
-	
-	@Override
-	public void onCompleted(List<GraphUser> users, Response response) {
-		
-		Log.d("tagaa", "oncompleted friends req");
-		
-		if (response != null) {
-			
-			FacebookRequestError error = response.getError();
-			if (error != null) {
-				// failed to get user info from facebook - TOAST
-				Log.d("tagaa", "failed to get friendlist from facebook: " + error);
-				
-				Toast.makeText(getApplicationContext(),
-		                "Failed to retrieve friends list from Facebook - OFFLINE mode",
-		                Toast.LENGTH_SHORT).show();
-				
-				// I may need to store this permanently in the preference list
-				saveState(StateMachine.OFFLINE_STATE);
-				saveStatus(StateMachine.ERROR_STATUS);
-				saveError(StateMachine.FB_GET_FRIENDS_FAILED_ERROR);
-			//	goToBucketListActivity();
-				return;
-			}
-		}
-		
-		if (users != null) {
-			
-			for (int i=0 ; i < users.size() ; i++) {
-				//Log.d("tag", "name:" + users.get(i).getName());
-				//Log.d("tag", "userid:" + users.get(i).getId());
-				
-				FriendData fd = new FriendData();
-				fd.name = users.get(i).getName();
-				fd.userId = users.get(i).getId();
-				
-				if(myApp.friendsList != null) {
-					myApp.friendsList.add(fd);
-				}
-			}
-			
-			// skip registration if facebook ID is already registered	
-			if (getUserIdRegistered() == false) {
-				// register the userid on the server
-				saveState(StateMachine.FBID_REGISTER_STATE);
-				saveStatus(StateMachine.TRANSACTING_STATUS);
-				saveError(StateMachine.NO_ERROR);
-				new RegisterTask().execute(getFbUserId());
-			} else {				
-				saveState(StateMachine.ONLINE_STATE);
-				saveStatus(StateMachine.OK_STATUS);
-				saveError(StateMachine.NO_ERROR);
-				
-    			switch(currentTab) {
-    			case MYLIST_NAV_TAB_IDX:
-    				NavigationTabs.myListTab.select();
-    				break;
-    			case COMMUNITY_NAV_TAB_IDX:
-    				NavigationTabs.communityTab.select();
-    				break;
-    			case ABOUT_NAV_TAB_IDX:
-    				NavigationTabs.aboutTab.select();
-    				break;
-    			default:
-    				//throw exception here
-    			}	
-				
-				// HACK xxxxxxxxxxxxxxxxxxxxxxxxxx
-//				saveState(StateMachine.OFFLINE_STATE);
-//				saveStatus(StateMachine.ERROR_STATUS);
-//				saveError(StateMachine.FB_GET_ME_FAILED_ERROR);
-//				goToBucketListActivity();
-			}
-			
-			// check whether facebook friends are already registered at bucketlist server	
-			saveState(StateMachine.FBFRIENDS_CHECK_STATE);
-			saveStatus(StateMachine.TRANSACTING_STATUS);
-			saveError(StateMachine.NO_ERROR);
-			new CheckFriendsTask().execute();
-			
-		} else {
-			
-			// failed to get user info from facebook - TOAST
-			Log.d("tagaa", "failed to get friends list from facebook");
-			
-			Toast.makeText(getApplicationContext(),
-	                "Failed to retrieve friends list from Facebook - OFFLINE mode",
-	                Toast.LENGTH_SHORT).show();
-
-			saveState(StateMachine.OFFLINE_STATE);
-			saveStatus(StateMachine.ERROR_STATUS);
-			saveError(StateMachine.FB_GET_FRIENDS_FAILED_ERROR);
-			//goToBucketListActivity();
-		}
-	}
-
-	
-	 * This is the callback function for FB_GET_ME request
-	 
-	@Override
-	public void onCompleted(GraphUser user, Response response) {
-		// TODO Auto-generated method stub
-		Log.d("tagaa", "oncomplete me request");
-		
-		if (response != null) {
-			
-			FacebookRequestError error = response.getError();
-			if (error != null) {
-				// failed to get user info from facebook - TOAST
-				Log.d("tagaa", "failed to get user info from facebook: " + error);
-				
-				Toast.makeText(getApplicationContext(),
-		                "Failed to retrieve information from Facebook - OFFLINE mode",
-		                Toast.LENGTH_SHORT).show();
-				
-				saveState(StateMachine.OFFLINE_STATE);
-				saveStatus(StateMachine.ERROR_STATUS);
-				saveError(StateMachine.FB_GET_ME_FAILED_ERROR);
-				return;
-			}
-		}
-		
-		if (user != null) {
-			
-			boolean registered = false;
-			final Account account;
-			
-			// if we get to this point, we know that the network is OK
-			// we can continue server registration
-			
-			Log.d("tagaa", "me: " + user);
-			
-			// check whether (com.kidobloom) type account has been created for the fb-userid
-			// if account db is empty - create a new account using the fb-userid
-			// else if an account already exists, check to see if it matches the current fb-userid
-			// if account exists and matches the fb-userid, do nothing
-			// otherwise replace the account with the new fb-userid
-			
-			Account[] accounts = am.getAccountsByType("com.kiddobloom");
-
-			if (accounts.length <= 0) {
-				Log.d("tag", "no account exists");
-				// create a new account
-				account = new Account(user.getId(), Constants.ACCOUNT_TYPE);
-				am.addAccountExplicitly(account, null, null);
-				ContentResolver.setSyncAutomatically(account, MyContentProvider.AUTHORITY, true);
-				registered = false;
-			} else {
-				// get the first account
-				Log.d("tagaa", "account: " + accounts[0].name);
-
-				if (accounts[0].name.equals(user.getId())) {
-					registered = true;
-					Log.d("tagaa", "account for usedid: " + user.getId() + " already created");
-				} else {
-					// remove the account first
-					am.removeAccount(accounts[0], null, null);
-
-					// add new account with the new facebook userid
-					account = new Account(user.getId(), Constants.ACCOUNT_TYPE);
-					am.addAccountExplicitly(account, null, null);
-					ContentResolver.setSyncAutomatically(account, MyContentProvider.AUTHORITY, true);
-					
-					// update the registered flag so facebook ID gets re-registered
-					registered = false;
-				}
-			}
-			
-			// at this point, an account should already be created
-			// store the userid and registered boolean in preferences db
-			saveFbUserId(user.getId());
-			saveUserIdRegistered(registered);
-				
-			// clear facebook friends first before conducting another get request
-			myApp.friendsList.clear();
-			
-			saveState(StateMachine.FB_GET_FRIENDS_STATE);
-			saveStatus(StateMachine.TRANSACTING_STATUS);
-			saveError(StateMachine.NO_ERROR);
-			
-			// request facebook friends list
-			Request.executeMyFriendsRequestAsync(response.getRequest().getSession(), this);
-
-		} else {
-			// throw an exception here - facebook does not indicate error but user is null 
-			Log.d("tagaa", "failed to get user info from facebook - OFFLINE mode");
-			
-			Toast.makeText(getApplicationContext(),
-	                "Failed to retrieve information from Facebook",
-	                Toast.LENGTH_SHORT).show();
-			
-			saveState(StateMachine.OFFLINE_STATE);
-			saveStatus(StateMachine.ERROR_STATUS);
-			saveError(StateMachine.FB_GET_ME_FAILED_ERROR);
-			
-		}	
-	}	*/
 	
 	public void goToAuthenticatorActivity() {
 		
@@ -1022,7 +563,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	
 	// state
 	public void saveState(int state) {
-		Log.d("tagaa", "bucketlist state change " + StateMachine.stateStr[state]);
+		Log.d("tag", "bucketlist state change " + StateMachine.stateStr[state]);
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putInt(getString(R.string.pref_state_key), state);
 		editor.commit();
@@ -1087,4 +628,14 @@ public class BucketListActivity extends Activity implements TabListener {
 		return sp.getBoolean(getString(R.string.pref_initial_synced_key), false);
 	}
 
+	// facebook publish permission 
+	public void saveFbPublishPermission(boolean value) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putBoolean(getString(R.string.pref_facebook_publish_permission), value);
+		editor.commit();
+	}
+
+	public boolean getFbPublishPermission() {
+		return sp.getBoolean(getString(R.string.pref_facebook_publish_permission), false);
+	}
 }

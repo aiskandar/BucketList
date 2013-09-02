@@ -22,7 +22,7 @@
         android:name=".MyApplication"
         android:allowBackup="true"
         android:enabled="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/bucket_trans"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         

@@ -44,8 +44,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center|bottom"
                 android:layout_marginBottom="10dp"
-                android:text="Add Photo"
-                android:textColor="@color/darkergrey"
+                android:text="Click to add your photo"
+                android:textColor="@android:color/white"
                 android:visibility="invisible" />
 
         </FrameLayout>

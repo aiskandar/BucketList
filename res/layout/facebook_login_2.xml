@@ -38,9 +38,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginRight="10dp"
                 android:gravity="center"
-                android:src="@drawable/ic_launcher" />
+                android:src="@drawable/bucket_trans" />
 
             <TextView
                 android:layout_width="wrap_content"

@@ -9,7 +9,10 @@ import java.io.UnsupportedEncodingException;
 import java.sql.RowId;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 import org.apache.http.HttpEntity;
@@ -25,11 +28,28 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import com.facebook.FacebookRequestError;
+import com.facebook.HttpMethod;
+import com.facebook.Request;
+import com.facebook.RequestAsyncTask;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.SessionDefaultAudience;
+import com.facebook.model.GraphObject;
 import com.kiddobloom.bucketlist.ImageDownloader.FlushedInputStream;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -46,6 +66,8 @@ import android.hardware.Camera.Size;
 import android.net.Uri;
 import android.net.http.AndroidHttpClient;
 import android.os.AsyncTask;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -65,11 +87,17 @@ public class MyAdapter extends SimpleCursorAdapter {
 	LayoutInflater mInflater;		
 	Context context;
 	ImageDownloader imageDownloader = new ImageDownloader();
+	boolean first_time = false;
 	
 	public MyAdapter(Context c, String[] from, int[] to) {
 		super(c, R.layout.item_layout, null, from, to, 0);
 		context = c;
 		mInflater = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		
+		SharedPreferences sp;
+		sp = context.getSharedPreferences(context.getString(R.string.pref_name), 0);
+		first_time = sp.getBoolean(context.getString(R.string.pref_first_time_install), false);
+		Log.d("tag", "first time: " + first_time);
 	}
 	
 	public class ViewHolder {
@@ -116,9 +144,8 @@ public class MyAdapter extends SimpleCursorAdapter {
 		Cursor c = getCursor();
 		int itemId = (int) getItemId(position);
 		ListView lv = (ListView) vg;
-		
+
 		//Log.d("tag", "cursor:" + c.getPosition() + " id:" + itemId);
-		
 		if (baseview == null) {
 
 			// inflate the view object for the row - baseview if of type BucketListRowLayout object
@@ -150,23 +177,26 @@ public class MyAdapter extends SimpleCursorAdapter {
 				@Override
 				public void onClick(View v) {
 					CheckBox cb = (CheckBox) v;
-					Integer id;
-					id = (Integer) v.getTag();
-					//Log.d("tag", "checkbox clicked for id:" + id + " checked:" + cb.isChecked());
+					ImageViewHolder ivh = (ImageViewHolder) v.getTag();		
+					
+					Log.d("tag", "checkbox clicked id: " + ivh.itemId + " pos: " + ivh.pos + " rating: " + ivh.rating);
 					
 					Uri base = MyContentProvider.CONTENT_URI;
 					base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
-					base = Uri.withAppendedPath(base, Integer.toString(id));
+					base = Uri.withAppendedPath(base, Integer.toString(ivh.itemId));
 					
 					SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
 					Date date = new Date();
 					
 					ContentValues cv = new ContentValues();
 					boolean checked = cb.isChecked();
+					if (checked) {
+						cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "true");
+					} else {
+						cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "false");
+					}
 					cv.put(MyContentProvider.COLUMN_DONE, Boolean.toString(checked));
 					cv.put(MyContentProvider.COLUMN_DATE_COMPLETED, sdf.format(date));
-					//cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_UPDATE);
-					//cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
 					context.getContentResolver().update(base, cv, null, null);
 				}
 			});
@@ -193,8 +223,6 @@ public class MyAdapter extends SimpleCursorAdapter {
 					}
 					
 					cv.put(MyContentProvider.COLUMN_RATING, ivh.rating);	
-					//cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_UPDATE);
-					//cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
 					context.getContentResolver().update(base, cv, null, null);				}
 			});
 
@@ -220,8 +248,6 @@ public class MyAdapter extends SimpleCursorAdapter {
 					}
 					
 					cv.put(MyContentProvider.COLUMN_SHARE, ivh.share);	
-					//cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_UPDATE);
-					//cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
 					context.getContentResolver().update(base, cv, null, null);				}
 			});
 			
@@ -284,6 +310,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 				BitmapDrawable bd = new BitmapDrawable(bmp);
 				vh.tw.setImageDrawable(bd);
 				vh.ap.setVisibility(View.INVISIBLE);
+				//vh.ap.setVisibility(View.VISIBLE);
 			} else if (resStr.startsWith("/")) {
 				//Log.d("tag", "loading image from local filesystem");
 				Bitmap selectedImage = BitmapFactory.decodeFile(resStr);
@@ -295,6 +322,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 				BitmapDrawable bd = new BitmapDrawable(selectedImage);
 				vh.tw.setImageDrawable(bd);
 				vh.ap.setVisibility(View.INVISIBLE);
+				//vh.ap.setVisibility(View.VISIBLE);
 			} else if (resStr.startsWith("http")) {
 				//Log.d("tag", "loading image from http");
 				//imageDownloader.download(resStr, vh.tw);
@@ -304,16 +332,22 @@ public class MyAdapter extends SimpleCursorAdapter {
 				// temporary placeholder
 				vh.tw.setImageResource(R.drawable.placeholder);
 				vh.ap.setVisibility(View.INVISIBLE);
+				//vh.ap.setVisibility(View.VISIBLE);
 			} else {
 				//Log.d("tag", "loading image from resource");
 				//int resIdx = Integer.parseInt(resStr); 
 				int resId = Integer.parseInt(resStr);
+				//int resId = Constants.resId[resIdx];
 				vh.tw.setImageResource(resId);
-				vh.ap.setVisibility(View.VISIBLE);
+				
+				if (first_time) { 
+					vh.ap.setVisibility(View.VISIBLE);
+				} else {
+					vh.ap.setVisibility(View.INVISIBLE);
+				}
 			}
 			
 			vh.tw.setAlpha((float)1.0);
-
 		}
 
 		String share_str = c.getString(MyContentProvider.COLUMN_INDEX_SHARE);
@@ -338,7 +372,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 		ivh.share = share_str;
 		ivh.listview = lv;
 		
-		vh.cb.setTag(itemId);
+		vh.cb.setTag(ivh);
 		vh.ib1.setTag(ivh);
 		vh.ib2.setTag(ivh);
 		vh.tw.setTag(ivh);
@@ -347,32 +381,10 @@ public class MyAdapter extends SimpleCursorAdapter {
 
 		return baseview;
 	}
-	
-//	  public static Bitmap getRoundedCornerBitmap(Bitmap bitmap) {
-//		    Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
-//		        bitmap.getHeight(), Config.ARGB_8888);
-//		    Canvas canvas = new Canvas(output);
-//		 
-//		    final int color = 0xff424242;
-//		    final Paint paint = new Paint();
-//		    final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
-//		    final RectF rectF = new RectF(rect);
-//		    final float roundPx = 12;
-//		 
-//		    paint.setAntiAlias(true);
-//		    canvas.drawARGB(0, 0, 0, 0);
-//		    paint.setColor(color);
-//		    canvas.drawRoundRect(rectF, roundPx, roundPx, paint);
-//		 
-//		    paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
-//		    canvas.drawBitmap(bitmap, rect, rect, paint);
-//		 
-//		    return output;
-//		  }
 	  
-		/*
-		 * This is the callback function for GetImageTask to bucketlist server
-		 */	
+	/*
+	 * This is the callback function for GetImageTask to bucketlist server
+	 */	
 	private class GetImageTask extends AsyncTask<String, Integer, GetImageResult> {
 
 		private static final String LOG_TAG = "tag";
@@ -384,11 +396,6 @@ public class MyAdapter extends SimpleCursorAdapter {
 			String url = arg0[0].toString();
 			String rowId = arg0[1].toString();
 			
-			// final ArrayList<NameValuePair> nvp = new
-			// ArrayList<NameValuePair>();
-			// nvp.add(new BasicNameValuePair("fbid", arg0[0].toString()));
-			// nvp.add(new BasicNameValuePair("fbid", "100001573160170"));
-
 			HttpEntity entity = null;
 			HttpResponse resp = null;
 			String response = null;
@@ -506,55 +513,8 @@ public class MyAdapter extends SimpleCursorAdapter {
 	
 				MyApplication.context().getContentResolver().update(base, cv, null, null);		
 			}
-			
-			// if (result != null) {
-			// boolean error = result.startsWith("error:");
-			//
-			// if (error == true) {
-			// String arr[] = result.split(":");
-			//
-			// if (arr.length == 3) {
-			// Log.d("tagaa", arr[0] + " " + arr[1] + " " + arr[2]);
-			// } else if (arr.length == 2) {
-			// Log.d("tagaa", arr[0] + " " + arr[1]);
-			// } else if (arr.length == 1) {
-			// Log.d("tagaa", arr[0]);
-			// }
-			//
-			// Toast.makeText(getApplicationContext(),
-			// "Failed to register userid on the server - OFFLINE mode",
-			// Toast.LENGTH_LONG).show();
-			//
-			// saveState(StateMachine.OFFLINE_STATE);
-			// saveStatus(StateMachine.ERROR_STATUS);
-			// saveError(StateMachine.FBID_SERVER_REGISTER_ERROR);
-			// goToBucketListActivity();
-
-			// } else {
-			// Log.d("tagaa", "completed facebook id registration");
-
-			// // save the registered flag to true in preferences db
-			// saveUserIdRegistered(true);
-			//
-			// // check whether facebook friends are already registered at
-			// bucketlist server
-			// saveState(StateMachine.FBFRIENDS_CHECK_STATE);
-			// saveStatus(StateMachine.TRANSACTING_STATUS);
-			// saveError(StateMachine.NO_ERROR);
-			// new CheckFriendsTask().execute();
-			// }
-			// } else {
-			// no response from the server
-
-			// Toast.makeText(getApplicationContext(),
-			// "No response from server. Pls check network connection - OFFLINE mode",
-			// Toast.LENGTH_LONG).show();
-			//
-			// saveState(StateMachine.OFFLINE_STATE);
-			// saveStatus(StateMachine.ERROR_STATUS);
-			// saveError(StateMachine.FBID_SERVER_REGISTER_ERROR);
-			// goToBucketListActivity();
-			// }
 		}
 	}
+
+
 }

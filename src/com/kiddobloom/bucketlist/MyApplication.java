@@ -43,11 +43,11 @@ public class MyApplication extends Application {
 		
 		// check to see if this is the first time the app is ran
 		int state = sp.getInt(getString(R.string.pref_state_key), 100);
-		
+
+		SharedPreferences.Editor editor = sp.edit();
+
 		if (state == 100) {
 			// first time the app is launched
-			SharedPreferences.Editor editor = sp.edit();
-			
 			// initialize all the preferences string (key = value)
 			// state = "init"
 			// status = "ok"
@@ -63,14 +63,19 @@ public class MyApplication extends Application {
 			editor.putInt(getString(R.string.pref_status_key), StateMachine.OK_STATUS);
 			editor.putInt(getString(R.string.pref_error_key), StateMachine.NO_ERROR);
 			editor.putString(getString(R.string.pref_fb_userid_key), "none");
+			editor.putBoolean(getString(R.string.pref_facebook_publish_permission), false);
 			
 			editor.putBoolean(getString(R.string.pref_userid_registered_key), false);
 			editor.putBoolean(getString(R.string.pref_skip_key), false);
 			editor.putBoolean(getString(R.string.pref_initial_synced_key), false);
+			editor.putBoolean(getString(R.string.pref_first_time_install), true);
+		} else {
+			editor.putBoolean(getString(R.string.pref_first_time_install), false);
+		}
 
-			editor.commit();	
-		} 
+		editor.commit();	
 		
+
 		mApp = this;
 			
 	}

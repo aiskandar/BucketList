@@ -45,7 +45,11 @@ public class CommunityFragment extends Fragment {
 		
 		ad = new FacebookFriendsAdapter (getActivity(), R.layout.facebook_friends_item_layout, myApp.friendsList);		
 		lv = (ListView) v.findViewById(R.id.fbfriendslist);
-		
+	
+		if (lv != null) {
+			lv.setAdapter(ad);
+			//ad.notifyDataSetChanged();
+		}
 		return v;
 	}
 	    
@@ -74,10 +78,7 @@ public class CommunityFragment extends Fragment {
 		// TODO Auto-generated method stub
 		super.onResume();
 		
-		if (lv != null) {
-			lv.setAdapter(ad);
-			ad.notifyDataSetChanged();
-		}
+
 	}
 	
 	public void dataChange() {
