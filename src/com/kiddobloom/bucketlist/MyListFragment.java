@@ -274,14 +274,22 @@ public class MyListFragment extends Fragment implements
 			Log.d("tag", "row " + i + " :" + cursor.getInt(MyContentProvider.COLUMN_INDEX_ID) + " " + cursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY) + " " 
 					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " + MyContentProvider.restStateStr[cursor.getInt(7)] + " " + cursor.getInt(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID) 
 					+ " " + cursor.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE));
-			if (cursor.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE).equals("retry")) {
-				publishStoryOrStop(cursor.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID), String.valueOf(cursor.getInt(MyContentProvider.COLUMN_INDEX_ID)));
-			} else if (cursor.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE).equals("true")) {
-				publishStory(cursor.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID), String.valueOf(cursor.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+			
+			if (getFbPendingPublish() == false || getFbPublishRetry() == true) {
+				if (getFbPendingPublish() == false) {
+					Log.d("tag", "facebook NO pending publish task");
+				} else if (getFbPublishRetry() == true) {
+					Log.d("tag", "facebook retry publish task");
+				}
+				// don't even publish new story if there is a pending publish
+				// unless there is a facebook TOKEN_UPDATE event which will set publish retry flag
+				
+				if (cursor.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE).equals("true")) {
+					publishStory(cursor.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID), String.valueOf(cursor.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+				}
 			}
 			
-			cursor.moveToNext();
-			
+			cursor.moveToNext();	
 		}
 	}
 
@@ -730,15 +738,26 @@ public class MyListFragment extends Fragment implements
 		return count;
 	}
 
-	// facebook publish permission 
-	public void saveFbPublishPermission(boolean value) {
+	// facebook publish retry 
+	public void saveFbPublishRetry(boolean value) {
 		SharedPreferences.Editor editor = sp.edit();
-		editor.putBoolean(getString(R.string.pref_facebook_publish_permission), value);
+		editor.putBoolean(getString(R.string.pref_facebook_pending_publish_retry), value);
 		editor.commit();
 	}
 
-	public boolean getFbPublishPermission() {
-		return sp.getBoolean(getString(R.string.pref_facebook_publish_permission), false);
+	public boolean getFbPublishRetry() {
+		return sp.getBoolean(getString(R.string.pref_facebook_pending_publish_retry), false);
+	}
+	
+	// facebook publish retry
+	public void saveFbPendingPublish(boolean value) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putBoolean(getString(R.string.pref_facebook_pending_publish), value);
+		editor.commit();
+	}
+
+	public boolean getFbPendingPublish() {
+		return sp.getBoolean(getString(R.string.pref_facebook_pending_publish), false);
 	}
 	
 	/*
@@ -756,37 +775,19 @@ public class MyListFragment extends Fragment implements
         String getId();
     }
     
-    private void publishStoryOrStop(String serverId, String rowId) {
-	
-	    boolean publish_actions_permission = false;
-	    
-	    // we get here if have already asked the user's permission to publish on their behalf (facebook_pending_announce = retry)
-	    // the onstatestatuschange callback has been called and the permission for publish_actions was stored in pref.db
-	    // we retrieve the saved permission from pref.db to determine whether we should stop or publish the story
-	    publish_actions_permission = getFbPublishPermission();
-
-		Log.d("tag", "publishStoryOrStop rowid: " + rowId + " serverId: " + serverId + " publish_actions permission: " + publish_actions_permission);
-		
-	    if (publish_actions_permission == false) {
-	    	// reset the facebook_pending_announce to false and do not try to post on user's behalf
-    		ContentValues cv = new ContentValues();
-    		Uri base = MyContentProvider.CONTENT_URI;
-    		base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
-    		base = Uri.withAppendedPath(base, rowId);
-    		
-    		cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "false");
-    		getActivity().getContentResolver().update(base, cv, null, null);	    	
-	    } else {
-	    	publishStory(serverId, rowId);
-	    }
-	    
-    }
-    
 	private void publishStory(String serverId, String rowId) {
+		
+		// clear the pending publish flag
+		saveFbPendingPublish(false);
+		
+		// clear the flag now that publish is about to get re-tried
+		saveFbPublishRetry(false);
 		
 		Log.d("tag", "publishStory rowid: " + rowId + " serverId: " + serverId);
 		
 	    Session session = Session.getActiveSession();
+	    
+	    Log.d("tag","session: " + session);
 
 	    if (session != null) {
 	        
@@ -802,14 +803,6 @@ public class MyListFragment extends Fragment implements
 	            	Log.d("tagaa", "FacebookAnnounceTask: rowid = " + arg0[1].toString());
 	            	rowid = arg0[1].toString();
 	            	
-	        		ContentValues cv = new ContentValues();
-	        		Uri base = MyContentProvider.CONTENT_URI;
-	        		base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
-	        		base = Uri.withAppendedPath(base, rowid);
-	        		
-	        		cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "pending");
-	        		getActivity().getContentResolver().update(base, cv, null, null);
-	        		
 	    	        Bundle params = new Bundle();
 	    	        params.putString("dream", "http://samples.ogp.me/574651899261441");
 
@@ -845,6 +838,7 @@ public class MyListFragment extends Fragment implements
     }
 
     private void onPostActionResponse(Response response, String rowid) {
+ 
         if (progressDialog != null) {
             progressDialog.dismiss();
             progressDialog = null;
@@ -859,16 +853,10 @@ public class MyListFragment extends Fragment implements
             return;
         }
 
-
         PostResponse postResponse = response.getGraphObjectAs(PostResponse.class);
 
         if (postResponse != null && postResponse.getId() != null) {
-            String dialogBody = String.format(getActivity().getString(R.string.result_dialog_text), postResponse.getId());
-            new AlertDialog.Builder(getActivity())
-                    .setPositiveButton(R.string.result_dialog_button_text, null)
-                    .setTitle(R.string.result_dialog_title)
-                    .setMessage(dialogBody)
-                    .show();
+        	Log.d("tag", "successful publish the completed dream id: " + postResponse.getId());
             
     		ContentValues cv = new ContentValues();
     		Uri base = MyContentProvider.CONTENT_URI;
@@ -877,7 +865,14 @@ public class MyListFragment extends Fragment implements
     		
     		cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "false");
     		getActivity().getContentResolver().update(base, cv, null, null);
-
+    		
+            String dialogBody = String.format("Posted your completed life milestone on your Facebook timeline ", postResponse.getId());
+            new AlertDialog.Builder(getActivity())
+                    .setPositiveButton("OK", null)
+                    //.setTitle(R.string.result_dialog_title)
+                    .setMessage(dialogBody)
+                    .show();
+            
         } else {
             handleError(response.getError(), rowid);
         }
@@ -888,58 +883,37 @@ public class MyListFragment extends Fragment implements
         String dialogBody = null;
 
         if (error == null) {
-            dialogBody = getActivity().getString(R.string.error_dialog_default_text);
+
         } else {
             switch (error.getCategory()) {
                 case AUTHENTICATION_RETRY:
                     // tell the user what happened by getting the message id, and
                     // retry the operation later
                     Log.d("tag", "Error FacebookAnnounceTask: authentication retry");
-//                	String userAction = (error.shouldNotifyUser()) ? "" :
-//                            getActivity().getString(error.getUserActionMessageId());
-//                    dialogBody = getActivity().getString(R.string.error_authentication_retry, userAction);
-//                    listener = new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialogInterface, int i) {
+
                     Intent intent = new Intent(Intent.ACTION_VIEW, M_FACEBOOK_URL);
                     getActivity().startActivity(intent);
-//                        }
-//                    };
+
                     break;
 
                 case AUTHENTICATION_REOPEN_SESSION:
                     // close the session and reopen it.
                     Log.d("tag", "Error FacebookAnnounceTask: authentication reopen session");
-//                    dialogBody = getActivity().getString(R.string.error_authentication_reopen);
-//                    listener = new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialogInterface, int i) {
+
                     Session session = Session.getActiveSession();
                     if (session != null && !session.isClosed()) {
                         session.closeAndClearTokenInformation();
                     }
-//                        }
-//                    };
+                    
                     break;
 
                 case PERMISSION:
                     // request the publish permission
                     Log.d("tag", "Error FacebookAnnounceTask: error permission");
-                    //dialogBody = getActivity().getString(R.string.error_permission);
-                    //listener = new DialogInterface.OnClickListener() {
-                      //  @Override
-                        //public void onClick(DialogInterface dialogInterface, int i) {
-                    requestPublishPermissions(Session.getActiveSession());
                     
-	        		ContentValues cv = new ContentValues();
-	        		Uri base = MyContentProvider.CONTENT_URI;
-	        		base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
-	        		base = Uri.withAppendedPath(base, rowid);
-	        		
-	        		cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "retry");
-	        		getActivity().getContentResolver().update(base, cv, null, null);
-                        //}
-                    //};
+                	saveFbPendingPublish(true);
+                	requestPublishPermissions(Session.getActiveSession());
+                
                     break;
 
                 case SERVER:
@@ -947,12 +921,10 @@ public class MyListFragment extends Fragment implements
                     // this is usually temporary, don't clear the fields, and
                     // ask the user to try again
                     Log.d("tag", "Error FacebookAnnounceTask: server/throttling");
-                    dialogBody = getActivity().getString(R.string.error_server);
                     break;
 
                 case BAD_REQUEST:
                     // this is likely a coding error, ask the user to file a bug
-                    dialogBody = getActivity().getString(R.string.error_bad_request, error.getErrorMessage());
                     break;
 
                 case OTHER:
@@ -961,16 +933,10 @@ public class MyListFragment extends Fragment implements
                     // an unknown issue occurred, this could be a code error, or
                     // a server side issue, log the issue, and either ask the
                     // user to retry, or file a bug
-                    dialogBody = getActivity().getString(R.string.error_unknown, error.getErrorMessage());
                     break;
             }
         }
 
-//        new AlertDialog.Builder(getActivity())
-//                .setPositiveButton(R.string.error_dialog_button_text, listener)
-//                .setTitle(R.string.error_dialog_title)
-//                .setMessage(dialogBody)
-//                .show();
     }
 
 }

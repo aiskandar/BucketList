@@ -20,6 +20,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import com.facebook.Response;
+import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 
 import android.accounts.Account;
@@ -97,51 +98,40 @@ public class BucketListActivity extends Activity implements TabListener {
     
     private void onSessionStateChange(Session session, SessionState state, Exception exception) {
     	
-    	Log.d("tag", "bucketlist facebook onseesionstatechange:" + session + " state:" + state);
+    	Log.d("tag", "bucketlist onseesionstatechange:" + session + " state:" + state);
 
-    	if (session != null) {
-    		
-    		//List<String> list = session.getPermissions();
-    		//Log.d("tag", "bucketlist facebook onseesionstatechange permission: " + list);
-    		
-    		if (state == SessionState.OPENED_TOKEN_UPDATED) {
-    			// check to see what level of permissions are granted
-    			List<String> list = session.getPermissions();
-    			Log.d("tag", "bucketlist facebook onseesionstatechange OPENED_TOKEN_UPDATED permission: " + list);
-    			
-    			boolean publish_actions_found = false;
-    			for (int i=0; i < list.size(); i++) {
-    				if (list.get(i).equals("publish_actions")) {
-    					Log.d("tag", "bucketlist facebook onsessionstatechange PUBLISH_ACTIONS permission found");
-    					publish_actions_found = true;
-    				}
-    			}
-    			// everytime OPENED_TOKEN is updated, we also permanently store the state in pref. db
-    			if (publish_actions_found == true) {
-    				saveFbPublishPermission(true);
-    			} else {
-    				saveFbPublishPermission(false);
-    			}
-    		} else if (session.isOpened() == true) {
-				saveState(StateMachine.FB_OPENED_STATE);
-				saveStatus(StateMachine.OK_STATUS);
-				saveError(StateMachine.NO_ERROR);
-				saveSkip(false);
-				// disable timer
-				mHandler.removeCallbacks(mUpdate);
-				//getFacebookInfo();
-
-				goToAuthenticatorActivity();
-    		} else if (session.isClosed() == true){
+    	if (session != null && session.isOpened()) {
+ 
+    		if (state.equals(SessionState.OPENED_TOKEN_UPDATED)) {
+            	Log.d("tag", "bucketlist onsessionstatechange token updated");
+            	// set a retry flag if the token is updated
+            	saveFbPublishRetry(true);
+            } else {
+            	// no more pending publish task
+            	saveFbPendingPublish(false);
+            	
+            	if (getState() != StateMachine.ONLINE_STATE) {
+					saveState(StateMachine.FB_OPENED_STATE);
+					saveStatus(StateMachine.OK_STATUS);
+					saveError(StateMachine.NO_ERROR);
+					saveSkip(false);
+					// disable timer
+					mHandler.removeCallbacks(mUpdate);
+	
+					goToAuthenticatorActivity();
+            	} else {
+            		Log.d("tag", "bucketlist onsessionstatechange re-open STATE MACHINE is ONLINE");
+            	}
+            }
+    	} else if (session.isClosed() == true){
 				saveState(StateMachine.FB_CLOSED_STATE);
 				saveStatus(StateMachine.OK_STATUS);
 				saveError(StateMachine.NO_ERROR);
 
     			goToAuthenticatorActivity();
-    		} 
     	}
     }
-	
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
@@ -628,14 +618,25 @@ public class BucketListActivity extends Activity implements TabListener {
 		return sp.getBoolean(getString(R.string.pref_initial_synced_key), false);
 	}
 
-	// facebook publish permission 
-	public void saveFbPublishPermission(boolean value) {
+	// facebook publish retry 
+	public void saveFbPublishRetry(boolean value) {
 		SharedPreferences.Editor editor = sp.edit();
-		editor.putBoolean(getString(R.string.pref_facebook_publish_permission), value);
+		editor.putBoolean(getString(R.string.pref_facebook_pending_publish_retry), value);
 		editor.commit();
 	}
 
-	public boolean getFbPublishPermission() {
-		return sp.getBoolean(getString(R.string.pref_facebook_publish_permission), false);
+	public boolean getFbPublishRetry() {
+		return sp.getBoolean(getString(R.string.pref_facebook_pending_publish_retry), false);
+	}
+	
+	// facebook pending publish
+	public void saveFbPendingPublish(boolean value) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putBoolean(getString(R.string.pref_facebook_pending_publish), value);
+		editor.commit();
+	}
+
+	public boolean getFbPendingPublish() {
+		return sp.getBoolean(getString(R.string.pref_facebook_pending_publish), false);
 	}
 }

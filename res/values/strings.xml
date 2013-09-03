@@ -33,28 +33,10 @@
     <string name="pref_image_counter">PREF_IMAGE_COUNTER</string>
     <string name="pref_first_time_install">PREF_FIRST_TIME_INSTALL</string>
     
-    <string name="pref_facebook_publish_permission">PREF_FACEBOOK_PUBLISH_PERMISSION</string>
+    <string name="pref_facebook_pending_publish_retry">PREF_FACEBOOK_PENDING_PUBLISH_RETRY</string>
+    <string name="pref_facebook_pending_publish">PREF_FACEBOOK_PENDING_PUBLISH</string>
     
     <string name="visit_kiddobloom">Visit us on our website <a href="http://www.kiddobloom.com">kiddoBLOOM</a></string>
 
-    <!--  facebook error strings -->
-    <string name="result_dialog_title">Result</string>
-    <string name="result_dialog_button_text">Thanks!</string>
-    <string name="result_dialog_text">Posted Open Graph action, id: %1$s</string>
-    <string name="progress_dialog_text">Announcing, please wait...</string>
-    <string name="single_user_selected">%1$s</string>
-    <string name="two_users_selected">%1$s and %2$s</string>
-    <string name="multiple_users_selected">%1$s and %2$s others</string>
-    <string name="error_dialog_title">Something Went Wrong</string>
-    <string name="error_dialog_button_text">OK</string>
-    <string name="error_dialog_default_text">No response from server.</string>
-    <string name="no_location_error">Could not obtain your current location</string>
-    <string name="select_picture">Select Picture</string>
-    <string name="error_authentication_retry">An error occurred that requires your attention. %1$s</string>
-    <string name="error_authentication_reopen">An error occurred, please re-login.</string>
-    <string name="error_permission">Please allow us to post on your behalf.</string>
-    <string name="error_server">The server is busy, please retry later.</string>
-    <string name="error_bad_request">An error occurred, please contact the developer with the following message: %1$s</string>
-    <string name="error_unknown">An unknown error occurred, please contact the developer with the following message: %1$s</string>
-    <string name="exception">Exception: %1$s</string>
+
 </resources>
