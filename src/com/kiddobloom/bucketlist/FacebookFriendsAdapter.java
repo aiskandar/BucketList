@@ -1,9 +1,29 @@
 package com.kiddobloom.bucketlist;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.ParseException;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.net.http.AndroidHttpClient;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -27,7 +47,10 @@ import com.facebook.widget.WebDialog;
 import com.facebook.widget.WebDialog.RequestsDialogBuilder;
 
 import com.facebook.widget.WebDialog.OnCompleteListener;
+import com.kiddobloom.bucketlist.MyAdapter.GetImageResult;
+import com.kiddobloom.bucketlist.MyAdapter.GetImageTask;
 import com.kiddobloom.bucketlist.MyAdapter.ImageViewHolder;
+import com.kiddobloom.bucketlist.MyAdapter.GetImageTask.FlushedInputStream;
 
 public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 
@@ -85,33 +108,12 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 			vh = new ViewHolder();
 			vh.qb =  (ProfilePictureView) baseview.findViewById(R.id.fbprofilepic);
 			vh.tv1 = (TextView) baseview.findViewById(R.id.fbprofile);
-			vh.ib = (Button) baseview.findViewById(R.id.skipbutton);
+			vh.ib = (Button) baseview.findViewById(R.id.invitebutton);
 			vh.tv2 = (TextView) baseview.findViewById(R.id.fblistitems);
 			
 			// save the ViewHolder
 			baseview.setTag(vh);
 			
-//			// setup the click listener for checkbox
-//			vh.cb.setOnClickListener(new OnClickListener() {
-//				
-//				@Override
-//				public void onClick(View v) {
-//					CheckBox cb = (CheckBox) v;
-//					Integer id;
-//					id = (Integer) v.getTag();
-//					//Log.d("tag", "checkbox clicked for id:" + id + " checked:" + cb.isChecked());
-//					
-//					Uri base = MyContentProvider.CONTENT_URI;
-//					base = Uri.withAppendedPath(base, "edit");
-//					base = Uri.withAppendedPath(base, Integer.toString(id));
-//					
-//					ContentValues cv = new ContentValues();
-//					boolean checked = cb.isChecked();
-//					cv.put(MyContentProvider.COLUMN_DONE, Boolean.toString(checked));					
-//					context.getContentResolver().update(base, cv, null, null);
-//				}
-//			});
-
 			vh.tv2.setOnClickListener(new OnClickListener() {
 				
 				@Override
@@ -194,34 +196,36 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 		//Log.d("tag", "facebook id: " + fd.userId + " exists: " + fd.exists);
 		
 		// check to see if facebook userId is already registered at bucketlist server
-		if (fd.exists != null) { 
-			
-			View vt = (View) vh.ib;
-			vh.ib.setVisibility(View.GONE);		
-			vh.tv2.setVisibility(View.VISIBLE);
-
-			String myHtmlString = null;
-			if (fd.entry0 != null && fd.entry1 != null) {
-				myHtmlString = "&#8226; " + fd.entry0 + "<br/>";
-				myHtmlString += "&#8226; " + fd.entry1 + "<br/>";
-				myHtmlString += "&#8226; " + "..." + "<br/>";
-			} else if (fd.entry0 != null) {
-				myHtmlString = "&#8226; " + fd.entry0 + "<br/>";
-				myHtmlString += "&#8226; " + "..." + "<br/>";
-				myHtmlString += "&#8226; " + "..." + "<br/>";
-			} else if (fd.entry1 != null) {
-				myHtmlString = "&#8226; " + fd.entry1 + "<br/>";
-				myHtmlString += "&#8226; " + "..." + "<br/>";
-				myHtmlString += "&#8226; " + "..." + "<br/>";
-			} else {
-				myHtmlString = fd.name + "'s bucket list are private" + "<br/>";
-			}
-			
-			vh.tv2.setText(Html.fromHtml(myHtmlString));
-		} else {
-			vh.ib.setVisibility(View.VISIBLE);
-			vh.tv2.setVisibility(View.GONE);
-		}
+		new CheckFriendTask().execute(resStr, i.toString());
+		
+//		if (fd.exists != null) { 
+//			
+//			View vt = (View) vh.ib;
+//			vh.ib.setVisibility(View.GONE);		
+//			vh.tv2.setVisibility(View.VISIBLE);
+//
+//			String myHtmlString = null;
+//			if (fd.entry0 != null && fd.entry1 != null) {
+//				myHtmlString = "&#8226; " + fd.entry0 + "<br/>";
+//				myHtmlString += "&#8226; " + fd.entry1 + "<br/>";
+//				myHtmlString += "&#8226; " + "..." + "<br/>";
+//			} else if (fd.entry0 != null) {
+//				myHtmlString = "&#8226; " + fd.entry0 + "<br/>";
+//				myHtmlString += "&#8226; " + "..." + "<br/>";
+//				myHtmlString += "&#8226; " + "..." + "<br/>";
+//			} else if (fd.entry1 != null) {
+//				myHtmlString = "&#8226; " + fd.entry1 + "<br/>";
+//				myHtmlString += "&#8226; " + "..." + "<br/>";
+//				myHtmlString += "&#8226; " + "..." + "<br/>";
+//			} else {
+//				myHtmlString = fd.name + "'s bucket list are private" + "<br/>";
+//			}
+//			
+//			vh.tv2.setText(Html.fromHtml(myHtmlString));
+//		} else {
+//			vh.ib.setVisibility(View.VISIBLE);
+//			vh.tv2.setVisibility(View.GONE);
+//		}
 
 		ButtonViewHolder ivh = new ButtonViewHolder();
 		ivh.facebook_id = fd.facebookId;
@@ -233,5 +237,120 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 		
 		return baseview;
 	}
+
 	
+	/*
+	 * This is the callback function for GetImageTask to bucketlist server
+	 */	
+	private class CheckFriendTask extends AsyncTask<String, Integer, GetImageResult> {
+
+		private static final String LOG_TAG = "tag";
+
+		@Override
+		protected GetImageResult doInBackground(String... arg0) {
+
+			Log.d("tagaa", "CheckFriendTask - rowid: " + arg0[0].toString());
+			String rowid = arg0[0].toString();
+			
+			HttpEntity entity = null;
+			HttpResponse resp = null;
+			String response = null;
+
+			try {
+				final HttpGet get = new HttpGet(
+						"http://23.20.35.242/check_friend.php?fbid=" + rowid);
+				
+				HttpClient mHttpClient = new DefaultHttpClient();
+				resp = mHttpClient.execute(get);
+				response = EntityUtils.toString(resp.getEntity());
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				Log.d("tag", "CheckFriendTask: response = " + response);
+
+				boolean error = response.startsWith("error:");
+				
+				if (error == true) {
+					String arr[] = response.split(":");
+				
+					Log.d("tag", "CheckFriendTask: error response");
+					for(int i=0; i < arr.length ; i++) {
+						Log.d("tag", "error: " + arr[i]);
+					}
+					
+				} else {
+					
+					// decode JSON
+					
+				}
+			}
+
+			return null;
+		}
+
+		/*
+		 * An InputStream that skips the exact number of bytes provided, unless
+		 * it reaches EOF.
+		 */
+		class FlushedInputStream extends FilterInputStream {
+			public FlushedInputStream(InputStream inputStream) {
+				super(inputStream);
+			}
+
+			@Override
+			public long skip(long n) throws IOException {
+				long totalBytesSkipped = 0L;
+				while (totalBytesSkipped < n) {
+					long bytesSkipped = in.skip(n - totalBytesSkipped);
+					if (bytesSkipped == 0L) {
+						int b = read();
+						if (b < 0) {
+							break; // we reached EOF
+						} else {
+							bytesSkipped = 1; // we read one byte
+						}
+					}
+					totalBytesSkipped += bytesSkipped;
+				}
+				return totalBytesSkipped;
+			}
+		}
+
+		protected void onProgressUpdate(Integer... progress) {
+			// setProgressPercent(progress[0]);
+			Log.d("tagaa", "progress: " + progress[0]);
+		}
+
+		protected void onPostExecute(GetImageResult result) {
+			
+			if (result != null) {
+				Log.d("tag", "GetImageTask result.row: " + result.rowId);
+		
+				
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				result.bmp.compress(Bitmap.CompressFormat.JPEG, 75, out);
+	
+				Uri base = MyContentProvider.CONTENT_URI;
+				ContentValues cv = new ContentValues();
+				cv.put(MyContentProvider.COLUMN_IMG_CACHE, "true");
+				cv.put(MyContentProvider.COLUMN_IMG, out.toByteArray());
+				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
+				cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
+	
+				base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE_DB);
+				base = Uri.withAppendedPath(base, result.rowId);
+	
+				MyApplication.context().getContentResolver().update(base, cv, null, null);		
+			}
+		}
+	}
 }

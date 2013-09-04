@@ -411,10 +411,15 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 					saveUserIdRegistered(true);
 					
 					// check whether facebook friends are already registered at bucketlist server	
-					saveState(StateMachine.FBFRIENDS_CHECK_STATE);
-					saveStatus(StateMachine.TRANSACTING_STATUS);
+//					saveState(StateMachine.FBFRIENDS_CHECK_STATE);
+//					saveStatus(StateMachine.TRANSACTING_STATUS);
+//					saveError(StateMachine.NO_ERROR);
+//					new CheckFriendsTask().execute();
+					
+					saveState(StateMachine.ONLINE_STATE);
+					saveStatus(StateMachine.OK_STATUS);
 					saveError(StateMachine.NO_ERROR);
-					new CheckFriendsTask().execute();
+					goToBucketListActivity();
 				}
 			} else {
 				// no response from the server
@@ -482,10 +487,15 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 				new RegisterTask().execute(getFbUserId());
 			} else {
 				// check whether facebook friends are already registered at bucketlist server	
-				saveState(StateMachine.FBFRIENDS_CHECK_STATE);
-				saveStatus(StateMachine.TRANSACTING_STATUS);
+//				saveState(StateMachine.FBFRIENDS_CHECK_STATE);
+//				saveStatus(StateMachine.TRANSACTING_STATUS);
+//				saveError(StateMachine.NO_ERROR);
+//				new CheckFriendsTask().execute();
+				
+				saveState(StateMachine.ONLINE_STATE);
+				saveStatus(StateMachine.OK_STATUS);
 				saveError(StateMachine.NO_ERROR);
-				new CheckFriendsTask().execute();
+				goToBucketListActivity();
 			}
 			
 		} else {
@@ -657,10 +667,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 				} else {
 					
 					Log.d("tagaa", "CheckFriendsTask: server responded with list preview ");		
-					saveState(StateMachine.ONLINE_STATE);
-					saveStatus(StateMachine.OK_STATUS);
-					saveError(StateMachine.NO_ERROR);
-					goToBucketListActivity();
+
 				}
 			} else {
 				Log.d("tag", "CheckFriendsTask: no response from server");

@@ -189,7 +189,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		data.setImagecache(c.getString(MyContentProvider.COLUMN_INDEX_IMG_CACHE));
 		//data.setImage(c.getBlob(MyContentProvider.COLUMN_INDEX_IMG));
 		data.setFacebookId(c.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID));
-		data.setFacebookPendingAnnounce(c.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE));
 		
 		String imgpath = c.getString(MyContentProvider.COLUMN_INDEX_IMG_PATH);
 		String image64 = null;
@@ -302,7 +301,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		BucketListTable data = new BucketListTable();
 
 		data.setFacebookId(c.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID));
-		data.setFacebookPendingAnnounce(c.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE));
 		data.setDate(c.getString(MyContentProvider.COLUMN_INDEX_DATE));
 		data.setEntry(c.getString(MyContentProvider.COLUMN_INDEX_ENTRY));
 		data.setDone(c.getString(MyContentProvider.COLUMN_INDEX_DONE));
@@ -539,7 +537,6 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 					Log.d("tag", "fetchBucketList response serverId: " + blt.server_id);
 					
 					cv.put(MyContentProvider.COLUMN_FACEBOOK_ID, blt.facebook_id);
-					cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, blt.facebook_pending_announce); 
 					cv.put(MyContentProvider.COLUMN_SERVER_ID, blt.server_id);
 					cv.put(MyContentProvider.COLUMN_ENTRY, blt.entry);
 					cv.put(MyContentProvider.COLUMN_DATE, blt.date);

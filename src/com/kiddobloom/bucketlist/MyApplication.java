@@ -58,14 +58,12 @@ public class MyApplication extends Application {
 			// initial_sync = false
 			// fb_me_retrieved = false
 			// fb_friends_retrieved = false
-			// facebook_publish_permission = false -- this is the flag to indicate whether the app has received permission to publish_action
 			// facebook_pending_publish = false -- this is the flag to indicate that there is a pending task to publish to facebook
 			
 			editor.putInt(getString(R.string.pref_state_key), StateMachine.INIT_STATE);
 			editor.putInt(getString(R.string.pref_status_key), StateMachine.OK_STATUS);
 			editor.putInt(getString(R.string.pref_error_key), StateMachine.NO_ERROR);
 			editor.putString(getString(R.string.pref_fb_userid_key), "none");
-			editor.putBoolean(getString(R.string.pref_facebook_pending_publish_retry), false);
 			editor.putBoolean(getString(R.string.pref_facebook_pending_publish), false);
 			
 			editor.putBoolean(getString(R.string.pref_userid_registered_key), false);
@@ -74,6 +72,7 @@ public class MyApplication extends Application {
 			editor.putBoolean(getString(R.string.pref_first_time_install), true);
 		} else {
 			editor.putBoolean(getString(R.string.pref_first_time_install), false);
+			editor.putBoolean(getString(R.string.pref_facebook_pending_publish), false);
 		}
 
 		editor.commit();	

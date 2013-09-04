@@ -102,27 +102,19 @@ public class BucketListActivity extends Activity implements TabListener {
 
     	if (session != null && session.isOpened()) {
  
-    		if (state.equals(SessionState.OPENED_TOKEN_UPDATED)) {
-            	Log.d("tag", "bucketlist onsessionstatechange token updated");
-            	// set a retry flag if the token is updated
-            	saveFbPublishRetry(true);
-            } else {
-            	// no more pending publish task
-            	saveFbPendingPublish(false);
-            	
-            	if (getState() != StateMachine.ONLINE_STATE) {
-					saveState(StateMachine.FB_OPENED_STATE);
-					saveStatus(StateMachine.OK_STATUS);
-					saveError(StateMachine.NO_ERROR);
-					saveSkip(false);
-					// disable timer
-					mHandler.removeCallbacks(mUpdate);
-	
-					goToAuthenticatorActivity();
-            	} else {
-            		Log.d("tag", "bucketlist onsessionstatechange re-open STATE MACHINE is ONLINE");
-            	}
-            }
+        	if (getState() != StateMachine.ONLINE_STATE) {
+				saveState(StateMachine.FB_OPENED_STATE);
+				saveStatus(StateMachine.OK_STATUS);
+				saveError(StateMachine.NO_ERROR);
+				saveSkip(false);
+				// disable timer
+				mHandler.removeCallbacks(mUpdate);
+
+				goToAuthenticatorActivity();
+        	} else {
+        		Log.d("tag", "bucketlist onsessionstatechange re-open STATE MACHINE is ONLINE");
+        	}
+        
     	} else if (session.isClosed() == true){
 				saveState(StateMachine.FB_CLOSED_STATE);
 				saveStatus(StateMachine.OK_STATUS);
@@ -513,7 +505,7 @@ public class BucketListActivity extends Activity implements TabListener {
 			}
 		} else if (tab.getText().equals("My List")){
 			Log.d("tag", "My List re-selected");
-
+			
 		}
 	
 	}
@@ -617,20 +609,10 @@ public class BucketListActivity extends Activity implements TabListener {
 	public boolean getInitialSynced() {
 		return sp.getBoolean(getString(R.string.pref_initial_synced_key), false);
 	}
-
-	// facebook publish retry 
-	public void saveFbPublishRetry(boolean value) {
-		SharedPreferences.Editor editor = sp.edit();
-		editor.putBoolean(getString(R.string.pref_facebook_pending_publish_retry), value);
-		editor.commit();
-	}
-
-	public boolean getFbPublishRetry() {
-		return sp.getBoolean(getString(R.string.pref_facebook_pending_publish_retry), false);
-	}
 	
 	// facebook pending publish
 	public void saveFbPendingPublish(boolean value) {
+		Log.d("tag", "set FbPendingPublish: " + value);
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putBoolean(getString(R.string.pref_facebook_pending_publish), value);
 		editor.commit();
@@ -639,4 +621,5 @@ public class BucketListActivity extends Activity implements TabListener {
 	public boolean getFbPendingPublish() {
 		return sp.getBoolean(getString(R.string.pref_facebook_pending_publish), false);
 	}
+
 }

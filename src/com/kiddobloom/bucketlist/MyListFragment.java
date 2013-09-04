@@ -19,7 +19,10 @@ import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.SessionDefaultAudience;
+import com.facebook.SessionState;
+import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphObject;
+import com.kiddobloom.bucketlist.MyAdapter.OnPendingPublishListener;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -34,6 +37,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager.OnActivityResultListener;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Audio.Media;
 import android.provider.SyncStateContract.Columns;
@@ -55,6 +59,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.widget.AdapterView;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 
@@ -74,7 +79,7 @@ import android.view.inputmethod.InputMethodManager;
 //import com.kiddobloom.bucketlist.MyAdapter.OnItemClickListener;
 
 public class MyListFragment extends Fragment implements 
-						OnItemClickListener, LoaderCallbacks<Cursor> {
+						OnItemClickListener, LoaderCallbacks<Cursor>, OnPendingPublishListener {
 
 	public MyAdapter la;
 	public SelectListView lv;
@@ -85,15 +90,47 @@ public class MyListFragment extends Fragment implements
 	public LoaderManager lm;
 	public SharedPreferences sp;
 	static boolean updateInstead = false;
-	static int rowToUpdate = 0;
-	static int positionToUpdate = 0;
+	static int rowToUpdate = -1;
+	static int positionToUpdate = -1;
 	static int RESULT_LOAD_IMAGE = 1;
 	static int rowItemId = -1;
+	static String rowToPublish = null;
+	static String serverIdToPublish = null;
 	
+    private UiLifecycleHelper uiHelper;
+    private Session.StatusCallback callback = new Session.StatusCallback() {
+        @Override
+        public void call(final Session session, final SessionState state, final Exception exception) {
+            onSessionStateChange(session, state, exception);
+        }
+    };
+	
+    private void onSessionStateChange(Session session, SessionState state, Exception exception) {
+    	
+    	Log.d("tag", "myListFragment onseesionstatechange:" + session + " state:" + state);
+
+    	if (session != null && session.isOpened()) {
+ 
+    		saveFbPendingPublish(false);
+    		
+    		if (state.equals(SessionState.OPENED_TOKEN_UPDATED)) {
+            	Log.d("tag", "myListFragment onsessionstatechange token updated row: " + rowToPublish + " serverid: " + serverIdToPublish);
+            	
+            	if (serverIdToPublish != null && rowToPublish != null) {
+            		onPendingPublish(serverIdToPublish, rowToPublish);
+            	}
+            	
+            } else {
+            	Log.d("tag", "myListFragment onsessionstatechange open state");
+            }
+    	} else {
+    		Log.d("tag", "session is closed");
+    	}
+    }
 	public MyListFragment() {
 		// TODO Auto-generated constructor stub
 	}
-	
+		
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -104,7 +141,7 @@ public class MyListFragment extends Fragment implements
 		String from[] = { MyContentProvider.COLUMN_ENTRY, MyContentProvider.COLUMN_DATE };
 		int to[] = { R.id.fblistitems, R.id.listItemDate };
 
-		la = new MyAdapter(getActivity(), from, to);
+		la = new MyAdapter(getActivity(), from, to, this);
 
 		sp = getActivity().getSharedPreferences(getString(R.string.pref_name), 0);
 		
@@ -115,6 +152,9 @@ public class MyListFragment extends Fragment implements
 		LoaderCallbacks<Cursor> loaderCallback = this;
 		lm.initLoader(0, null, loaderCallback);
 		// lm.enableDebugLogging(true);
+		
+	    uiHelper = new UiLifecycleHelper(getActivity(), callback);
+	    uiHelper.onCreate(savedInstanceState);
 
 	}
 	
@@ -202,7 +242,6 @@ public class MyListFragment extends Fragment implements
 						cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
 						//cv.put(MyContentProvider.COLUMN_IMG, value);
 						cv.put(MyContentProvider.COLUMN_FACEBOOK_ID, fbid);
-						cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "false");
 							
 						base = Uri.withAppendedPath(base, MyContentProvider.PATH_INSERT);
 						getActivity().getContentResolver().insert(base , cv);
@@ -229,24 +268,56 @@ public class MyListFragment extends Fragment implements
 		return v;
 	}
 	
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		// TODO Auto-generated method stub
+		super.onSaveInstanceState(outState);
+		uiHelper.onSaveInstanceState(outState);
+	}
+	
+	@Override
+	public void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		uiHelper.onPause();
+	}
+	
+	@Override
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		uiHelper.onDestroy();
+	}
 	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onActivityCreated(savedInstanceState);
+		Log.d("tag", "MyListFragment: onActivityCreated");
 	}
 	
 	@Override
 	public void onAttach(Activity activity) {
 		// TODO Auto-generated method stub
 		super.onAttach(activity);
+		Log.d("tag", "MyListFragment: onAttach");
 	}
 	
 	@Override
 	public void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
+		Log.d("tag", "MyListFragment: onStart");
 	}
+	
+	@Override
+	public void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+        uiHelper.onResume();
+		Log.d("tag", "MyListFragment: onResume");
+	}
+	
 	
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle bundle) {
@@ -268,29 +339,19 @@ public class MyListFragment extends Fragment implements
 		myCursor = cursor;
 		la.swapCursor(cursor);
 		
-		// dump the db
+		// dump the db		
 		cursor.moveToFirst();
+
 		for (int i=0; i < cursor.getCount(); i++) {
-			Log.d("tag", "row " + i + " :" + cursor.getInt(MyContentProvider.COLUMN_INDEX_ID) + " " + cursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY) + " " 
-					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " + MyContentProvider.restStateStr[cursor.getInt(7)] + " " + cursor.getInt(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID) 
-					+ " " + cursor.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE));
 			
-			if (getFbPendingPublish() == false || getFbPublishRetry() == true) {
-				if (getFbPendingPublish() == false) {
-					Log.d("tag", "facebook NO pending publish task");
-				} else if (getFbPublishRetry() == true) {
-					Log.d("tag", "facebook retry publish task");
-				}
-				// don't even publish new story if there is a pending publish
-				// unless there is a facebook TOKEN_UPDATE event which will set publish retry flag
-				
-				if (cursor.getString(MyContentProvider.COLUMN_INDEX_FACEBOOK_PENDING_ANNOUNCE).equals("true")) {
-					publishStory(cursor.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID), String.valueOf(cursor.getInt(MyContentProvider.COLUMN_INDEX_ID)));
-				}
-			}
-			
+			Log.d("tag", "row " + i + " :" + cursor.getInt(MyContentProvider.COLUMN_INDEX_ID) + " " 
+					+ cursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY) + " " 
+					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " 
+					+ cursor.getInt(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID));				
+
 			cursor.moveToNext();	
 		}
+
 	}
 
 	@Override
@@ -592,6 +653,8 @@ public class MyListFragment extends Fragment implements
 				getActivity().getContentResolver().update(base, cv, null, null);
 				
 			}
+		} else if (requestCode == REAUTH_ACTIVITY_CODE) {
+			uiHelper.onActivityResult(requestCode, resultCode, data);
 		} else {
 			Log.d("tag", "onActivityResult for " + requestCode);
 		}
@@ -738,19 +801,9 @@ public class MyListFragment extends Fragment implements
 		return count;
 	}
 
-	// facebook publish retry 
-	public void saveFbPublishRetry(boolean value) {
-		SharedPreferences.Editor editor = sp.edit();
-		editor.putBoolean(getString(R.string.pref_facebook_pending_publish_retry), value);
-		editor.commit();
-	}
-
-	public boolean getFbPublishRetry() {
-		return sp.getBoolean(getString(R.string.pref_facebook_pending_publish_retry), false);
-	}
-	
-	// facebook publish retry
+	// facebook publish pending
 	public void saveFbPendingPublish(boolean value) {
+		Log.d("tag", "set FbPendingPublish: " + value);
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putBoolean(getString(R.string.pref_facebook_pending_publish), value);
 		editor.commit();
@@ -774,21 +827,19 @@ public class MyListFragment extends Fragment implements
     private interface PostResponse extends GraphObject {
         String getId();
     }
-    
+	
 	private void publishStory(String serverId, String rowId) {
 		
-		// clear the pending publish flag
-		saveFbPendingPublish(false);
-		
-		// clear the flag now that publish is about to get re-tried
-		saveFbPublishRetry(false);
+		saveFbPendingPublish(true);
 		
 		Log.d("tag", "publishStory rowid: " + rowId + " serverId: " + serverId);
 		
 	    Session session = Session.getActiveSession();
 	    
-	    Log.d("tag","session: " + session);
-
+        // Show a progress dialog because sometimes the requests can take a while.
+        progressDialog = ProgressDialog.show(getActivity(), "",
+                "Announcing your dream completion...", true);
+	    
 	    if (session != null) {
 	        
 	        // Run this in a background thread since some of the populate methods may take
@@ -804,8 +855,8 @@ public class MyListFragment extends Fragment implements
 	            	rowid = arg0[1].toString();
 	            	
 	    	        Bundle params = new Bundle();
-	    	        params.putString("dream", "http://samples.ogp.me/574651899261441");
-
+	    	       // params.putString("dream", "http://samples.ogp.me/574651899261441");
+	    	        params.putString("dream", "http://samples.ogp.me/574651912594773");
 	                Request request = new Request(Session.getActiveSession(),
 	                		"me/kiddobloom:complete", params, HttpMethod.POST);
 	                return request.executeAndWait();
@@ -857,22 +908,22 @@ public class MyListFragment extends Fragment implements
 
         if (postResponse != null && postResponse.getId() != null) {
         	Log.d("tag", "successful publish the completed dream id: " + postResponse.getId());
-            
-    		ContentValues cv = new ContentValues();
-    		Uri base = MyContentProvider.CONTENT_URI;
-    		base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
-    		base = Uri.withAppendedPath(base, rowid);
     		
-    		cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "false");
-    		getActivity().getContentResolver().update(base, cv, null, null);
-    		
-            String dialogBody = String.format("Posted your completed life milestone on your Facebook timeline ", postResponse.getId());
-            new AlertDialog.Builder(getActivity())
-                    .setPositiveButton("OK", null)
-                    //.setTitle(R.string.result_dialog_title)
-                    .setMessage(dialogBody)
-                    .show();
+//            String dialogBody = String.format("success", postResponse.getId());
+//            		
+//            AlertDialog dialog = new AlertDialog.Builder(getActivity())
+//			                    .setPositiveButton("OK", null)
+//			                    .setMessage(dialogBody)
+//			                    .show();
+//            
+//            TextView textView = (TextView) dialog.findViewById(android.R.id.message);
+//            textView.setTextSize(14);
+        	
+            Toast.makeText(getActivity(), 
+                    "Facebook annouce successful",  
+                    Toast.LENGTH_SHORT).show();
             
+            saveFbPendingPublish(false);
         } else {
             handleError(response.getError(), rowid);
         }
@@ -911,7 +962,6 @@ public class MyListFragment extends Fragment implements
                     // request the publish permission
                     Log.d("tag", "Error FacebookAnnounceTask: error permission");
                     
-                	saveFbPendingPublish(true);
                 	requestPublishPermissions(Session.getActiveSession());
                 
                     break;
@@ -936,7 +986,18 @@ public class MyListFragment extends Fragment implements
                     break;
             }
         }
-
     }
 
+	@Override
+	public void onPendingPublish(String serverId, String rowId) {
+		Log.d("tag", "onPendingPublish callback - serverId: " + serverId + " rowId: " + rowId);
+		Log.d("tag", "onPendingPublish callback - FbPendingPublish: " + getFbPendingPublish() );
+		
+		if (getFbPendingPublish() == false) {
+			rowToPublish = rowId;
+			serverIdToPublish = serverId;
+
+			publishStory(serverId, rowId);
+		}		
+	}
 }

@@ -87,12 +87,22 @@ public class MyAdapter extends SimpleCursorAdapter {
 	LayoutInflater mInflater;		
 	Context context;
 	ImageDownloader imageDownloader = new ImageDownloader();
+	MyListFragment mf;
 	boolean first_time = false;
+	OnPendingPublishListener callback;
 	
-	public MyAdapter(Context c, String[] from, int[] to) {
+	public interface OnPendingPublishListener {
+		public void onPendingPublish(String serverId, String rowId);
+	};
+	
+	public MyAdapter(Context c, String[] from, int[] to, MyListFragment lmf) {
 		super(c, R.layout.item_layout, null, from, to, 0);
 		context = c;
 		mInflater = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		mf = lmf;
+		callback = (OnPendingPublishListener) mf;
+
+		Log.d("tag", "MyAdapter constructor: " + callback);
 		
 		SharedPreferences sp;
 		sp = context.getSharedPreferences(context.getString(R.string.pref_name), 0);
@@ -190,14 +200,18 @@ public class MyAdapter extends SimpleCursorAdapter {
 					
 					ContentValues cv = new ContentValues();
 					boolean checked = cb.isChecked();
-					if (checked) {
-						cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "true");
-					} else {
-						cv.put(MyContentProvider.COLUMN_FACEBOOK_PENDING_ANNOUNCE, "false");
-					}
+
 					cv.put(MyContentProvider.COLUMN_DONE, Boolean.toString(checked));
 					cv.put(MyContentProvider.COLUMN_DATE_COMPLETED, sdf.format(date));
 					context.getContentResolver().update(base, cv, null, null);
+					
+					if (checked) {
+						Cursor c = getCursor();
+						String serverId = c.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID);
+						String rowId = String.valueOf(c.getString(MyContentProvider.COLUMN_INDEX_ID));
+						
+						callback.onPendingPublish(serverId, rowId);
+					}
 				}
 			});
 			
@@ -446,17 +460,6 @@ public class MyAdapter extends SimpleCursorAdapter {
 				}
 			}
 			return null;
-			// if (resp != null) {
-			// if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			// if (response != null) {
-			// Log.d("tagaa", "server response:" + response);
-			// }
-			// } else {
-			// Log.d("tagaa", "server error " + resp.getStatusLine());
-			// response = "error:" + resp.getStatusLine();
-			// }
-			// }
-			// //return response;
 		}
 
 		/*

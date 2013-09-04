@@ -15,6 +15,7 @@
         <item name="android:actionBarTabStyle">@style/AppBaseTheme.ActionBarTabStyle</item>
         <item name="android:actionBarTabTextStyle">@style/AppBaseTheme.ActionBarTabTextStyle</item>
         <item name="android:itemTextAppearance">@style/AppBaseTheme.MenuTextStyle</item>
+        <item name="android:alertDialogStyle">@style/AppBaseTheme.AlertDialogStyle</item>
     </style>
 
     <style name="AppBaseTheme.ActionBarStyle" parent="@android:style/Widget.Holo.Light.ActionBar">
@@ -45,6 +46,10 @@
     	<item name="android:textSize">12sp</item>
     </style>
     
+    <style name="AppBaseTheme.AlertDialogStyle" parent="@android:style/Theme.Holo.Light.Dialog">
+    	<item name="android:textColor">@color/darkgrey</item>
+    	<item name="android:textSize">8sp</item>
+    </style>    
     
     
 <!-- Application theme. -->
