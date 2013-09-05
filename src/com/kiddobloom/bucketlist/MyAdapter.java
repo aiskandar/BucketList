@@ -205,13 +205,13 @@ public class MyAdapter extends SimpleCursorAdapter {
 					cv.put(MyContentProvider.COLUMN_DATE_COMPLETED, sdf.format(date));
 					context.getContentResolver().update(base, cv, null, null);
 					
-					if (checked) {
-						Cursor c = getCursor();
-						String serverId = c.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID);
-						String rowId = String.valueOf(c.getString(MyContentProvider.COLUMN_INDEX_ID));
-						
-						callback.onPendingPublish(serverId, rowId);
-					}
+//					if (checked) {
+//						Cursor c = getCursor();
+//						String serverId = c.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID);
+//						String rowId = String.valueOf(c.getString(MyContentProvider.COLUMN_INDEX_ID));
+//						
+//						callback.onPendingPublish(serverId, rowId);
+//					}
 				}
 			});
 			

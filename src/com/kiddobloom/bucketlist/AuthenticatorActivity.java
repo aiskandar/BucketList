@@ -155,21 +155,6 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 		am = AccountManager.get(this);
 		myApp = (MyApplication) getApplication();
 		
-//		try {
-//		    PackageInfo info = getPackageManager().getPackageInfo(
-//		            "com.kiddobloom.bucketlist", 
-//		            PackageManager.GET_SIGNATURES);
-//		    for (Signature signature : info.signatures) {
-//		        MessageDigest md = MessageDigest.getInstance("SHA");
-//		        md.update(signature.toByteArray());
-//		        Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
-//		        }
-//		} catch (NameNotFoundException e) {
-//
-//		} catch (NoSuchAlgorithmException e) {
-//
-//		}
-		
 		// reset the sync flag to trigger re-sync
 		saveInitialSynced(false);
 	}
@@ -255,31 +240,6 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
         super.onSaveInstanceState(outState);
        uiHelper.onSaveInstanceState(outState);
     }
-    
-    
-//	@Override
-//	public boolean onCreateOptionsMenu(Menu menu) {
-//	    
-//		MenuInflater inflater = getMenuInflater();
-//	    inflater.inflate(R.menu.main, menu);
-//	    
-//	    return true;
-//	}
-//	
-//	@Override
-//	public boolean onOptionsItemSelected(MenuItem item) {
-//		// TODO Auto-generated method stub
-//		
-//		Log.d("tagaa", "menu item selected :" + item.getItemId());
-//		
-//		int id = item.getItemId();
-//		
-//		if (id == R.id.menu_logout) {
-//
-//		}
-//		
-//		return true;
-//	}	
 	
     // event handler for skip button
     public void handleSkip(View v) {
@@ -342,7 +302,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 
 			try {
 				final HttpPost post = new HttpPost(
-						"http://23.20.35.242/register.php");
+						"http://bucketlist.kiddobloom.com/register.php");
 				post.addHeader(entity.getContentType());
 				post.setEntity(entity);
 
@@ -410,12 +370,6 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 					// save the registered flag to true in preferences db
 					saveUserIdRegistered(true);
 					
-					// check whether facebook friends are already registered at bucketlist server	
-//					saveState(StateMachine.FBFRIENDS_CHECK_STATE);
-//					saveStatus(StateMachine.TRANSACTING_STATUS);
-//					saveError(StateMachine.NO_ERROR);
-//					new CheckFriendsTask().execute();
-					
 					saveState(StateMachine.ONLINE_STATE);
 					saveStatus(StateMachine.OK_STATUS);
 					saveError(StateMachine.NO_ERROR);
@@ -472,6 +426,8 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 				FriendData fd = new FriendData();
 				fd.name = users.get(i).getName();
 				fd.facebookId = users.get(i).getId();
+				fd.bucketList = new String[50];
+				fd.notified = false;
 				
 				if(myApp.friendsList != null) {
 					myApp.friendsList.add(fd);
@@ -486,11 +442,6 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 				saveError(StateMachine.NO_ERROR);
 				new RegisterTask().execute(getFbUserId());
 			} else {
-				// check whether facebook friends are already registered at bucketlist server	
-//				saveState(StateMachine.FBFRIENDS_CHECK_STATE);
-//				saveStatus(StateMachine.TRANSACTING_STATUS);
-//				saveError(StateMachine.NO_ERROR);
-//				new CheckFriendsTask().execute();
 				
 				saveState(StateMachine.ONLINE_STATE);
 				saveStatus(StateMachine.OK_STATUS);
@@ -513,176 +464,6 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 			goToBucketListActivity();
 		}
 		
-	}
-
-	/*
-	 * This is the callback function for CheckFriendsTask request to bucketlist server
-	 */
-	private class CheckFriendsTask extends AsyncTask<String, Integer, String> {
-
-		@Override
-		protected String doInBackground(String... arg0)  {
-
-			MyApplication myApp = (MyApplication) getApplication();
-			
-			//Log.d("tagcf", "facebook friends data: " + myApp.friendsList);
-			
-			// send the name/value pairs of all the friends facebook id in HTTP POST format
-			final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-			ArrayList<BucketListPreviewTable> blplist = new ArrayList<BucketListPreviewTable>();
-			
-			for (int i=0; i<myApp.friendsList.size() ; i++) {
-				nvp.add(new BasicNameValuePair("fbid" + i, myApp.friendsList.get(i).facebookId));
-			}
-
-			HttpEntity entity = null;
-			HttpResponse resp = null;
-			String response = null;
-
-			try {
-				entity = new UrlEncodedFormEntity(nvp);
-			} catch (UnsupportedEncodingException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
-			HttpParams httpParameters = new BasicHttpParams();
-			// Set the timeout in milliseconds until a connection is
-			// established.
-			// The default value is zero, that means the timeout is not used.
-			int timeoutConnection = 30000;
-			HttpConnectionParams.setConnectionTimeout(httpParameters,
-					timeoutConnection);
-			// Set the default socket timeout (SO_TIMEOUT)
-			// in milliseconds which is the timeout for waiting for data.
-			int timeoutSocket = 30000;
-			HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
-
-			final HttpPost post = new HttpPost(
-			// "http://23.20.35.242/check_friends.php");
-					"http://23.20.35.242/check_friends.php");
-			post.addHeader(entity.getContentType());
-			post.setEntity(entity);
-
-			HttpClient mHttpClient = new DefaultHttpClient(httpParameters);
-			try {
-				resp = mHttpClient.execute(post);
-			} catch (ClientProtocolException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-
-			if (resp != null) {
-				
-				try {
-					response = EntityUtils.toString(resp.getEntity());
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK
-						&& response != null) {
-
-					Log.d("tagcf", "CheckFriendsTask: server response = " + response);
-
-					// json has string "null" if the user has no friends
-					if (!response.equals("null")) {
-						// decode JSON
-						// Log.d("tag", "response is non null");
-						Gson m2Json = new Gson();
-
-						ArrayList<BucketListPreviewTable> blpList = m2Json
-								.fromJson(
-										response,
-										new TypeToken<Collection<BucketListPreviewTable>>() {
-										}.getType());
-						int size = blpList.size();
-
-						for (int i = 0; i < size; i++) {
-							BucketListPreviewTable blpt = blpList.get(i);
-
-							int fsize = myApp.friendsList.size();
-							// Log.d("tag", "friend data size: " + fsize);
-
-							for (int j = 0; j < fsize; j++) {
-								FriendData fd = myApp.friendsList.get(j);
-								// Log.d("tag", "frienddata id " + fd.userId);
-								if (fd.isFacebookId(blpt.facebook_id)) {
-									// Log.d("tag", "facebook id match " +
-									// blpt.facebook_id);
-									fd.entry0 = blpt.entry0;
-									fd.entry1 = blpt.entry1;
-									fd.exists = blpt.exists;
-								}
-							}
-						}
-					}
-
-				} else {
-					Log.d("tagcf", "CheckFriendsTask: server error = " + resp.getStatusLine());
-					response = "error:" + resp.getStatusLine();
-				}
-			}
-
-			return response;
-		}
-
-		protected void onProgressUpdate(Integer... progress) {
-			// setProgressPercent(progress[0]);
-			Log.d("tagcf", "progress: " + progress[0]);
-		}
-
-		protected void onPostExecute(String result) {
-
-			if (result != null) {
-				boolean error = result.startsWith("error:");
-				
-				if (error == true) {
-					String arr[] = result.split(":");
-					
-					if (arr.length == 3) {
-						Log.d("tagaa", arr[0] + " " + arr[1] + " " + arr[2]);
-					} else if (arr.length == 2) {
-						Log.d("tagaa", arr[0] + " " + arr[1]);
-					} else if (arr.length == 1) {
-						Log.d("tagaa", arr[0]);
-					}
-	
-					Toast.makeText(getApplicationContext(),
-			                "Failed to check friends status on the server - OFFLINE mode",
-			                Toast.LENGTH_LONG).show();
-					
-					saveState(StateMachine.OFFLINE_STATE);
-					saveStatus(StateMachine.ERROR_STATUS);
-					saveError(StateMachine.FBFRIENDS_CHECK_ERROR);
-					goToBucketListActivity();
-	
-				} else {
-					
-					Log.d("tagaa", "CheckFriendsTask: server responded with list preview ");		
-
-				}
-			} else {
-				Log.d("tag", "CheckFriendsTask: no response from server");
-				// no response from the server	
-				Toast.makeText(getApplicationContext(),
-		                "No response from server. Pls check network connection - OFFLINE mode",
-		                Toast.LENGTH_LONG).show();
-				
-				saveState(StateMachine.OFFLINE_STATE);
-				saveStatus(StateMachine.ERROR_STATUS);
-				saveError(StateMachine.FBFRIENDS_CHECK_ERROR);
-				goToBucketListActivity();
-			}
-			
-		}
 	}
 	
 	/*

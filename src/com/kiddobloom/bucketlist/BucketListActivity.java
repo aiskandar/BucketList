@@ -170,7 +170,7 @@ public class BucketListActivity extends Activity implements TabListener {
         getActionBar().addTab(NavigationTabs.myListTab, false);
  
         NavigationTabs.communityTab = getActionBar().newTab();
-        NavigationTabs.communityTab.setText("Community");
+        NavigationTabs.communityTab.setText("My Friends' List");
         NavigationTabs.communityTab.setTabListener(this);   
         getActionBar().addTab(NavigationTabs.communityTab, false);
         
@@ -405,8 +405,19 @@ public class BucketListActivity extends Activity implements TabListener {
 	public void handleVisit(View v) {
 		Log.d("tag", "handle visit");
 		
-	    TextView t2 = (TextView) v;
-	    t2.setMovementMethod(LinkMovementMethod.getInstance());
+		Intent intent = new Intent(Intent.ACTION_VIEW); 
+		intent.setData(Uri.parse("http://www.kiddobloom.com"));		
+		
+		startActivity(intent);
+	}
+	
+	public void handleTwitter(View v) {
+		Log.d("tag", "handle Twitter follow");
+		
+		Intent intent = new Intent(Intent.ACTION_VIEW); 
+		intent.setData(Uri.parse("http://twitter.com/kiddobloom"));		
+		
+		startActivity(intent);
 	}
 	
 	public void handleFbLike(View v) {
@@ -448,7 +459,7 @@ public class BucketListActivity extends Activity implements TabListener {
 			
 			currentTab = MYLIST_NAV_TAB_IDX;
 			
-		} else if (tab.getText().equals("Community")) {
+		} else if (tab.getText().equals("My Friends' List")) {
 			Log.d("tag", "community selected");
 
 			ft.hide(fmList[MYLIST_FRAGMENT_IDX]);	
@@ -490,7 +501,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	@Override
 	public void onTabReselected(Tab tab, FragmentTransaction ft) {
 		
-		if (tab.getText().equals("Community")) {
+		if (tab.getText().equals("My Friends' List")) {
 			Log.d("tag", "community re-selected");
 			
 			Session session = Session.getActiveSession();

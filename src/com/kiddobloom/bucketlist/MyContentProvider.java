@@ -47,7 +47,7 @@ public class MyContentProvider extends ContentProvider {
 	public static final String PATH_DELETE_NO_NOTIFY = "delete_no_notify";
 	
 	private static final String DATABASE_NAME = "bucketList.db";
-	private static final int DATABASE_VERSION = 43;
+	private static final int DATABASE_VERSION = 44;
 	
 	// Database table name
 	public static final String DATABASE_TABLE = "bucket";
@@ -225,7 +225,7 @@ public class MyContentProvider extends ContentProvider {
 	public Uri insert(Uri uri, ContentValues values) {
 
 		Log.d("tag", "MyContentProvider: insert uri = " + uri);
-		
+			
 		List<String> ls = null;
 		ls = uri.getPathSegments();
 		String command = null;
@@ -408,7 +408,7 @@ public class MyContentProvider extends ContentProvider {
 		@Override
 		public void onCreate(SQLiteDatabase db) {	
 			// sqlite command: create table DATABASE_TABLE(KEY_ID INTEGER PRIMARY KEY, COLUMN_ENTRY TEXT, COLUMN_DATE TEXT, COLUMN_RATING TEXT, COLUMN_DONE TEXT, COLUMN_REST_STATUS TEXT, COLUMN_REST_RESULT TEXT);
-			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_SERVER_ID + " INTEGER, " + COLUMN_DATE + " TEXT, " + COLUMN_ENTRY + " TEXT, " + COLUMN_DONE + " TEXT, " + COLUMN_RATING + " TEXT, " +  COLUMN_SHARE + " TEXT, " + COLUMN_REST_STATE + " INTEGER, " + COLUMN_REST_STATUS + " INTEGER, " + COLUMN_IMG_PATH + " TEXT, " + COLUMN_DATE_COMPLETED + " TEXT, " + COLUMN_IMG_CACHE + " TEXT, " + COLUMN_FACEBOOK_ID + " TEXT, " + COLUMN_IMG + " BLOB);" ;
+			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_SERVER_ID + " INTEGER, " + COLUMN_DATE + " VARCHAR(12), " + COLUMN_ENTRY + " VARCHAR(150), " + COLUMN_DONE + " VARCHAR(6), " + COLUMN_RATING + " VARCHAR(6), " +  COLUMN_SHARE + " VARCHAR(6), " + COLUMN_REST_STATE + " INTEGER, " + COLUMN_REST_STATUS + " INTEGER, " + COLUMN_IMG_PATH + " VARCHAR(100), " + COLUMN_DATE_COMPLETED + " VARCHAR(12), " + COLUMN_IMG_CACHE + " VARCHAR(6), " + COLUMN_FACEBOOK_ID + " VARCHAR(64), " + COLUMN_IMG + " BLOB);" ;
 			db.execSQL(sqlCreateTable);
 			Log.d("tag", "sqllite new database generated");
 		}

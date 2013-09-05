@@ -171,7 +171,7 @@ public class DetailedEntryActivity extends Activity  {
 
 			try {
 				final HttpPost post = new HttpPost(
-						"http://andyiskandar.me/get_friend_list.php");
+						"http://bucketlist.kiddobloom.com/get_friend_list.php");
 				post.addHeader(entity.getContentType());
 				post.setEntity(entity);
 

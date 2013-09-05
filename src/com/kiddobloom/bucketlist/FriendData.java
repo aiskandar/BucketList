@@ -9,9 +9,8 @@ public class FriendData {
 	String birthday;
 	String facebookId;
 	Boolean registered;
-	String entry0;
-	String entry1;
-	String exists;
+	String[] bucketList;
+	Boolean notified;
 	
 	public boolean isFacebookId(String facebook_id) {
 		return this.facebookId.equals(facebook_id);

@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="We develop this app with the intent to inspire you to dream the impossible, take a leap of faith, and do something outside of your comfort zone.  We want this app to remind you to keep asking the questions 'would I be satisfied with what I have done in my life if I were to die tomorrow?' " />
+            android:text="We develop this app with the intent to inspire you to dream the impossible, take a leap of faith, and do something outside of your comfort zone.  We want this app to remind you to keep asking the questions &apos;would I be satisfied with what I have done in my life if I were to die tomorrow?&apos; " />
 
         <TextView
             android:id="@+id/blogP3"
@@ -31,21 +31,21 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:text="With this in mind, this app enables you to upload inspirational photos from your gallery so they can motivate you to take immediate action. " />
-        
+
         <TextView
             android:id="@+id/blogP4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:text="The app also categorizes your bucket list into Must Do and Nice to Do List so you can easily mark dreams that fall under Must Do List by a touch of a finger.  You can jot down all things that satisfy your senses in the Nice to Do List.  Must Do List should list things that really matter; it should make you evaluate your priorities in life. Checking off dreams in the Must Do section should create a sense of meaning to your life. You still want to do the things in the Nice to Do list because there are times that we should rest and rewind." />
-        
+
         <TextView
             android:id="@+id/blogP5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="We also want this app to be fun and allow you to share your bucket list with your friends and to see your friends' public bucket list.  You get to choose which entries in your bucket list that you want to make public or keep private. You can also choose to share some private dreams with certain individuals via emails or other means." />
-        
+            android:text="We also want this app to be fun and allow you to share your bucket list with your friends and to see your friends&apos; public bucket list.  You get to choose which entries in your bucket list that you want to make public or keep private. You can also choose to share some private dreams with certain individuals via emails or other means." />
+
         <TextView
             android:id="@+id/blogP12"
             android:layout_width="match_parent"
@@ -53,17 +53,46 @@
             android:layout_margin="10dp"
             android:text="If you like our app, please Like us in Facebook and follow us on Twitter." />
 
-        <ImageButton
-            android:id="@+id/imageButton1"
+        <LinearLayout
+            android:id="@+id/socialwrapper"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="10dp"
-            android:background="@android:color/white"
-            android:onClick="handleFbLike"
-            android:scaleType="centerInside"
-            android:src="@drawable/fb_likebutton_2" />
+            android:gravity="center_horizontal" >
 
+            <ImageButton
+                android:id="@+id/imageButton1"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="50dp"
+                android:layout_marginRight="20dp"
+                android:background="@android:color/white"
+                android:onClick="handleFbLike"
+                android:scaleType="centerInside"
+                android:src="@drawable/fb_likebutton_2" />
+
+            <ImageButton
+                android:id="@+id/imageButton2"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="20dp"
+                android:background="@android:color/white"
+                android:onClick="handleTwitter"
+                android:scaleType="centerInside"
+                android:src="@drawable/twitter" />
+
+            <ImageButton
+                android:id="@+id/ImageButton3"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginRight="20dp"
+                android:background="@android:color/white"
+                android:onClick="handleVisit"
+                android:scaleType="centerInside"
+                android:src="@drawable/bucket_logo" />
+
+        </LinearLayout>
     </LinearLayout>
 
 </ScrollView>

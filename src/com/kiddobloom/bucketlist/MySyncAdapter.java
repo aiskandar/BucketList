@@ -120,7 +120,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         
 		try {
 			final HttpGet get = new HttpGet(
-					"http://23.20.35.242/bucketdelete.php?serverid=" + c.getInt(MyContentProvider.COLUMN_INDEX_SERVER_ID));
+					"http://bucketlist.kiddobloom.com/bucketdelete.php?serverid=" + c.getInt(MyContentProvider.COLUMN_INDEX_SERVER_ID));
 			HttpClient mHttpClient = new DefaultHttpClient();
 			resp = mHttpClient.execute(get);
 			response = EntityUtils.toString(resp.getEntity());
@@ -228,7 +228,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		try {
 			// entity = new StringEntity(jsonData);
 			final HttpPost post = new HttpPost(
-					"http://23.20.35.242/bucketupdate.php");
+					"http://bucketlist.kiddobloom.com/bucketupdate.php");
 			post.addHeader(entity.getContentType());
 			post.setEntity(entity);
 
@@ -349,7 +349,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		try {
 			// entity = new StringEntity(jsonData);
 			final HttpPost post = new HttpPost(
-					"http://23.20.35.242/bucket.php");
+					"http://bucketlist.kiddobloom.com/bucket.php");
 			post.addHeader(entity.getContentType());
 			post.setEntity(entity);
 
@@ -497,7 +497,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		try {
 			final HttpGet get = new HttpGet(
-					"http://23.20.35.242/bucketget.php?id=" + id);
+					"http://bucketlist.kiddobloom.com/bucketget.php?id=" + id);
 			HttpClient mHttpClient = new DefaultHttpClient();
 			resp = mHttpClient.execute(get);
 			response = EntityUtils.toString(resp.getEntity());

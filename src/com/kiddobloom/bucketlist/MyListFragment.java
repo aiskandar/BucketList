@@ -198,11 +198,20 @@ public class MyListFragment extends Fragment implements
 						+ actionId + " view: " + tv.getText().toString());
 
 					String text = tv.getText().toString();				
-					tv.setText("");					
-					
+									
 					if(text.isEmpty()) {
 						return true;
 					}
+					
+					// max 150 characters
+					if(text.length() > 150) {
+			            Toast.makeText(getActivity(), 
+			                    "entry has 150 max. characters",  
+			                    Toast.LENGTH_LONG).show();
+			            return true;
+					}
+					
+					tv.setText("");	
 
 					ContentValues cv = new ContentValues();
 					SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
@@ -365,11 +374,6 @@ public class MyListFragment extends Fragment implements
 		updateInstead = b;
 		rowToUpdate = row;
 		positionToUpdate = position;
-	}
-	
-	public void sync() {
-		Log.d("tag", "sync");
-		getActivity().getContentResolver().query(MyContentProvider.CONTENT_URI, null, MyContentProvider.COLUMN_REST_STATE + "<>" + MyContentProvider.REST_STATE_DELETE, null, null);
 	}
 	
 	public class MyListActionMode implements ActionMode.Callback {
@@ -993,11 +997,16 @@ public class MyListFragment extends Fragment implements
 		Log.d("tag", "onPendingPublish callback - serverId: " + serverId + " rowId: " + rowId);
 		Log.d("tag", "onPendingPublish callback - FbPendingPublish: " + getFbPendingPublish() );
 		
-		if (getFbPendingPublish() == false) {
+		if (getFbPendingPublish() == false && getState() == StateMachine.ONLINE_STATE) {
+			
 			rowToPublish = rowId;
 			serverIdToPublish = serverId;
 
 			publishStory(serverId, rowId);
 		}		
+	}
+	
+	public int getState() {
+		return sp.getInt(getString(R.string.pref_state_key), 100);
 	}
 }
