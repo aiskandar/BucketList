@@ -90,7 +90,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 	MyListFragment mf;
 	boolean first_time = false;
 	OnPendingPublishListener callback;
-	
+
 	public interface OnPendingPublishListener {
 		public void onPendingPublish(String serverId, String rowId);
 	};
@@ -102,12 +102,12 @@ public class MyAdapter extends SimpleCursorAdapter {
 		mf = lmf;
 		callback = (OnPendingPublishListener) mf;
 
-		Log.d("tag", "MyAdapter constructor: " + callback);
+		//Log.d("tag", "MyAdapter constructor: " + callback);
 		
 		SharedPreferences sp;
 		sp = context.getSharedPreferences(context.getString(R.string.pref_name), 0);
 		first_time = sp.getBoolean(context.getString(R.string.pref_first_time_install), false);
-		Log.d("tag", "first time: " + first_time);
+		//Log.d("tag", "first time: " + first_time);
 	}
 	
 	public class ViewHolder {
@@ -128,6 +128,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 	public class ImageViewHolder {
 		int itemId;
 		int pos;
+		String serverId;
 		String rating;
 		String share;
 		ListView listview;
@@ -170,7 +171,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 			vh.ap = (TextView) baseview.findViewById(R.id.ap);
 			//vh.transparency = (View) baseview.findViewById(R.id.transparency);
 			vh.cb = (CheckBox) baseview.findViewById(R.id.ctv1);
-			vh.tv1 = (TextView) baseview.findViewById(R.id.fblistitems);
+			vh.tv1 = (TextView) baseview.findViewById(R.id.simple_tv);
 			vh.tv2 = (TextView) baseview.findViewById(R.id.listItemDate);
 			vh.ib1 = (ImageButton) baseview.findViewById(R.id.ib1);	
 			vh.ib2 = (ImageButton) baseview.findViewById(R.id.ib2);	
@@ -189,7 +190,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 					CheckBox cb = (CheckBox) v;
 					ImageViewHolder ivh = (ImageViewHolder) v.getTag();		
 					
-					Log.d("tag", "checkbox clicked id: " + ivh.itemId + " pos: " + ivh.pos + " rating: " + ivh.rating);
+					//Log.d("tag", "checkbox clicked id: " + ivh.itemId + " pos: " + ivh.pos + " rating: " + ivh.rating);
 					
 					Uri base = MyContentProvider.CONTENT_URI;
 					base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
@@ -200,18 +201,18 @@ public class MyAdapter extends SimpleCursorAdapter {
 					
 					ContentValues cv = new ContentValues();
 					boolean checked = cb.isChecked();
-
+					
 					cv.put(MyContentProvider.COLUMN_DONE, Boolean.toString(checked));
 					cv.put(MyContentProvider.COLUMN_DATE_COMPLETED, sdf.format(date));
 					context.getContentResolver().update(base, cv, null, null);
 					
-//					if (checked) {
-//						Cursor c = getCursor();
-//						String serverId = c.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID);
-//						String rowId = String.valueOf(c.getString(MyContentProvider.COLUMN_INDEX_ID));
-//						
-//						callback.onPendingPublish(serverId, rowId);
-//					}
+					if (checked) {
+						//Cursor c = getCursor();
+						//String serverId = c.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID);
+						//String rowId = String.valueOf(c.getString(MyContentProvider.COLUMN_INDEX_ID));
+						//Log.d("tag", "row: " + ivh.itemId + " server id to publish: " + ivh.serverId);
+						callback.onPendingPublish(ivh.serverId, String.valueOf(ivh.itemId));
+					}
 				}
 			});
 			
@@ -222,7 +223,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 
 					ImageViewHolder ivh = (ImageViewHolder) v.getTag();		
 					
-					Log.d("tag", "star image clicked id: " + ivh.itemId + " rating: " + ivh.rating);
+					//Log.d("tag", "star image clicked id: " + ivh.itemId + " rating: " + ivh.rating);
 					
 					Uri base = MyContentProvider.CONTENT_URI;
 					base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
@@ -247,7 +248,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 
 					ImageViewHolder ivh = (ImageViewHolder) v.getTag();		
 					
-					Log.d("tag", "share image clicked id: " + ivh.itemId + " share: " + ivh.share);
+					//Log.d("tag", "share image clicked id: " + ivh.itemId + " share: " + ivh.share);
 					
 					Uri base = MyContentProvider.CONTENT_URI;
 					base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE);
@@ -271,7 +272,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 				public void onClick(View v) {
 
 					ImageViewHolder vh = (ImageViewHolder) v.getTag();
-					Log.d("tag", "onclick row for id:" + vh.itemId + " position:" + vh.pos);
+					//Log.d("tag", "onclick row for id:" + vh.itemId + " position:" + vh.pos);
 					
 					ListView lv = (ListView) vh.listview;
 					lv.performItemClick(v, vh.pos, vh.itemId);
@@ -341,8 +342,13 @@ public class MyAdapter extends SimpleCursorAdapter {
 				//Log.d("tag", "loading image from http");
 				//imageDownloader.download(resStr, vh.tw);
 				Integer i = new Integer(itemId);
-				new GetImageTask().execute(resStr, i.toString());
+				GetImageTaskParam param = new GetImageTaskParam();
+				param.url = resStr;
+				param.rowId = i.toString();
 				
+				//Log.d("tag", "launching asynctask GetImageTask");
+				new GetImageTask().execute(param);
+					
 				// temporary placeholder
 				vh.tw.setImageResource(R.drawable.placeholder);
 				vh.ap.setVisibility(View.INVISIBLE);
@@ -350,9 +356,9 @@ public class MyAdapter extends SimpleCursorAdapter {
 			} else {
 				//Log.d("tag", "loading image from resource");
 				//int resIdx = Integer.parseInt(resStr); 
-				int resId = Integer.parseInt(resStr);
+				int resIdx = Integer.parseInt(resStr);
 				//int resId = Constants.resId[resIdx];
-				vh.tw.setImageResource(resId);
+				vh.tw.setImageResource(Constants.resId[resIdx]);
 				
 				if (first_time) { 
 					vh.ap.setVisibility(View.VISIBLE);
@@ -385,6 +391,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 		ivh.rating = rating_str;
 		ivh.share = share_str;
 		ivh.listview = lv;
+		ivh.serverId = c.getString(MyContentProvider.COLUMN_INDEX_SERVER_ID);
 		
 		vh.cb.setTag(ivh);
 		vh.ib1.setTag(ivh);
@@ -396,19 +403,29 @@ public class MyAdapter extends SimpleCursorAdapter {
 		return baseview;
 	}
 	  
+	public class GetImageTaskParam {
+		String url;
+		String rowId;
+	}
+
+	
 	/*
 	 * This is the callback function for GetImageTask to bucketlist server
 	 */	
-	private class GetImageTask extends AsyncTask<String, Integer, GetImageResult> {
+	private class GetImageTask extends AsyncTask<GetImageTaskParam, Integer, GetImageResult> {
 
 		private static final String LOG_TAG = "tag";
+		String url;
+		String rowId;
 
 		@Override
-		protected GetImageResult doInBackground(String... arg0) {
+		protected GetImageResult doInBackground(GetImageTaskParam... arg0) {
 
-			Log.d("tagaa", "GetImageTask url: " + arg0[0].toString() + " rowid: " + arg0[1].toString());
-			String url = arg0[0].toString();
-			String rowId = arg0[1].toString();
+			GetImageTaskParam param = arg0[0];
+			
+			//Log.d("tagaa", "GetImageTask url: " + param.url + " rowid: " + param.rowId);
+			url = param.url;
+			rowId = param.rowId;
 			
 			HttpEntity entity = null;
 			HttpResponse resp = null;
@@ -421,8 +438,7 @@ public class MyAdapter extends SimpleCursorAdapter {
 				resp = client.execute(getRequest);
 				final int statusCode = resp.getStatusLine().getStatusCode();
 				if (statusCode != HttpStatus.SC_OK) {
-					Log.w("ImageDownloader", "Error " + statusCode
-							+ " while retrieving bitmap from " + url);
+					//Log.w("ImageDownloader", "Error " + statusCode + " while retrieving bitmap from " + url);
 					return null;
 				}
 
@@ -446,14 +462,13 @@ public class MyAdapter extends SimpleCursorAdapter {
 				}
 			} catch (IOException e) {
 				getRequest.abort();
-				Log.w(LOG_TAG, "I/O error while retrieving bitmap from " + url,
-						e);
+				//Log.w(LOG_TAG, "I/O error while retrieving bitmap from " + url, e);
 			} catch (IllegalStateException e) {
 				getRequest.abort();
-				Log.w(LOG_TAG, "Incorrect URL: " + url);
+				//Log.w(LOG_TAG, "Incorrect URL: " + url);
 			} catch (Exception e) {
 				getRequest.abort();
-				Log.w(LOG_TAG, "Error while retrieving bitmap from " + url, e);
+				//Log.w(LOG_TAG, "Error while retrieving bitmap from " + url, e);
 			} finally {
 				if ((client instanceof AndroidHttpClient)) {
 					((AndroidHttpClient) client).close();
@@ -492,15 +507,16 @@ public class MyAdapter extends SimpleCursorAdapter {
 
 		protected void onProgressUpdate(Integer... progress) {
 			// setProgressPercent(progress[0]);
-			Log.d("tagaa", "progress: " + progress[0]);
+			//Log.d("tagaa", "progress: " + progress[0]);
 		}
 
 		protected void onPostExecute(GetImageResult result) {
 			
 			if (result != null) {
-				Log.d("tag", "GetImageTask result.row: " + result.rowId);
-		
-				
+			
+			
+				//Log.d("tag", "GetImageTask result.row: " + result.rowId);
+					
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				result.bmp.compress(Bitmap.CompressFormat.JPEG, 75, out);
 	
@@ -514,7 +530,8 @@ public class MyAdapter extends SimpleCursorAdapter {
 				base = Uri.withAppendedPath(base, MyContentProvider.PATH_UPDATE_DB);
 				base = Uri.withAppendedPath(base, result.rowId);
 	
-				MyApplication.context().getContentResolver().update(base, cv, null, null);		
+				MyApplication.context().getContentResolver().update(base, cv, null, null);
+
 			}
 		}
 	}

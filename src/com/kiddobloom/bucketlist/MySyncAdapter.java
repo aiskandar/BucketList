@@ -29,6 +29,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -40,11 +42,21 @@ import com.google.gson.reflect.TypeToken;
 
 public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
+	Context context;
+	
 	public MySyncAdapter(Context context, boolean autoInitialize) {
 		super(context, autoInitialize);
+		this.context = context;
 		// TODO Auto-generated constructor stub
 	}
 
+	private boolean isNetworkAvailable() {
+	    ConnectivityManager connectivityManager 
+	          = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+	    return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+	}
+	
 	@Override
 	public void onPerformSync(Account account, Bundle extras, String authority,
 			ContentProviderClient provider, SyncResult syncResult) {
@@ -55,8 +67,13 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		if (state != StateMachine.ONLINE_STATE) {
 			return;
 		}
-				
-		Log.d("tag", "onPerformSync :" + account.name + " " + extras);
+		
+		if (!isNetworkAvailable()) {
+			Log.d("tag", "network is not available");
+			return;
+		}
+		
+		//Log.d("tag", "onPerformSync :" + account.name + " " + extras);
         boolean force = extras.getBoolean(ContentResolver.SYNC_EXTRAS_MANUAL);
         Cursor c = null;
         
@@ -69,19 +86,19 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 
         if (force == true) {
         	// this was triggered by a query - the only place I set force to true
-        	Log.d("tag", "onPerformSync: db query");
+        	//Log.d("tag", "onPerformSync: db query");
         	fetchBucketList(account.name, provider, c);
         } else {
         	// triggered by insert, update, or delete
 			c.moveToFirst();
 			for (int i = 0; i < c.getCount(); i++) {
 				
-				Log.d("tag", "onPerformSync: processing row ID = " + c.getInt(MyContentProvider.COLUMN_INDEX_ID));
+				//Log.d("tag", "onPerformSync: processing row ID = " + c.getInt(MyContentProvider.COLUMN_INDEX_ID));
 				
 				if (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATUS) == MyContentProvider.REST_STATUS_TRANSACTING) {
 					
-					Log.d("tag", "onPerformSync: the following row ID = " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + " is transacting");
-					Log.d("tag", "onPerformSync: transaction type = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+					//Log.d("tag", "onPerformSync: the following row ID = " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + " is transacting");
+					//Log.d("tag", "onPerformSync: transaction type = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
 					
 					switch (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)) {
 						case MyContentProvider.REST_STATE_INSERT:
@@ -116,7 +133,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         HttpResponse resp = null;
         String response = null;
 
-        Log.d("tag", "restDelete : rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+        //Log.d("tag", "restDelete : rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
         
 		try {
 			final HttpGet get = new HttpGet(
@@ -136,16 +153,16 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 
 		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			Log.d("tag", "restDelete: response = " + response);
+			//Log.d("tag", "restDelete: response = " + response);
 
 			boolean error = response.startsWith("error:");
 			
 			if (error == true) {
 				String arr[] = response.split(":");
 			
-				Log.d("tag", "restDelete: error response in restDelete");
+				//Log.d("tag", "restDelete: error response in restDelete");
 				for(int i=0; i < arr.length ; i++) {
-					Log.d("tag", "error: " + arr[i]);
+					//Log.d("tag", "error: " + arr[i]);
 				}
 				
 			} else {
@@ -162,8 +179,8 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 				}
 			}
 		} else {
-			Log.d("tag", "restDelete: server error in fetching remote contacts: "
-					+ resp.getStatusLine());
+			//Log.d("tag", "restDelete: server error in fetching remote contacts: "
+				//	+ resp.getStatusLine());
 		}		
 	}
 
@@ -174,7 +191,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         HttpResponse resp = null;
         String response = null;
 
-        Log.d("tag", "restUpdate : rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+        //Log.d("tag", "restUpdate : rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
         
 		BucketListTable data = new BucketListTable();
 
@@ -193,16 +210,16 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		String imgpath = c.getString(MyContentProvider.COLUMN_INDEX_IMG_PATH);
 		String image64 = null;
 		
-		Log.d("tag", "restUpdate imgpath: " + imgpath);
+		//Log.d("tag", "restUpdate imgpath: " + imgpath);
 		if (imgpath.startsWith("/")) {
-			Log.d("tag", "restUpdate starts with /");
+			//Log.d("tag", "restUpdate starts with /");
 			byte[] image = c.getBlob(MyContentProvider.COLUMN_INDEX_IMG);
 			image64 = Base64.encodeToString(image, Base64.DEFAULT);
 		} else if (imgpath.startsWith("http")) {
 			// do nothing - if the imagepath is updated by the user on the app, 
 			// the variable will be a filesystem path as opposed http url
 			// if it is http url, means there is no update
-			Log.d("tag", "restUpdate starts with http");
+			//Log.d("tag", "restUpdate starts with http");
 		} else {
 			// do nothing
 		}
@@ -210,7 +227,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		list.add(data);
 		
 		String jsonData = mJson.toJson(list);
-		Log.d("tag", "restUpdate :" + jsonData);
+		//Log.d("tag", "restUpdate :" + jsonData);
 
 		final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
 		nvp.add(new BasicNameValuePair("json", jsonData));
@@ -250,20 +267,20 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 
 		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			Log.d("tag", "restUpdate: server response: " + response);
+			//Log.d("tag", "restUpdate: server response: " + response);
 			
 			boolean error = response.startsWith("error:");
 			
 			if (error == true) {
 				String arr[] = response.split(":");
 			
-				Log.d("tag", "error response in restUpdate");
+				//Log.d("tag", "error response in restUpdate");
 				for(int i=0; i < arr.length ; i++) {
-					Log.d("tag", "arr[i]");
+					//Log.d("tag", "arr[i]");
 				}
 			} else {
 				// the response should contain fileurl of the last updated entry		
-				//Log.d("tag", "restUpdate: updated fileurl: " + response);
+				////Log.d("tag", "restUpdate: updated fileurl: " + response);
 				
 				ContentValues cv = new ContentValues();
 				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
@@ -283,8 +300,8 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 			}
 			
 		} else {
-			Log.d("tag", "Server error in fetching remote contacts: "
-					+ resp.getStatusLine());
+			//Log.d("tag", "Server error in fetching remote contacts: "
+			//	+ resp.getStatusLine());
 		}		
 	}
 	
@@ -296,7 +313,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
         HttpResponse resp = null;
         String response = null;
 
-        Log.d("tag", "restInsert : rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+        //Log.d("tag", "restInsert : rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
         
 		BucketListTable data = new BucketListTable();
 
@@ -314,16 +331,16 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		String imgpath = c.getString(MyContentProvider.COLUMN_INDEX_IMG_PATH);
 		String image64 = null;
 		
-		Log.d("tag", "restinsert imgpath: " + imgpath);
+		//Log.d("tag", "restinsert imgpath: " + imgpath);
 		if (imgpath.startsWith("/")) {
-			Log.d("tag", "restinsert starts with /");
+			//Log.d("tag", "restinsert starts with /");
 			byte[] image = c.getBlob(MyContentProvider.COLUMN_INDEX_IMG);
 			image64 = Base64.encodeToString(image, Base64.DEFAULT);
 		} else if (imgpath.startsWith("http")) {
 			// do nothing - if the imagepath is updated by the user on the app, 
 			// the variable will be a filesystem path as opposed http url
 			// if it is http url, means there is no update
-			Log.d("tag", "restinsert starts with http");
+			//Log.d("tag", "restinsert starts with http");
 		} else {
 			// do nothing
 		}
@@ -331,7 +348,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		list.add(data);
 		
 		String jsonData = mJson.toJson(list);
-		Log.d("tag", "restInsert :" + jsonData);
+		//Log.d("tag", "restInsert :" + jsonData);
 
 		final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
 		nvp.add(new BasicNameValuePair("json", jsonData));
@@ -378,31 +395,31 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 			if (error == true) {
 				String arr[] = response.split(":");
 			
-				Log.d("tag", "error response in restinsert");
+				//Log.d("tag", "error response in restinsert");
 				for(int i=0; i < arr.length ; i++) {
-					Log.d("tag", "arr[i]");
+					//Log.d("tag", "arr[i]");
 				}
 			} else {
 				// the response should contain server_id of the last inserted entry
 				
-				Log.d("tag", "restInsert: server response: " + response);
+				//Log.d("tag", "restInsert: server response: " + response);
 				
 				String arr[] = response.split("\\|");
 				
 				if (arr.length == 3) {
-					Log.d("tag", arr[0] + " " + arr[1] + " " + arr[2]);
+					//Log.d("tag", arr[0] + " " + arr[1] + " " + arr[2]);
 				} else if (arr.length == 2) {
-					Log.d("tag", arr[0] + " " + arr[1]);
+					//Log.d("tag", arr[0] + " " + arr[1]);
 				} else if (arr.length == 1) {
-					Log.d("tag", arr[0]);
+					//Log.d("tag", arr[0]);
 				} else {
-					Log.d("tag", "split response array size: " + arr.length);
+					//Log.d("tag", "split response array size: " + arr.length);
 				}
 				
 				String serverId = arr[0];
 				String fileurl = arr[1];
 				
-				Log.d("tag", "restInsert: server response serverid: " + serverId);
+				//Log.d("tag", "restInsert: server response serverid: " + serverId);
 				
 				ContentValues cv = new ContentValues();
 				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
@@ -423,8 +440,8 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 			}
 			
 		} else {
-			Log.d("tag", "Server error in fetching remote contacts: "
-					+ resp.getStatusLine());
+			//Log.d("tag", "Server error in fetching remote contacts: "
+				//	+ resp.getStatusLine());
 		}
 		
 	}
@@ -439,13 +456,13 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		c.moveToFirst();
 		for (int i = 0; i < c.getCount(); i++) {
 			
-			Log.d("tag", "fetchBucketList: processing row ID = " + c.getInt(MyContentProvider.COLUMN_INDEX_ID));
+			//Log.d("tag", "fetchBucketList: processing row ID = " + c.getInt(MyContentProvider.COLUMN_INDEX_ID));
 			
 			if (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATUS) == MyContentProvider.REST_STATUS_TRANSACTING || 
 					c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATUS) == MyContentProvider.REST_STATUS_RETRY) {
 				
-				Log.d("tag", "fetchBucketList: the following row ID: " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + " is transacting/retry");
-				Log.d("tag", "fetchBucketList: rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
+				//Log.d("tag", "fetchBucketList: the following row ID: " + c.getInt(MyContentProvider.COLUMN_INDEX_ID) + " is transacting/retry");
+				//Log.d("tag", "fetchBucketList: rest state = " + MyContentProvider.restStateStr[c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)]);
 				
 				switch (c.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)) {
 					case MyContentProvider.REST_STATE_INSERT:
@@ -513,7 +530,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 
 		if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-			Log.d("tagbg", "fetchBucketList: bucketget.php server response: " + response);
+			//Log.d("tagbg", "fetchBucketList: bucketget.php server response: " + response);
 
 			Gson mJson = new Gson();
 
@@ -534,7 +551,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 	
 					ContentValues cv = new ContentValues();
 	
-					Log.d("tag", "fetchBucketList response serverId: " + blt.server_id);
+					//Log.d("tag", "fetchBucketList response serverId: " + blt.server_id);
 					
 					cv.put(MyContentProvider.COLUMN_FACEBOOK_ID, blt.facebook_id);
 					cv.put(MyContentProvider.COLUMN_SERVER_ID, blt.server_id);
@@ -563,9 +580,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 				}
 			}
 		} else {
-			Log.d("tag",
-					"Server error in fetching bucket list: "
-							+ resp.getStatusLine());
+			//Log.d("tag", "Server error in fetching bucket list: " + resp.getStatusLine());
 		}
 	
 	

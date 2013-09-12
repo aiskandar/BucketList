@@ -22,6 +22,9 @@
     <string name="pref_name">USER_PREF</string>
     <string name="pref_skip_key">PREF_SKIP_ACCOUNT</string>
     <string name="pref_fb_userid_key">PREF_USERID</string>
+    <string name="pref_fb_user_city_key">PREF_USER_CITY</string>
+    <string name="pref_fb_user_state_key">PREF_USER_STATE</string>
+    <string name="pref_fb_user_country_key">PREF_USER_COUNTRY</string>
     <string name="pref_initial_synced_key">PREF_SYNCED</string>
     <string name="pref_userid_registered_key">PREF_USERID_REGISTERED</string>
     

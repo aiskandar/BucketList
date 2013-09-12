@@ -35,7 +35,7 @@ public class SyncService extends Service {
      */
     @Override
     public void onCreate() {
-    	Log.d("tag", "sync service oncreate");
+    	//Log.d("tag", "sync service oncreate");
     	
         synchronized (sSyncAdapterLock) {
             if (sSyncAdapter == null) {

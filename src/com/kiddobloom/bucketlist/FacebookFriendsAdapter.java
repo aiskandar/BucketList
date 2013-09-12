@@ -118,7 +118,7 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 			vh.qb =  (ProfilePictureView) baseview.findViewById(R.id.fbprofilepic);
 			vh.tv1 = (TextView) baseview.findViewById(R.id.fbprofile);
 			vh.ib = (Button) baseview.findViewById(R.id.invitebutton);
-			vh.tv2 = (TextView) baseview.findViewById(R.id.fblistitems);
+			vh.tv2 = (TextView) baseview.findViewById(R.id.simple_tv);
 			
 			// save the ViewHolder
 			baseview.setTag(vh);
@@ -131,7 +131,7 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 					
 					TextView tvl = (TextView) v;
 					ButtonViewHolder ivh = (ButtonViewHolder) v.getTag();
-					Log.d("tag", "preview texts clickded fb_id: " + ivh.facebook_id + " for position: " + ivh.position);
+					//Log.d("tag", "preview texts clickded fb_id: " + ivh.facebook_id + " for position: " + ivh.position);
 					
 					Intent launch = new Intent(getContext(), DetailedEntryActivity.class);
 					launch.putExtra("com.kiddobloom.bucketlist.current_tab", BucketListActivity.currentTab);
@@ -147,13 +147,13 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 					// TODO Auto-generated method stub
 					Button ib = (Button) v;
 					ButtonViewHolder ivh = (ButtonViewHolder) v.getTag();
-					Log.d("tagfb", "invite button clicked fb_id: " + ivh.facebook_id + " for position: " + ivh.position);
+					//Log.d("tagfb", "invite button clicked fb_id: " + ivh.facebook_id + " for position: " + ivh.position);
 				
 			        Bundle params = new Bundle();  
 			        params.putString("title", "Bucket List app");
 			        params.putString("message", "I want you to check out the Bucketlist Android app");
 			        params.putString("to", ivh.facebook_id);
-			        //params.putString("redirect_url", "https://play.google.com");
+			        params.putString("redirect_url", "https://play.google.com/store/apps/details?id=com.kiddobloom.bucketlist");
 			        //params.putString("app_id", getContext().getResources().getString(R.string.app_id));
 			        WebDialog requestsDialog = new WebDialog.RequestsDialogBuilder(getContext(), Session.getActiveSession(), params).build(); 
 			        requestsDialog.setOnCompleteListener(new OnCompleteListener() {
@@ -205,9 +205,9 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 		new GetFriendListTask().execute(new GetFriendListParam(fd, this, itemId, position, lv));
 		
 		// check to see if facebook userId is already registered at bucketlist server
-		if (fd.bucketList[0] != null) { 
+		if (fd.bucketList[0] != null || fd.allPrivate == true) { 
 			
-			Log.d("tag", "bucketlist exists for facebook id: " + fd.facebookId);
+			//Log.d("tag", "bucketlist exists for facebook id: " + fd.facebookId);
 			
 			View vt = (View) vh.ib;
 			vh.ib.setVisibility(View.GONE);		
@@ -217,17 +217,17 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 			if (fd.bucketList[0] != null && fd.bucketList[1] != null) {
 				myHtmlString = "&#8226; " + fd.bucketList[0] + "<br/>";
 				myHtmlString += "&#8226; " + fd.bucketList[1] + "<br/>";
-				myHtmlString += "&#8226; " + "..." + "<br/>";
+				myHtmlString += "&#8226; " + "click for more..." + "<br/>";
 			} else if (fd.bucketList[0] != null) {
 				myHtmlString = "&#8226; " + fd.bucketList[0] + "<br/>";
 				myHtmlString += "&#8226; " + "..." + "<br/>";
-				myHtmlString += "&#8226; " + "..." + "<br/>";
+				myHtmlString += "&#8226; " + "click for more..." + "<br/>";
 			} else if (fd.bucketList[1] != null) {
 				myHtmlString = "&#8226; " + fd.bucketList[1] + "<br/>";
 				myHtmlString += "&#8226; " + "..." + "<br/>";
-				myHtmlString += "&#8226; " + "..." + "<br/>";
+				myHtmlString += "&#8226; " + "click for more..." + "<br/>";
 			} else {
-				myHtmlString = fd.name + "'s bucket list are private" + "<br/>";
+				myHtmlString = fd.name + "'s bucket list is private" + "<br/>";
 			}
 			
 			vh.tv2.setText(Html.fromHtml(myHtmlString));
@@ -287,14 +287,17 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 			int currentFirstPos = lv.getFirstVisiblePosition();
 			int currentLastPos = lv.getLastVisiblePosition();
 
-//			Log.d("tag", "getView for position: " + pos);
-//			Log.d("tag", "first visible position: " + currentFirstPos);
-//			Log.d("tag", "last visible position: " + currentLastPos);
+			//Log.d("tag", "getView for position: " + pos);
+			//Log.d("tag", "first visible position: " + currentFirstPos);
+			//Log.d("tag", "last visible position: " + currentLastPos);
 			
 			// this means we can skip server call
-			if (pos < currentFirstPos || pos > currentLastPos) {
-				Log.d("tag", "skip " + pos);
-				return "skip";
+			
+			if (pos >= currentFirstPos && pos <= currentLastPos) {
+				// display
+			} else {
+				//Log.d("tag", "skip " + pos);
+				return "skip"; // return "skip" for onPostExecute to process
 			}
 			
 			final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
@@ -335,24 +338,33 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 			if (resp != null) {
 				if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 					if (response != null) {
-						//Log.d("tagaa", "server response:" + response + ":");
+						
+						// process response in the context of Async Task
+						//Log.d("tagaa", "server response:" + response);
 	
-						if (!response.equals("null\n")) {
-							
+						if (response.equals("none\n")) {
+							// do nothing
+						} else if (response.equals("private\n")) {
+							fd.allPrivate = true;
+						} else if (response.contains("error")) {
+							// do nothing
+						} else if (response.equals("skip")) {
+							// do nothing
+						} else {
 							// decode JSON
 							Gson m2Json = new Gson();
 							Type type = new TypeToken<String[]>(){}.getType();
 							list = m2Json.fromJson(response, type);
 							
 							for (int i=0 ; i < list.length ; i++) {
-								Log.d("tag", i + " : " + list[i]);
+								//Log.d("tag", i + " : " + list[i]);
 								fd.bucketList[i] = list[i];
 							}	
 						}
 
 					}
 				} else {
-					Log.d("tagaa", "server error " + resp.getStatusLine());
+					//Log.d("tagaa", "server error " + resp.getStatusLine());
 					response = "error:" + resp.getStatusLine();
 				}
 			}
@@ -361,21 +373,27 @@ public class FacebookFriendsAdapter extends ArrayAdapter<FriendData> {
 		}
 
 		protected void onProgressUpdate(Integer... progress) {
-			Log.d("tagaa", "progress: " + progress[0]);
+			//Log.d("tagaa", "progress: " + progress[0]);
 		}
 
 		protected void onPostExecute(String response) {
 
 			if (response != null) {
 				
-				if (response.equals("null\n")) {
+				// process response in the context of Adapter
+				
+				if (response.equals("none\n")) {
 					
+				} else if (response.equals("private\n")) {
+					
+				} else if (response.contains("error\n")) {
+					Toast.makeText(context,
+			                "error retrieving friend's list",
+			                Toast.LENGTH_LONG).show();
 				} else if (response.equals("skip")) {
-					
-				} else if (response.contains("error")) {
-					
+					// do nothing
 				} else {
-					Log.d("tag", response);
+					//Log.d("tag", "fd notified: " + fd.facebookId + " -- " + fd.notified);
 					if (fd.notified == false) {
 						adapter.notifyDataSetChanged();
 						fd.notified = true;

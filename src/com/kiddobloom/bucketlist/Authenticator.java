@@ -38,7 +38,7 @@ class Authenticator extends AbstractAccountAuthenticator {
  
         super(context);
         mContext = context;
-       	Log.d("tag", "constructor of authenticator - called by service");
+       	//Log.d("tag", "constructor of authenticator - called by service");
     }
 
     /**
@@ -49,7 +49,7 @@ class Authenticator extends AbstractAccountAuthenticator {
         String accountType, String authTokenType, String[] requiredFeatures,
         Bundle options) {
     	
-    	Log.d("tag", "authenticator add account");
+    	//Log.d("tag", "authenticator add account");
         final Intent intent = new Intent(mContext, AuthenticatorActivity.class);
 
         final Bundle bundle = new Bundle();

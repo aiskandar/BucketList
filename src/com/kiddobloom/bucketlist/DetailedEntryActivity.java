@@ -50,6 +50,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.opengl.Visibility;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.AttributeSet;
@@ -58,6 +59,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -74,9 +76,6 @@ import com.facebook.model.GraphUser;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-
-
-
 /**
  * Activity which displays login screen to the user.
  */
@@ -86,8 +85,8 @@ public class DetailedEntryActivity extends Activity  {
 	private int bucketListTab;
 	private String facebook_id;
 	ListView lv;
-	ArrayAdapter<String> ad;
-	String[] list;
+	DetailedFriendAdapter ad;
+	ArrayList<BucketListTable> list;
 	
 	SharedPreferences sp;
     
@@ -101,17 +100,19 @@ public class DetailedEntryActivity extends Activity  {
 	    bucketListTab = intent.getIntExtra("com.kiddobloom.bucketlist.current_tab", 0);
 	    facebook_id = intent.getStringExtra("com.kiddobloom.bucketlist.facebook_id");
 	    
-		Log.d("tagaa", "DetailedEntry activity oncreate - bucketListTab: " + bucketListTab + " facebook: " + facebook_id);
+		//Log.d("tagaa", "DetailedEntry activity oncreate - bucketListTab: " + bucketListTab + " facebook: " + facebook_id);
 		
 		super.onCreate(icicle);
 
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		
 		getActionBar().setTitle("Bucket List");
 		getActionBar().setSubtitle("by kiddoBLOOM");
 		// getActionBar().setDisplayHomeAsUpEnabled(true);
 
 		sp = getSharedPreferences(getString(R.string.pref_name), MODE_PRIVATE);
 		myApp = (MyApplication) getApplication();
-		list = new String[0];
+		list = new ArrayList<BucketListTable>();
 	}
 	
 	@Override
@@ -124,12 +125,12 @@ public class DetailedEntryActivity extends Activity  {
 		// TODO Auto-generated method stub
 		super.onResume();
 		setContentView(R.layout.facebook_friend_detailed);
-        Log.d("tagaa", "DetailedEntry activity onresume");
+        //Log.d("tagaa", "DetailedEntry activity onresume");
         
         TextView tv = (TextView) findViewById(R.id.fbprofile2);
         
 		for (int i=0; i<myApp.friendsList.size() ; i++) {
-			//Log.d("tagcf", "add fbid: " + myApp.friendsList.get(i).facebookId);
+			////Log.d("tagcf", "add fbid: " + myApp.friendsList.get(i).facebookId);
 			if (myApp.friendsList.get(i).facebookId.equals(facebook_id)) {
 				String text = myApp.friendsList.get(i).name + "'s" + "\n" + "Bucket List";
 				tv.setText(text);
@@ -138,10 +139,12 @@ public class DetailedEntryActivity extends Activity  {
 		}
 		
 		lv = (ListView) findViewById(R.id.fbFriendDetailListView);
-		ad = new ArrayAdapter<String> (this, android.R.layout.simple_list_item_1);
+		//ad = new ArrayAdapter<String> (this, R.layout.friend_detailed_item_layout, R.id.simple_textview);
+		ad = new DetailedFriendAdapter (this, R.layout.friend_detailed_item_layout, R.id.simple_textview);
 		lv.setAdapter(ad);
 		
 		new GetFriendListTask().execute(facebook_id);
+		setProgressBarIndeterminateVisibility(true);
 		
 	}
 
@@ -153,7 +156,7 @@ public class DetailedEntryActivity extends Activity  {
 		@Override
 		protected String doInBackground(String... arg0) {
 
-			Log.d("tagaa", "facebook id: " + arg0[0].toString());
+			//Log.d("tagaa", "facebook id: " + arg0[0].toString());
 
 			final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
 			nvp.add(new BasicNameValuePair("fbid", arg0[0].toString()));
@@ -171,13 +174,14 @@ public class DetailedEntryActivity extends Activity  {
 
 			try {
 				final HttpPost post = new HttpPost(
-						"http://bucketlist.kiddobloom.com/get_friend_list.php");
+						"http://bucketlist.kiddobloom.com/get_detailed_friend_list.php");
 				post.addHeader(entity.getContentType());
 				post.setEntity(entity);
 
 				HttpClient mHttpClient = new DefaultHttpClient();
 				resp = mHttpClient.execute(post);
 				response = EntityUtils.toString(resp.getEntity());
+				
 
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
@@ -193,19 +197,31 @@ public class DetailedEntryActivity extends Activity  {
 			if (resp != null) {
 				if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 					if (response != null) {
-						Log.d("tagaa", "server response:" + response);
+						//Log.d("tagaa", "server response:" + response);
 						
-						// decode JSON
-						Gson m2Json = new Gson();
+						if (response.equals("none\n")) {
+							// do nothing
+						} else if (response.equals("private\n")) {
 
-						Type type = new TypeToken<String[]>(){}.getType();
-						list = m2Json.fromJson(response, type);
-						
+						} else if (response.contains("error")) {
+							
+						} else {
+							// decode JSON
+							Gson m2Json = new Gson();
+							
+							list.clear();
+							
+							list = m2Json.fromJson(response,
+									new TypeToken<Collection<BucketListTable>>() {
+									}.getType());
 
- 
+							if (list == null) {
+								response = "error: bucket list table is empty";
+							}
+						}
 					}
 				} else {
-					Log.d("tagaa", "server error " + resp.getStatusLine());
+					//Log.d("tagaa", "server error " + resp.getStatusLine());
 					response = "error:" + resp.getStatusLine();
 				}
 			}
@@ -214,11 +230,12 @@ public class DetailedEntryActivity extends Activity  {
 
 		protected void onProgressUpdate(Integer... progress) {
 			// setProgressPercent(progress[0]);
-			Log.d("tagaa", "progress: " + progress[0]);
+			//Log.d("tagaa", "progress: " + progress[0]);
 		}
 
 		protected void onPostExecute(String result) {
 
+			setProgressBarIndeterminateVisibility(false);
 			if (result != null) {
 				boolean error = result.startsWith("error:");
 				
@@ -226,24 +243,31 @@ public class DetailedEntryActivity extends Activity  {
 					String arr[] = result.split(":");
 					
 					if (arr.length == 3) {
-						Log.d("tagaa", arr[0] + " " + arr[1] + " " + arr[2]);
+						//Log.d("tagaa", arr[0] + " " + arr[1] + " " + arr[2]);
 					} else if (arr.length == 2) {
-						Log.d("tagaa", arr[0] + " " + arr[1]);
+						//Log.d("tagaa", arr[0] + " " + arr[1]);
 					} else if (arr.length == 1) {
-						Log.d("tagaa", arr[0]);
+						//Log.d("tagaa", arr[0]);
 					}
 	
 					Toast.makeText(getApplicationContext(),
-			                "Failed to get friend's list on the server",
+			                "Failed to get friend's list from the server",
 			                Toast.LENGTH_LONG).show();
 				} else {
-					Log.d("tag", "notify dataset changed");
 					
-					for(int i=0; i<list.length ; i++) {
-						Log.d("tag", "list: " + i + " :" + list[i]);
-						ad.add(list[i]);
+					
+					int size = list.size();
+					
+					if (size > 0) {
+			
+						for (int i = 0; i < size; i++) {
+							BucketListTable blt = list.get(i);
+							//Log.d("tag", "response serverId: " + blt.server_id);
+							ad.add(blt);
+						}
+
+						ad.notifyDataSetChanged();
 					}
-					ad.notifyDataSetChanged();
 				}
 			} else {
 				// no response from the server
@@ -261,7 +285,7 @@ public class DetailedEntryActivity extends Activity  {
 		// TODO Auto-generated method stub
 		super.onPause();
 
-        Log.d("tagaa", "DetailedEntry activity onpause");
+        //Log.d("tagaa", "DetailedEntry activity onpause");
 	}
 	
     @Override
@@ -274,7 +298,7 @@ public class DetailedEntryActivity extends Activity  {
     public void onDestroy() {
         super.onDestroy();
 
-       Log.d("tagaa", "DetailedEntry activity ondestroy");
+       //Log.d("tagaa", "DetailedEntry activity ondestroy");
     }
 
     @Override

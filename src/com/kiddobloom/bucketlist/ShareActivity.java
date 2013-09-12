@@ -150,8 +150,8 @@ public class ShareActivity extends Activity implements OnClickListener {
 		@Override
 		protected String doInBackground(String... arg0) {
 
-			Log.d("tag", "name: " + arg0[0].toString());
-			Log.d("tag", "userid: " + arg0[1].toString());
+			//Log.d("tag", "name: " + arg0[0].toString());
+			//Log.d("tag", "userid: " + arg0[1].toString());
 
 			final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
 			nvp.add(new BasicNameValuePair("name", arg0[0].toString()));
@@ -190,9 +190,9 @@ public class ShareActivity extends Activity implements OnClickListener {
 			}
 
 			if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				Log.d("tag", "response: " + response);
+				//Log.d("tag", "response: " + response);
 			} else {
-				Log.d("tag", "Server error " + resp.getStatusLine());
+				//Log.d("tag", "Server error " + resp.getStatusLine());
 				response = "error:" + resp.getStatusLine();
 			}
 
@@ -201,7 +201,7 @@ public class ShareActivity extends Activity implements OnClickListener {
 
 		protected void onProgressUpdate(Integer... progress) {
 			// setProgressPercent(progress[0]);
-			Log.d("tag", "progress: " + progress[0]);
+			//Log.d("tag", "progress: " + progress[0]);
 		}
 
 		protected void onPostExecute(String result) {

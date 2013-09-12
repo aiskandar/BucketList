@@ -128,7 +128,7 @@ public class MyContentProvider extends ContentProvider {
 	@Override
 	public boolean onCreate() {
 		
-		Log.d("tag", "provider oncreate");
+		//Log.d("tag", "provider oncreate");
 		bucketDBHelper = new BucketDBOpenHelper(getContext(), DATABASE_NAME, null, DATABASE_VERSION);
 		bucketDB = bucketDBHelper.getWritableDatabase();
 		return true;
@@ -137,7 +137,7 @@ public class MyContentProvider extends ContentProvider {
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 
-		Log.d("tag", "MyContentProvider: query uri = " + uri.toString());
+		//Log.d("tag", "MyContentProvider: query uri = " + uri.toString());
 		
 		List<String> ls = null;
 		ls = uri.getPathSegments();
@@ -159,7 +159,7 @@ public class MyContentProvider extends ContentProvider {
 		if (synced == false && state == StateMachine.ONLINE_STATE) {
 			Account[] accounts = accountManager.getAccountsByType("com.kiddobloom");		
 			for (int i=0 ; i < accounts.length ; i++) {
-				Log.d("tag", "MyContentProvider: requesting query sync for account = " + accounts[i].name);
+				//Log.d("tag", "MyContentProvider: requesting query sync for account = " + accounts[i].name);
 			
 				Bundle extras = new Bundle();
 				extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
@@ -171,7 +171,7 @@ public class MyContentProvider extends ContentProvider {
 			editor.commit();
 			
 		} else {
-			Log.d("tag", "MyContentProvider: no request sync - synced = " + sp.getBoolean(getContext().getString(R.string.pref_initial_synced_key), false));
+			//Log.d("tag", "MyContentProvider: no request sync - synced = " + sp.getBoolean(getContext().getString(R.string.pref_initial_synced_key), false));
 		}
 		return cur;
 	}
@@ -179,7 +179,7 @@ public class MyContentProvider extends ContentProvider {
 	@Override
 	public int bulkInsert(Uri uri, ContentValues[] values) {
 		// TODO Auto-generated method stub
-		Log.d("tag", "MyContentProvider: bulk insert uri = " + uri);
+		//Log.d("tag", "MyContentProvider: bulk insert uri = " + uri);
 		
 		// set the maximum entries for bucketlist
 		long count = DatabaseUtils.queryNumEntries(bucketDB, DATABASE_TABLE);
@@ -217,14 +217,14 @@ public class MyContentProvider extends ContentProvider {
 
 	@Override
 	public String getType(Uri uri) {
-		Log.d("tag", "getType " + uri);
+		//Log.d("tag", "getType " + uri);
 		return null;
 	}
 
 	@Override
 	public Uri insert(Uri uri, ContentValues values) {
 
-		Log.d("tag", "MyContentProvider: insert uri = " + uri);
+		//Log.d("tag", "MyContentProvider: insert uri = " + uri);
 			
 		List<String> ls = null;
 		ls = uri.getPathSegments();
@@ -268,7 +268,7 @@ public class MyContentProvider extends ContentProvider {
 	@Override
 	public int delete(Uri uri, String selection, String[] selectionArgs) {
 
-		Log.d("tag", "MyContentProvider delete uri = " + uri);
+		//Log.d("tag", "MyContentProvider delete uri = " + uri);
 
 		List<String> ls = null;
 		ls = uri.getPathSegments();
@@ -286,7 +286,7 @@ public class MyContentProvider extends ContentProvider {
 		if (command.equals(PATH_DELETE)) {
 			
 			for (int i = 2 ; i < ls.size() ; i++) {
-				Log.d("tag", "Delete rest - mark for deletion rowID: " + ls.get(i).toString());
+				//Log.d("tag", "Delete rest - mark for deletion rowID: " + ls.get(i).toString());
 				
 				ContentValues cv = new ContentValues();	
 				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_DELETE);
@@ -299,7 +299,7 @@ public class MyContentProvider extends ContentProvider {
 		} else if (command.equals(PATH_DELETE_DB)) {
 			
 			for (int i = 2 ; i < ls.size() ; i++) {
-				Log.d("tag", "Delete DB - rowID to REALLY delete: " + ls.get(i).toString());
+				//Log.d("tag", "Delete DB - rowID to REALLY delete: " + ls.get(i).toString());
 				bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
 				
 				// PATH_DELETE_DB is only called from onPerformSync after the device
@@ -311,7 +311,7 @@ public class MyContentProvider extends ContentProvider {
 		} else if (command.equals(PATH_DELETE_NO_NOTIFY)) {
 			
 			for (int i = 2 ; i < ls.size() ; i++) {
-				Log.d("tag", "Delete no notify - rowID to REALLY delete: " + ls.get(i).toString());
+				//Log.d("tag", "Delete no notify - rowID to REALLY delete: " + ls.get(i).toString());
 				bucketDB.delete(DATABASE_TABLE, COLUMN_ID + "=" + ls.get(i).toString(), null);
 			}
 		} else {
@@ -325,7 +325,7 @@ public class MyContentProvider extends ContentProvider {
 	public int update(Uri uri, ContentValues values, String selection,
 			String[] selectionArgs) {
 
-		Log.d("tag", "MyContentProvider: update uri = " + uri);
+		//Log.d("tag", "MyContentProvider: update uri = " + uri);
 
 		List<String> ls = null;
 		ls = uri.getPathSegments();
@@ -344,24 +344,24 @@ public class MyContentProvider extends ContentProvider {
 			}
 		}
 		
+		Cursor myCursor = bucketDB.query(DATABASE_TABLE, null, COLUMN_ID + "=" + rowId, null, null, null, COLUMN_RATING + " DESC");
+		
+		//Log.d("tag", "cursor count: " + myCursor.getCount());	
+		if (myCursor.getCount() == 0) {
+			return 0;
+		}
+		
+		myCursor.moveToFirst();
+		
 		if (command.equals(PATH_UPDATE)) {
 			
-			Cursor myCursor = bucketDB.query(DATABASE_TABLE, null, COLUMN_ID + "=" + rowId, null, null, null, COLUMN_RATING + " DESC");
-			
-			//Log.d("tag", "cursor count: " + myCursor.getCount());	
-			if (myCursor.getCount() == 0) {
-				return 0;
-			}
-			
-			myCursor.moveToFirst();
-			
-			Log.d("tag", "db update: rest state " + restStateStr[myCursor.getInt(COLUMN_INDEX_REST_STATE)] );
+			//Log.d("tag", "db update: rest state " + restStateStr[myCursor.getInt(COLUMN_INDEX_REST_STATE)] );
 				
 			// do not store the updated values if the user is in process of deleting the row
 			if (myCursor.getInt(COLUMN_INDEX_REST_STATE) == REST_STATE_DELETE) {
 				// do nothing to the row - this is the case where we do async task to retrieve image
 				// when the image came back the row is already deleted by the user.
-				Log.d("tag", "db update - row is in process of being deleted");
+				//Log.d("tag", "db update - row is in process of being deleted");
 			} else if (myCursor.getInt(COLUMN_INDEX_REST_STATE) == REST_STATE_NONE) {
 				values.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_UPDATE);
 				values.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
@@ -382,15 +382,28 @@ public class MyContentProvider extends ContentProvider {
 				bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
 				getContext().getContentResolver().notifyChange(uri, null, false);
 			} else {
-				Log.d("tag", "error - db update - but row is in state " + restStateStr[myCursor.getInt(COLUMN_INDEX_REST_STATE)]);
+				//Log.d("tag", "error - db update - but row is in state " + restStateStr[myCursor.getInt(COLUMN_INDEX_REST_STATE)]);
 			}
 			
 		} else if (command.equals(PATH_UPDATE_DB)) {
-			bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
-			getContext().getContentResolver().notifyChange(uri, null, false);
+			if (myCursor.getInt(COLUMN_INDEX_REST_STATE) == REST_STATE_DELETE) {
+				// do nothing to the row - this is the case where we do async task to retrieve image
+				// when the image came back the row is already deleted by the user.
+				//Log.d("tag", "db update - row is in process of being deleted");
+			} else {
+				bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
+				getContext().getContentResolver().notifyChange(uri, null, false);
+			}
 		} else if (command.equals(PATH_UPDATE_NO_NOTIFY)) {
-			//getContext().getContentResolver().notifyChange(uri, null, false);
-			bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
+			
+			if (myCursor.getInt(COLUMN_INDEX_REST_STATE) == REST_STATE_DELETE) {
+				// do nothing to the row - this is the case where we do async task to retrieve image
+				// when the image came back the row is already deleted by the user.
+				//Log.d("tag", "db update - row is in process of being deleted");
+			} else {
+				//getContext().getContentResolver().notifyChange(uri, null, false);
+				bucketDB.update(DATABASE_TABLE, values, COLUMN_ID + "=" + rowId, null);
+			}
 		} else {
 			// throw exception here
 		}
@@ -402,7 +415,7 @@ public class MyContentProvider extends ContentProvider {
 
 		public BucketDBOpenHelper(Context context, String name, CursorFactory factory, int version) {
 			super(context, name, factory, version);
-			Log.d("tag", "sqllite helper called");
+			//Log.d("tag", "sqllite helper called");
 		}
 
 		@Override
@@ -410,12 +423,12 @@ public class MyContentProvider extends ContentProvider {
 			// sqlite command: create table DATABASE_TABLE(KEY_ID INTEGER PRIMARY KEY, COLUMN_ENTRY TEXT, COLUMN_DATE TEXT, COLUMN_RATING TEXT, COLUMN_DONE TEXT, COLUMN_REST_STATUS TEXT, COLUMN_REST_RESULT TEXT);
 			String sqlCreateTable = "create table " + DATABASE_TABLE + "(" + COLUMN_ID + " INTEGER PRIMARY KEY, " + COLUMN_SERVER_ID + " INTEGER, " + COLUMN_DATE + " VARCHAR(12), " + COLUMN_ENTRY + " VARCHAR(150), " + COLUMN_DONE + " VARCHAR(6), " + COLUMN_RATING + " VARCHAR(6), " +  COLUMN_SHARE + " VARCHAR(6), " + COLUMN_REST_STATE + " INTEGER, " + COLUMN_REST_STATUS + " INTEGER, " + COLUMN_IMG_PATH + " VARCHAR(100), " + COLUMN_DATE_COMPLETED + " VARCHAR(12), " + COLUMN_IMG_CACHE + " VARCHAR(6), " + COLUMN_FACEBOOK_ID + " VARCHAR(64), " + COLUMN_IMG + " BLOB);" ;
 			db.execSQL(sqlCreateTable);
-			Log.d("tag", "sqllite new database generated");
+			//Log.d("tag", "sqllite new database generated");
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			Log.d("tag", "upgrading database");
+			//Log.d("tag", "upgrading database");
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
 		    onCreate(db);
 		}

@@ -62,7 +62,7 @@
             android:layout_marginRight="10dp"
             android:layout_marginTop="35dp"
             android:gravity="center_horizontal"
-            android:text="Login using Facebook to share your dreams with your friends and to see your friends&apos; dreams.  Facebook login also allows you to sync your bucket list with other web enabled devices." />
+            android:text="Login using Facebook to share your dreams with your friends and to see your friends&apos; dreams.  Facebook login also allows you to sync your bucket list on mutiple Android phones and web enabled devices." />
 
         <com.facebook.widget.LoginButton
             android:id="@+id/login_button"

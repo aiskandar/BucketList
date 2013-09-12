@@ -27,17 +27,17 @@ public class SelectListView extends ListView {
 	@Override
 	public boolean performClick() {
 		// TODO Auto-generated method stub
-		Log.d("tag","perform click");
+		//Log.d("tag","perform click");
 		return super.performClick();
 	}
 	
 	@Override
 	public boolean performItemClick(View view, int position, long id) {
 		
-		Log.d("tag", "perform item click position: " + position);
+		//Log.d("tag", "perform item click position: " + position);
 
 		if (MyListFragment.updateInstead == true) {
-			Log.d("tag", "in middle of update");
+			//Log.d("tag", "in middle of update");
 			Toast.makeText(getContext(),
 	                "Cancel edit mode or press Enter to save change",
 	                Toast.LENGTH_SHORT).show();
@@ -64,14 +64,14 @@ public class SelectListView extends ListView {
 	@Override
 	public void setItemChecked(int position, boolean value) {
 		// TODO Auto-generated method stub
-		//Log.d("tag2", "set item checked : " + position);
+		////Log.d("tag2", "set item checked : " + position);
 		super.setItemChecked(position, value);
 	}
 
 	@Override
 	public int getCheckedItemPosition() {
 		// TODO Auto-generated method stub
-		Log.d("tag", "get checked item position");
+		//Log.d("tag", "get checked item position");
 		return super.getCheckedItemPosition();
 	}
 	

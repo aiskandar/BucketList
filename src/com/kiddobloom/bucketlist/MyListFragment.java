@@ -107,24 +107,24 @@ public class MyListFragment extends Fragment implements
 	
     private void onSessionStateChange(Session session, SessionState state, Exception exception) {
     	
-    	Log.d("tag", "myListFragment onseesionstatechange:" + session + " state:" + state);
+    	//Log.d("tag", "myListFragment onseesionstatechange:" + session + " state:" + state);
 
     	if (session != null && session.isOpened()) {
  
     		saveFbPendingPublish(false);
     		
     		if (state.equals(SessionState.OPENED_TOKEN_UPDATED)) {
-            	Log.d("tag", "myListFragment onsessionstatechange token updated row: " + rowToPublish + " serverid: " + serverIdToPublish);
+            	//Log.d("tag", "myListFragment onsessionstatechange token updated row: " + rowToPublish + " serverid: " + serverIdToPublish);
             	
             	if (serverIdToPublish != null && rowToPublish != null) {
             		onPendingPublish(serverIdToPublish, rowToPublish);
             	}
             	
             } else {
-            	Log.d("tag", "myListFragment onsessionstatechange open state");
+            	//Log.d("tag", "myListFragment onsessionstatechange open state");
             }
     	} else {
-    		Log.d("tag", "session is closed");
+    		//Log.d("tag", "session is closed");
     	}
     }
 	public MyListFragment() {
@@ -136,10 +136,10 @@ public class MyListFragment extends Fragment implements
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		
-		Log.d("tag", "MyListFragment: onCreate");
+		//Log.d("tag", "MyListFragment: onCreate");
 		
 		String from[] = { MyContentProvider.COLUMN_ENTRY, MyContentProvider.COLUMN_DATE };
-		int to[] = { R.id.fblistitems, R.id.listItemDate };
+		int to[] = { R.id.simple_tv, R.id.listItemDate };
 
 		la = new MyAdapter(getActivity(), from, to, this);
 
@@ -163,7 +163,7 @@ public class MyListFragment extends Fragment implements
 	public View onCreateView(LayoutInflater inflater, 
 			ViewGroup container, Bundle savedInstanceState) {
 		
-		Log.d("tag", "MyListFragment: onCreateView");
+		//Log.d("tag", "MyListFragment: onCreateView");
 		
 		View v = inflater.inflate(R.layout.mylist_fragment, container, false);	
 		
@@ -194,8 +194,8 @@ public class MyListFragment extends Fragment implements
 			@Override
 			public boolean onEditorAction(TextView tv, int actionId, KeyEvent event) {
 				
-				Log.d("tag", "editText event: " + event + " actionID: "
-						+ actionId + " view: " + tv.getText().toString());
+				//Log.d("tag", "editText event: " + event + " actionID: "
+						//+ actionId + " view: " + tv.getText().toString());
 
 					String text = tv.getText().toString();				
 									
@@ -226,12 +226,12 @@ public class MyListFragment extends Fragment implements
 					int resId = Constants.resId[resIdx];
 					
 					//int resId = R.drawable.placeholder;
-					Log.d("tag", "resid selected: " + resId);
+					//Log.d("tag", "resid selected: " + resId);
 					
 					if (updateInstead == false) {
 						
 						String fbid = getFbUserId();
-						Log.d("tag", "inserting fbid: " + fbid);
+						//Log.d("tag", "inserting fbid: " + fbid);
 						
 						cv.put(MyContentProvider.COLUMN_DATE, sdf.format(date));
 						cv.put(MyContentProvider.COLUMN_RATING, "false");
@@ -246,7 +246,7 @@ public class MyListFragment extends Fragment implements
 							cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_SKIPPED);
 						}
 						cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_TRANSACTING);
-						cv.put(MyContentProvider.COLUMN_IMG_PATH, resId);
+						cv.put(MyContentProvider.COLUMN_IMG_PATH, resIdx);
 						cv.put(MyContentProvider.COLUMN_DATE_COMPLETED, sdf.format(date));
 						cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
 						//cv.put(MyContentProvider.COLUMN_IMG, value);
@@ -302,21 +302,21 @@ public class MyListFragment extends Fragment implements
 	public void onActivityCreated(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onActivityCreated(savedInstanceState);
-		Log.d("tag", "MyListFragment: onActivityCreated");
+		//Log.d("tag", "MyListFragment: onActivityCreated");
 	}
 	
 	@Override
 	public void onAttach(Activity activity) {
 		// TODO Auto-generated method stub
 		super.onAttach(activity);
-		Log.d("tag", "MyListFragment: onAttach");
+		//Log.d("tag", "MyListFragment: onAttach");
 	}
 	
 	@Override
 	public void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
-		Log.d("tag", "MyListFragment: onStart");
+		//Log.d("tag", "MyListFragment: onStart");
 	}
 	
 	@Override
@@ -324,13 +324,13 @@ public class MyListFragment extends Fragment implements
 		// TODO Auto-generated method stub
 		super.onResume();
         uiHelper.onResume();
-		Log.d("tag", "MyListFragment: onResume");
+		//Log.d("tag", "MyListFragment: onResume");
 	}
 	
 	
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle bundle) {
-		Log.d("tag", "LoaderManager : oncreateloader");
+		//Log.d("tag", "LoaderManager : oncreateloader");
 		
 		// filter the entries that are marked for deletion (using the selection field) from displaying in listview
 		// sync adapter will kick in later to send the rest delete command to server
@@ -343,7 +343,7 @@ public class MyListFragment extends Fragment implements
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		Log.d("tag", "LoaderManager : onloadfinished cursor= " + cursor);
+		//Log.d("tag", "LoaderManager : onloadfinished cursor= " + cursor);
 		// save the cursor
 		myCursor = cursor;
 		la.swapCursor(cursor);
@@ -351,21 +351,21 @@ public class MyListFragment extends Fragment implements
 		// dump the db		
 		cursor.moveToFirst();
 
-		for (int i=0; i < cursor.getCount(); i++) {
+	//	for (int i=0; i < cursor.getCount(); i++) {
 			
-			Log.d("tag", "row " + i + " :" + cursor.getInt(MyContentProvider.COLUMN_INDEX_ID) + " " 
-					+ cursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY) + " " 
-					+ cursor.getString(MyContentProvider.COLUMN_INDEX_DONE) + " " 
-					+ cursor.getInt(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID));				
+			//Log.d("tag", "row " + i + " :" + cursor.getInt(MyContentProvider.COLUMN_INDEX_ID) + " " 
+				//	+ cursor.getString(MyContentProvider.COLUMN_INDEX_ENTRY) + " " 
+				//	+ MyContentProvider.restStateStr[cursor.getInt(MyContentProvider.COLUMN_INDEX_REST_STATE)] + " " 
+				//	+ cursor.getInt(MyContentProvider.COLUMN_INDEX_FACEBOOK_ID));				
 
-			cursor.moveToNext();	
-		}
+		//	cursor.moveToNext();	
+		//}
 
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		Log.d("tag", "LoaderManager : onloaderreset");
+		//Log.d("tag", "LoaderManager : onloaderreset");
 		la.swapCursor(null);
 	}
 
@@ -386,7 +386,7 @@ public class MyListFragment extends Fragment implements
 
 
 		public MyListActionMode() {
-			Log.d("tag", "constructor for actionmode");
+			//Log.d("tag", "constructor for actionmode");
 		}
 
 		@Override
@@ -394,11 +394,11 @@ public class MyListFragment extends Fragment implements
 
 			//Log.d("tag", "actionmode oncreate: " + mode);
 
-			menu.add(MENU_GROUP_ID_MAIN, MENU_ID_PHOTO, 0, "Change Picture")
+			menu.add(MENU_GROUP_ID_MAIN, MENU_ID_PHOTO, 0, "Change Photo")
 			.setIcon(R.drawable.content_picture)
 			.setShowAsAction(
-					MenuItem.SHOW_AS_ACTION_IF_ROOM
-							| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+					MenuItem.SHOW_AS_ACTION_ALWAYS	
+								| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 			
 			menu.add(MENU_GROUP_ID_MAIN, MENU_ID_DELETE, 0, "Delete")
 					.setIcon(R.drawable.content_discard)
@@ -409,7 +409,7 @@ public class MyListFragment extends Fragment implements
 			menu.add(MENU_GROUP_ID_MAIN, MENU_ID_EDIT, 0, "Edit")
 					.setIcon(R.drawable.content_edit)
 					.setShowAsAction(
-							MenuItem.SHOW_AS_ACTION_IF_ROOM
+							MenuItem.SHOW_AS_ACTION_ALWAYS
 									| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 			
 			menu.add(MENU_GROUP_ID_MAIN, MENU_ID_SHARE, 0, "Share")
@@ -447,7 +447,7 @@ public class MyListFragment extends Fragment implements
 					int key = sba.keyAt(i);
 					//Log.d("tag", "value at key:" + key + " is " + sba.get(key));
 					if (sba.get(key) == true) {
-						Log.d("tag", "MENU_DELETE: checked item position = " + key);
+						//Log.d("tag", "MENU_DELETE: checked item position = " + key);
 						position = key;
 						
 						Cursor c = (Cursor) la.getItem(position);
@@ -465,18 +465,20 @@ public class MyListFragment extends Fragment implements
 						
 						getActivity().getContentResolver().delete(base, null, null);
 						
+						// reset base URI
 						base = MyContentProvider.CONTENT_URI;
+					
 					}
 					
 				}
 
 			} else if (menuItemId == MENU_ID_EDIT) {
 
-				//Log.d("tag", "sb size: " + sba.size());
+				////Log.d("tag", "sb size: " + sba.size());
 				for (int i = 0; i < sba.size(); i++) {
 					int key = sba.keyAt(i);
 					if (sba.get(key) == true) {
-						Log.d("tag", "MENU_EDIT: checked item position = " + key);
+						//Log.d("tag", "MENU_EDIT: checked item position = " + key);
 						position = key;
 					}
 				}
@@ -504,7 +506,7 @@ public class MyListFragment extends Fragment implements
 				signalUpdate(true, itemId, position);
 
 			} else if (menuItemId == MENU_ID_SHARE){
-				Log.d("tag", "menu item share clicked");
+				//Log.d("tag", "menu item share clicked");
 
 				StringBuilder textList = new StringBuilder();
 
@@ -516,17 +518,17 @@ public class MyListFragment extends Fragment implements
 					int key = sba.keyAt(i);
 					//Log.d("tag", "value at key:" + key + " is " + sba.get(key));
 					if (sba.get(key) == true) {
-						Log.d("tag", "MENU_SHARE: checked item position = " + key);
+						//Log.d("tag", "MENU_SHARE: checked item position = " + key);
 						Cursor c = (Cursor) la.getItem(key);
 						String text = c
 								.getString(MyContentProvider.COLUMN_INDEX_ENTRY);
-						Log.d("tag", "MENU_SHARE: text to share = " + text);
+						//Log.d("tag", "MENU_SHARE: text to share = " + text);
 						textList.append(++count);
 						textList.append(". ");
 						textList.append(text);
 						textList.append('\n');
 
-						Log.d("tag", "MENU_SHARE: string to append = " + textList);
+						//Log.d("tag", "MENU_SHARE: string to append = " + textList);
 					}
 				}
 
@@ -547,15 +549,15 @@ public class MyListFragment extends Fragment implements
 				
 				for (int i = 0; i < sba.size(); i++) {
 					int key = sba.keyAt(i);
-					Log.d("tag", "value at key:" + key + " is "+ sba.get(key));
+					//Log.d("tag", "value at key:" + key + " is "+ sba.get(key));
 					if (sba.get(key) == true) {
-						Log.d("tag", "MENU_PICTURE: checked item position = " + key);
+						//Log.d("tag", "MENU_PICTURE: checked item position = " + key);
 						position = key;
 					}
 				}
 
 				if (position == -1) {
-					Log.d("tag", "nothing to select");
+					//Log.d("tag", "nothing to select");
 					mode.finish();
 					return false;
 				}
@@ -628,7 +630,7 @@ public class MyListFragment extends Fragment implements
 		// TODO Auto-generated method stub
 		super.onActivityResult(requestCode, resultCode, data);
 		
-		Log.d("tagab", "onactivity result");
+		//Log.d("tagab", "onactivity result");
 
 	    if (requestCode == MyListFragment.RESULT_LOAD_IMAGE) {
 
@@ -640,10 +642,10 @@ public class MyListFragment extends Fragment implements
 	            String filePath = Environment.getExternalStorageDirectory().getAbsolutePath();
             	filePath += "/picture" + icounter + ".jpg";
 
-				Log.d("tagab", "image path: " + filePath + " rowid: " + rowItemId);
+				//Log.d("tagab", "image path: " + filePath + " rowid: " + rowItemId);
 				Bitmap image = BitmapFactory.decodeFile(filePath);
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				image.compress(Bitmap.CompressFormat.JPEG, 75, out);
+				image.compress(Bitmap.CompressFormat.JPEG, 100, out);
 
 				Uri base = MyContentProvider.CONTENT_URI;
 				ContentValues cv = new ContentValues();
@@ -660,14 +662,13 @@ public class MyListFragment extends Fragment implements
 		} else if (requestCode == REAUTH_ACTIVITY_CODE) {
 			uiHelper.onActivityResult(requestCode, resultCode, data);
 		} else {
-			Log.d("tag", "onActivityResult for " + requestCode);
+			//Log.d("tag", "onActivityResult for " + requestCode);
 		}
         		
 	}
 	
 	@Override
-	public void onItemClick(AdapterView<?> parent, View view, int position,
-			long id) {
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		// TODO Auto-generated method stub
 		int count = 0;
 		Callback callback;
@@ -684,8 +685,7 @@ public class MyListFragment extends Fragment implements
 			}
 		}
 
-		Log.d("tag", "onItemClick position: " + position + " checked count = "
-				+ count);
+		// Log.d("tag", "onItemClick position: " + position + " checked count = " + count);
 
 		if (count == 0) {
 			/*
@@ -734,7 +734,7 @@ public class MyListFragment extends Fragment implements
 	public void refreshList() {
 		// only restart loader if the account has been synced
 		if (getInitialSynced() == true) {
-			Log.d("tag", "LoaderManager: restarting loader");
+			//Log.d("tag", "LoaderManager: restarting loader");
 			lm.restartLoader(0, null, this);
 			saveInitialSynced(false);
 		}
@@ -795,7 +795,7 @@ public class MyListFragment extends Fragment implements
 	public int getResIdCounterAndIncrement() {
 		int count = sp.getInt(getString(R.string.pref_res_id_counter), 0);
 		int next_count = count + 1;
-		if (next_count == Constants.resId.length) {
+		if (next_count == Constants.resId.length - 1) {
 			//recycle photo
 			next_count = 0;
 		}
@@ -807,7 +807,7 @@ public class MyListFragment extends Fragment implements
 
 	// facebook publish pending
 	public void saveFbPendingPublish(boolean value) {
-		Log.d("tag", "set FbPendingPublish: " + value);
+		//Log.d("tag", "set FbPendingPublish: " + value);
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putBoolean(getString(R.string.pref_facebook_pending_publish), value);
 		editor.commit();
@@ -836,7 +836,7 @@ public class MyListFragment extends Fragment implements
 		
 		saveFbPendingPublish(true);
 		
-		Log.d("tag", "publishStory rowid: " + rowId + " serverId: " + serverId);
+		// Log.d("tag", "publishStory rowid: " + rowId + " serverId: " + serverId);
 		
 	    Session session = Session.getActiveSession();
 	    
@@ -844,31 +844,37 @@ public class MyListFragment extends Fragment implements
         progressDialog = ProgressDialog.show(getActivity(), "",
                 "Announcing your dream completion...", true);
 	    
-	    if (session != null) {
+	    if (session != null && session.isOpened()) {
 	        
 	        // Run this in a background thread since some of the populate methods may take
 	        // a non-trivial amount of time.
 	        AsyncTask<String, Void, Response> FacebookAnnounceTask = new AsyncTask<String, Void, Response>() {
 
 	        	String rowid;
+	        	String serverid;
 	        	
 	            @Override
 	            protected Response doInBackground(String... arg0) {
 	                
-	            	Log.d("tagaa", "FacebookAnnounceTask: rowid = " + arg0[1].toString());
+	            	// Log.d("tagaa", "FacebookAnnounceTask: rowid = " + arg0[1].toString());
+	            	serverid = arg0[0].toString();
 	            	rowid = arg0[1].toString();
 	            	
 	    	        Bundle params = new Bundle();
 	    	       // params.putString("dream", "http://samples.ogp.me/574651899261441");
-	    	        params.putString("dream", "http://samples.ogp.me/574651912594773");
+	    	       // params.putString("dream", "http://samples.ogp.me/574651912594773");
+	    	       // params.putString("dream", "http://bucketlist.kiddobloom.com/test.html");
+	    	        String url = "http://bucketlist.kiddobloom.com/getFbJson.php?server_id=" + serverid;
+	    	        // Log.d("tag", "url: " + url);
+	    	        params.putString("dream", url);
 	                Request request = new Request(Session.getActiveSession(),
 	                		"me/kiddobloom:complete", params, HttpMethod.POST);
 	                return request.executeAndWait();
 	            }
-
+	            
 	            @Override
 	            protected void onPostExecute(Response response) {
-	            	Log.d("tag", "FacebookAnnounceTask: rowid: " + rowid + " response: " + response);
+	            	 //Log.d("tag", "FacebookAnnounceTask: rowid: " + rowid + " response: " + response);
 	                onPostActionResponse(response, rowid);
 	             }
 	        };
@@ -876,7 +882,11 @@ public class MyListFragment extends Fragment implements
 	        FacebookAnnounceTask.execute(serverId, rowId);
 
 	    } else {
-	    	Log.d("tag", "FacebookAnnounceTask: session is null");
+	    	// Log.d("tag", "FacebookAnnounceTask: session is null");
+	    	
+	    	Toast.makeText(getActivity(), 
+                    "Your Facebook login session expired - please re-login",  
+                    Toast.LENGTH_SHORT).show();
 	    }
 	}
 	
@@ -887,7 +897,7 @@ public class MyListFragment extends Fragment implements
                     // if none are set, this defaults to FRIENDS
                     .setDefaultAudience(SessionDefaultAudience.FRIENDS)
                     .setRequestCode(REAUTH_ACTIVITY_CODE);
-            Log.d("tag", "requesting new permission");
+            //Log.d("tag", "requesting new permission");
             session.requestNewPublishPermissions(newPermissionsRequest);
         }
     }
@@ -911,7 +921,7 @@ public class MyListFragment extends Fragment implements
         PostResponse postResponse = response.getGraphObjectAs(PostResponse.class);
 
         if (postResponse != null && postResponse.getId() != null) {
-        	Log.d("tag", "successful publish the completed dream id: " + postResponse.getId());
+        	//Log.d("tag", "successful publish the completed dream id: " + postResponse.getId());
     		
 //            String dialogBody = String.format("success", postResponse.getId());
 //            		
@@ -924,7 +934,7 @@ public class MyListFragment extends Fragment implements
 //            textView.setTextSize(14);
         	
             Toast.makeText(getActivity(), 
-                    "Facebook annouce successful",  
+                    "Successful announcing your dream completion on Facebook",  
                     Toast.LENGTH_SHORT).show();
             
             saveFbPendingPublish(false);
@@ -944,27 +954,30 @@ public class MyListFragment extends Fragment implements
                 case AUTHENTICATION_RETRY:
                     // tell the user what happened by getting the message id, and
                     // retry the operation later
-                    Log.d("tag", "Error FacebookAnnounceTask: authentication retry");
+                    //Log.d("tag", "Error FacebookAnnounceTask: authentication retry");
 
                     Intent intent = new Intent(Intent.ACTION_VIEW, M_FACEBOOK_URL);
                     getActivity().startActivity(intent);
 
+                    saveFbPendingPublish(false);
                     break;
 
                 case AUTHENTICATION_REOPEN_SESSION:
                     // close the session and reopen it.
-                    Log.d("tag", "Error FacebookAnnounceTask: authentication reopen session");
+                    //Log.d("tag", "Error FacebookAnnounceTask: authentication reopen session");
 
                     Session session = Session.getActiveSession();
                     if (session != null && !session.isClosed()) {
                         session.closeAndClearTokenInformation();
                     }
                     
+                    saveFbPendingPublish(false);
+                    
                     break;
 
                 case PERMISSION:
                     // request the publish permission
-                    Log.d("tag", "Error FacebookAnnounceTask: error permission");
+                    //Log.d("tag", "Error FacebookAnnounceTask: error permission");
                     
                 	requestPublishPermissions(Session.getActiveSession());
                 
@@ -974,11 +987,13 @@ public class MyListFragment extends Fragment implements
                 case THROTTLING:
                     // this is usually temporary, don't clear the fields, and
                     // ask the user to try again
-                    Log.d("tag", "Error FacebookAnnounceTask: server/throttling");
+                    //Log.d("tag", "Error FacebookAnnounceTask: server/throttling");
+                	saveFbPendingPublish(false);
                     break;
 
                 case BAD_REQUEST:
                     // this is likely a coding error, ask the user to file a bug
+                	saveFbPendingPublish(false);
                     break;
 
                 case OTHER:
@@ -987,6 +1002,10 @@ public class MyListFragment extends Fragment implements
                     // an unknown issue occurred, this could be a code error, or
                     // a server side issue, log the issue, and either ask the
                     // user to retry, or file a bug
+                	Toast.makeText(getActivity(), 
+                            "Failed to announce your dream completion on Facebook",  
+                            Toast.LENGTH_SHORT).show();
+                	saveFbPendingPublish(false);
                     break;
             }
         }
@@ -994,15 +1013,23 @@ public class MyListFragment extends Fragment implements
 
 	@Override
 	public void onPendingPublish(String serverId, String rowId) {
-		Log.d("tag", "onPendingPublish callback - serverId: " + serverId + " rowId: " + rowId);
-		Log.d("tag", "onPendingPublish callback - FbPendingPublish: " + getFbPendingPublish() );
+		//Log.d("tag", "onPendingPublish callback - serverId: " + serverId + " rowId: " + rowId);
+		//Log.d("tag", "onPendingPublish callback - FbPendingPublish: " + getFbPendingPublish() );
 		
 		if (getFbPendingPublish() == false && getState() == StateMachine.ONLINE_STATE) {
 			
 			rowToPublish = rowId;
 			serverIdToPublish = serverId;
-
-			publishStory(serverId, rowId);
+			
+			if (serverIdToPublish == null) {
+				// set a timer to retry 
+				// Log.d("tag", "server id is not valid - need to retry");
+	            Toast.makeText(getActivity(), 
+	                    "Syncing the bucket list entry - please retry in a few minutes",  
+	                    Toast.LENGTH_SHORT).show();
+			} else {
+				publishStory(serverId, rowId);
+			}
 		}		
 	}
 	

@@ -106,7 +106,7 @@ public class ImageDownloader {
 	private void forceDownload(String url, ImageView imageView) {
 		// State sanity: url is guaranteed to never be null in
 		// DownloadedDrawable and cache keys.
-		Log.d("tag", "download " + url + " imageView: " + imageView);
+		//Log.d("tag", "download " + url + " imageView: " + imageView);
 		
 		if (url == null) {
 			imageView.setImageDrawable(null);
@@ -191,8 +191,7 @@ public class ImageDownloader {
 			HttpResponse response = client.execute(getRequest);
 			final int statusCode = response.getStatusLine().getStatusCode();
 			if (statusCode != HttpStatus.SC_OK) {
-				Log.w("ImageDownloader", "Error " + statusCode
-						+ " while retrieving bitmap from " + url);
+				//Log.w("ImageDownloader", "Error " + statusCode + " while retrieving bitmap from " + url);
 				return null;
 			}
 
@@ -214,13 +213,13 @@ public class ImageDownloader {
 			}
 		} catch (IOException e) {
 			getRequest.abort();
-			Log.w(LOG_TAG, "I/O error while retrieving bitmap from " + url, e);
+			//Log.w(//Log_TAG, "I/O error while retrieving bitmap from " + url, e);
 		} catch (IllegalStateException e) {
 			getRequest.abort();
-			Log.w(LOG_TAG, "Incorrect URL: " + url);
+			//Log.w(LOG_TAG, "Incorrect URL: " + url);
 		} catch (Exception e) {
 			getRequest.abort();
-			Log.w(LOG_TAG, "Error while retrieving bitmap from " + url, e);
+			//Log.w(LOG_TAG, "Error while retrieving bitmap from " + url, e);
 		} finally {
 			if ((client instanceof AndroidHttpClient)) {
 				((AndroidHttpClient) client).close();
@@ -426,14 +425,14 @@ public class ImageDownloader {
 		synchronized (sHardBitmapCache) {
 			final Bitmap bitmap = sHardBitmapCache.get(url);
 			if (bitmap != null) {
-				Log.d("tag", "bitmap found in hard cache");
+				//Log.d("tag", "bitmap found in hard cache");
 				// Bitmap found in hard cache
 				// Move element to first position, so that it is removed last
 				sHardBitmapCache.remove(url);
 				sHardBitmapCache.put(url, bitmap);
 				return bitmap;
 			} else {
-				Log.d("tag", "bitmap not found in hard cache");
+				//Log.d("tag", "bitmap not found in hard cache");
 			}
 		}
 
@@ -443,13 +442,13 @@ public class ImageDownloader {
 			final Bitmap bitmap = bitmapReference.get();
 			if (bitmap != null) {
 				// Bitmap found in soft cache
-				Log.d("tag", "bitmap found in soft cache");
+				//Log.d("tag", "bitmap found in soft cache");
 
 				return bitmap;
 			} else {
 				// Soft reference has been Garbage Collected
 				sSoftBitmapCache.remove(url);
-				Log.d("tag", "bitmap not found in soft cache");
+				//Log.d("tag", "bitmap not found in soft cache");
 			}
 		}
 

@@ -111,14 +111,14 @@ public class PreferencesActivity extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 
-		Log.d("tag", "button is pressed");
+		//Log.d("tag", "button is pressed");
 
 		if (v.getId() == R.id.prefButtonOK) {
 			savePreferences();
 			PreferencesActivity.this.setResult(RESULT_OK);
 			finish();
 		} else if (v.getId() == R.id.prefButtonCancel) {
-			Log.d("tag", "cancel is pressed");
+			//Log.d("tag", "cancel is pressed");
 			PreferencesActivity.this.setResult(RESULT_CANCELED);
 			finish();
 		} else if (v.getId() == R.id.pref_cb_fb) {

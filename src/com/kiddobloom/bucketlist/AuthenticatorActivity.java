@@ -22,6 +22,7 @@ import java.net.SocketTimeoutException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -75,7 +76,9 @@ import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
+import com.facebook.model.GraphLocation;
 import com.facebook.model.GraphUser;
+import com.facebook.widget.LoginButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -107,7 +110,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
     
     private void onSessionStateChange(Session session, SessionState state, Exception exception) {
     	
-    	Log.d("tagaa", "authenticator facebook onseesionstatechange:" + session + " state:" + state);    	
+    	//Log.d("tagaa", "authenticator facebook onseesionstatechange:" + session + " state:" + state);    	
     	if (session != null) {
     		if (session.isOpened() == true) {
     			saveSkip(false);
@@ -119,7 +122,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 
     				getFacebookInfo(session);
     			} else {
-    				Log.d("tagaa", "Ignore the FB session open because prev state: " + StateMachine.stateStr[getState()]);
+    				//Log.d("tagaa", "Ignore the FB session open because prev state: " + StateMachine.stateStr[getState()]);
     			}
     			
     		} else if (session.isClosed() == true){
@@ -138,11 +141,10 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 		Intent intent = getIntent();
 	    bucketListTab = intent.getIntExtra("com.kiddobloom.bucketlist.current_tab", 0);
 	    
-		Log.d("tagaa", "authenticator activity oncreate - bucketListTab: " + bucketListTab);
-		
+		//Log.d("tagaa", "authenticator activity oncreate - bucketListTab: " + bucketListTab);
+	    requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);  
 		super.onCreate(icicle);
-		
-		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);  
+		setProgressBarIndeterminateVisibility(false);
 		
 		uiHelper = new UiLifecycleHelper(this, callback);
 	    uiHelper.onCreate(icicle);
@@ -177,15 +179,16 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 		super.onResume();
         uiHelper.onResume();
         isResumed = true;
-        Log.d("tagaa", "authenticator activity onresume");
+        //Log.d("tagaa", "authenticator activity onresume");
         
+
 		// only show this screen once when the user installs the app
 		// check to see if skip is already saved in preferences
 		skip = getSkip();
-		Log.d("tagaa", "skip: " + skip);
+		//Log.d("tagaa", "skip: " + skip);
 		
 		if (skip == false) {
-			Log.d("tagaa", "inflating facebook_login");
+			//Log.d("tagaa", "inflating facebook_login");
 			// inflate the login screen
 			setContentView(R.layout.facebook_login);
 			
@@ -219,7 +222,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 		super.onPause();
        uiHelper.onPause();
         isResumed = false;
-        Log.d("tagaa", "authenticator activity onpause");
+        //Log.d("tagaa", "authenticator activity onpause");
 	}
 	
     @Override
@@ -232,7 +235,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
     public void onDestroy() {
         super.onDestroy();
        uiHelper.onDestroy();
-       Log.d("tagaa", "authenticator activity ondestroy");
+       //Log.d("tagaa", "authenticator activity ondestroy");
     }
 
     @Override
@@ -243,7 +246,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 	
     // event handler for skip button
     public void handleSkip(View v) {
-    	Log.d("tagaa", "handleSkip");
+    	//Log.d("tagaa", "handleSkip");
     	saveSkip(true);
     	saveState(StateMachine.SKIPPED_STATE);
 		saveStatus(StateMachine.OK_STATUS);
@@ -254,7 +257,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 	public void getFacebookInfo(Session session) {
 		
 		if (!isNetworkAvailable()) {
-			Log.d("tagaa", "network is not available");
+			//Log.d("tagaa", "network is not available");
 			Toast.makeText(getApplicationContext(),
 	                "network connection is not available - OFFLINE mode",
 	                Toast.LENGTH_LONG).show();
@@ -283,7 +286,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 		@Override
 		protected String doInBackground(String... arg0) {
 
-			Log.d("tagaa", "RegisterTask: facebook id = " + arg0[0].toString());
+			//Log.d("tagaa", "RegisterTask: facebook id = " + arg0[0].toString());
 
 			final ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
 			nvp.add(new BasicNameValuePair("fbid", arg0[0].toString()));
@@ -324,10 +327,10 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 			if (resp != null) {
 				if (resp.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 					if (response != null) {
-						Log.d("tagaa", "RegisterTask: server response = " + response);
+						//Log.d("tagaa", "RegisterTask: server response = " + response);
 					}
 				} else {
-					Log.d("tagaa", "RegisterTask: server error = " + resp.getStatusLine());
+					//Log.d("tagaa", "RegisterTask: server error = " + resp.getStatusLine());
 					response = "error:" + resp.getStatusLine();
 				}
 			}
@@ -336,7 +339,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 
 		protected void onProgressUpdate(Integer... progress) {
 			// setProgressPercent(progress[0]);
-			Log.d("tagaa", "RegisterTask: progress = " + progress[0]);
+			//Log.d("tagaa", "RegisterTask: progress = " + progress[0]);
 		}
 
 		protected void onPostExecute(String result) {
@@ -348,11 +351,11 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 					String arr[] = result.split(":");
 					
 					if (arr.length == 3) {
-						Log.d("tagaa", arr[0] + " " + arr[1] + " " + arr[2]);
+						//Log.d("tagaa", arr[0] + " " + arr[1] + " " + arr[2]);
 					} else if (arr.length == 2) {
-						Log.d("tagaa", arr[0] + " " + arr[1]);
+						//Log.d("tagaa", arr[0] + " " + arr[1]);
 					} else if (arr.length == 1) {
-						Log.d("tagaa", arr[0]);
+						//Log.d("tagaa", arr[0]);
 					}
 	
 					Toast.makeText(getApplicationContext(),
@@ -365,7 +368,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 					goToBucketListActivity();
 	
 				} else {
-					Log.d("tagaa", "RegisterTask: completed facebook id registration");
+					//Log.d("tagaa", "RegisterTask: completed facebook id registration");
 					
 					// save the registered flag to true in preferences db
 					saveUserIdRegistered(true);
@@ -396,14 +399,14 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 	@Override
 	public void onCompleted(List<GraphUser> users, Response response) {
 		
-		Log.d("tagaa", "FacebookGetFriends: oncompleted friends req");
+		//Log.d("tagaa", "FacebookGetFriends: oncompleted friends req");
 		
 		if (response != null) {
 			
 			FacebookRequestError error = response.getError();
 			if (error != null) {
 				// failed to get user info from facebook - TOAST
-				Log.d("tagaa", "FacebookGetFriends: failed to get friendlist from facebook: " + error);
+				//Log.d("tagaa", "FacebookGetFriends: failed to get friendlist from facebook: " + error);
 				
 				Toast.makeText(getApplicationContext(),
 		                "Failed to retrieve friends list from Facebook - OFFLINE mode",
@@ -419,8 +422,10 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 		}
 		if (users != null) {
 			
+			myApp.friendsList.clear();
+			
 			for (int i=0 ; i < users.size() ; i++) {
-				//Log.d("tagaa", "name:" + users.get(i).getName());
+				////Log.d("tagaa", "name:" + users.get(i).getName());
 				//Log.d("tagaa", "userid:" + users.get(i).getId());
 				
 				FriendData fd = new FriendData();
@@ -428,6 +433,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 				fd.facebookId = users.get(i).getId();
 				fd.bucketList = new String[50];
 				fd.notified = false;
+				fd.allPrivate = false;
 				
 				if(myApp.friendsList != null) {
 					myApp.friendsList.add(fd);
@@ -452,7 +458,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 		} else {
 			
 			// failed to get user info from facebook - TOAST
-			Log.d("tagaa", "FacebookGetFriends: failed to get friends list from facebook");
+			//Log.d("tagaa", "FacebookGetFriends: failed to get friends list from facebook");
 			
 			Toast.makeText(getApplicationContext(),
 	                "Failed to retrieve friends list from Facebook - OFFLINE mode",
@@ -472,14 +478,14 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 	@Override
 	public void onCompleted(GraphUser user, Response response) {
 		// TODO Auto-generated method stub
-		Log.d("tagaa", "FacebookGetMe: oncomplete me request");
+		//Log.d("tagaa", "FacebookGetMe: oncomplete me request");
 		
 		if (response != null) {
 			
 			FacebookRequestError error = response.getError();
 			if (error != null) {
 				// failed to get user info from facebook - TOAST
-				Log.d("tagaa", "FacebookGetMe: failed to get user info from facebook: " + error);
+				//Log.d("tagaa", "FacebookGetMe: failed to get user info from facebook: " + error);
 				
 				Toast.makeText(getApplicationContext(),
 		                "Failed to retrieve information from Facebook - OFFLINE mode",
@@ -501,7 +507,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 			// if we get to this point, we know that the network is OK
 			// we can continue server registration
 			
-			Log.d("tagaa", "FacebookGetMe: me = " + user);
+			//Log.d("tagaa", "FacebookGetMe: me = " + user);
 			
 			// check whether (com.kidobloom) type account has been created for the fb-userid
 			// if account db is empty - create a new account using the fb-userid
@@ -512,7 +518,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 			Account[] accounts = accountManager.getAccountsByType("com.kiddobloom");
 
 			if (accounts.length <= 0) {
-				Log.d("tagaa", "FacebookGetMe: no account exists");
+				//Log.d("tagaa", "FacebookGetMe: no account exists");
 				// create a new account
 				account = new Account(user.getId(), Constants.ACCOUNT_TYPE);
 				am.addAccountExplicitly(account, null, null);
@@ -520,13 +526,13 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 				registered = false;
 			} else {
 				// get the first account
-				Log.d("tagaa", "FacebookGetMe: account = " + accounts[0].name);
+				//Log.d("tagaa", "FacebookGetMe: account = " + accounts[0].name);
 
 				if (accounts[0].name.equals(user.getId())) {
 					registered = true;
-					Log.d("tagaa", "FacebookGetMe: account for facebookId = " + user.getId() + " already created");
+					//Log.d("tagaa", "FacebookGetMe: account for facebookId = " + user.getId() + " already created");
 				} else {
-					Log.d("tag", "FacebookGetMe: user switched account");
+					//Log.d("tag", "FacebookGetMe: user switched account");
 					// remove the account first
 					am.removeAccount(accounts[0], null, null);
 
@@ -544,7 +550,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 			// store the userid and registered boolean in preferences db
 			saveFbUserId(user.getId());
 			saveUserIdRegistered(registered);
-						
+			
 			saveState(StateMachine.FB_GET_FRIENDS_STATE);
 			saveStatus(StateMachine.TRANSACTING_STATUS);
 			saveError(StateMachine.NO_ERROR);
@@ -554,7 +560,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 
 		} else {
 			// throw an exception here - facebook does not indicate error but user is null 
-			Log.d("tagaa", "FacebookGetMe: failed to get user info from facebook - OFFLINE mode");
+			//Log.d("tagaa", "FacebookGetMe: failed to get user info from facebook - OFFLINE mode");
 			
 			Toast.makeText(getApplicationContext(),
 	                "Failed to retrieve information from Facebook",
@@ -595,7 +601,7 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 	
 	// state
 	public void saveState(int state) {
-		Log.d("tagaa", "authenticator state change " + StateMachine.stateStr[state]);
+		//Log.d("tagaa", "authenticator state change " + StateMachine.stateStr[state]);
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putInt(getString(R.string.pref_state_key), state);
 		editor.commit();
@@ -636,6 +642,39 @@ public class AuthenticatorActivity extends Activity implements Request.GraphUser
 
 	public String getFbUserId() {
 		return sp.getString(getString(R.string.pref_fb_userid_key), "invalid");
+	}
+
+	// fb_userCity
+	public void saveFbUserCity(String city) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putString(getString(R.string.pref_fb_user_city_key), city);
+		editor.commit();
+	}
+
+	public String getFbUserCity(String State) {
+		return sp.getString(getString(R.string.pref_fb_user_city_key), "invalid");
+	}
+	
+	// fb_userstate
+	public void saveFbUserState(String state) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putString(getString(R.string.pref_fb_user_state_key), state);
+		editor.commit();
+	}
+
+	public String getFbUserState(String State) {
+		return sp.getString(getString(R.string.pref_fb_user_state_key), "invalid");
+	}
+	
+	// fb_usercountry
+	public void saveFbUserCountry(String country) {
+		SharedPreferences.Editor editor = sp.edit();
+		editor.putString(getString(R.string.pref_fb_user_country_key), country);
+		editor.commit();
+	}
+
+	public String getFbUserCountry(String State) {
+		return sp.getString(getString(R.string.pref_fb_user_country_key), "invalid");
 	}
 
 	// userid_registered

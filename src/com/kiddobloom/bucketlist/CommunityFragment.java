@@ -84,7 +84,7 @@ public class CommunityFragment extends Fragment {
 	public void dataChange() {
 		if (ad != null) {
 			ad.notifyDataSetChanged();
-			Log.d("tag", "dataChange");
+			//Log.d("tag", "dataChange");
 		}
 		
 		

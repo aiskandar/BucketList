@@ -31,10 +31,10 @@ public class AuthenticationService extends Service {
 
     @Override
     public void onCreate() {
-    	Log.d("tag", "authenticator service on create");
+    	//Log.d("tag", "authenticator service on create");
     	
         if (Log.isLoggable(TAG, Log.VERBOSE)) {
-            Log.v(TAG, "SampleSyncAdapter Authentication Service started.");
+            //Log.v(TAG, "SampleSyncAdapter Authentication Service started.");
         }
         mAuthenticator = new Authenticator(this);
     }
@@ -42,17 +42,15 @@ public class AuthenticationService extends Service {
     @Override
     public void onDestroy() {
         if (Log.isLoggable(TAG, Log.VERBOSE)) {
-            Log.v(TAG, "SampleSyncAdapter Authentication Service stopped.");
+            //Log.v(TAG, "SampleSyncAdapter Authentication Service stopped.");
         }
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-    	Log.d("tag", "service onbind");
+    	//Log.d("tag", "service onbind");
         if (Log.isLoggable(TAG, Log.VERBOSE)) {
-            Log.v(TAG,
-                "getBinder()...  returning the AccountAuthenticator binder for intent "
-                    + intent);
+            //Log.v(TAG, "getBinder()...  returning the AccountAuthenticator binder for intent " + intent);
         }
         return mAuthenticator.getIBinder();
     }
@@ -60,7 +58,7 @@ public class AuthenticationService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
     	// TODO Auto-generated method stub
-    	Log.d("tag", "authenticator start command");
+    	//Log.d("tag", "authenticator start command");
     	return super.onStartCommand(intent, flags, startId);
     	
 

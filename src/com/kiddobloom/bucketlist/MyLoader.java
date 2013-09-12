@@ -20,58 +20,58 @@ public class MyLoader extends CursorLoader {
 	public Cursor loadInBackground() {
 		// TODO Auto-generated method stub
 		Cursor c = super.loadInBackground();
-		Log.d("tag", "MyLoader: loadInBackground");
+		//Log.d("tag", "MyLoader: loadInBackground");
 		return c;
 	}
 	
 	@Override
 	protected void onStartLoading() {
 		super.onStartLoading();
-		Log.d("tag", "MyLoader: onStartLoading " + this + " cursor = " + cursor);
+		//Log.d("tag", "MyLoader: onStartLoading " + this + " cursor = " + cursor);
 		
 	}
 	
 	@Override
 	protected void onStopLoading() {
 		super.onStopLoading();
-		Log.d("tag", "MyLoader: onStopLoading ");
+		//Log.d("tag", "MyLoader: onStopLoading ");
 	}
 	
 	@Override
 	protected void onReset() {
 		super.onReset();
-		Log.d("tag", "MyLoader: onReset " + this + " cursor = " + cursor);
+		//Log.d("tag", "MyLoader: onReset " + this + " cursor = " + cursor);
 		
 		if (isStarted()) {
-			Log.d("tag", "MyLoader started state " + this);
+			//Log.d("tag", "MyLoader started state " + this);
 		}
 		
 		if (isReset()) {
-			Log.d("tag", "MyLoader reset state " + this);
+			//Log.d("tag", "MyLoader reset state " + this);
 		}
 	}
 	
 	@Override
 	protected void onAbandon() {
 		super.onAbandon();
-		Log.d("tag", "MyLoader: onAbandon " + this  + " cursor = " + cursor);
+		//Log.d("tag", "MyLoader: onAbandon " + this  + " cursor = " + cursor);
 		
 		if (isStarted()) {
-			Log.d("tag", "loader started state " + this);
+			//Log.d("tag", "loader started state " + this);
 		}
 		
 		if (isReset()) {
-			Log.d("tag", "loader reset state " + this);
+			//Log.d("tag", "loader reset state " + this);
 		}
 	}
 	
 	@Override
 	public void deliverResult(Cursor data) {
 		super.deliverResult(data);
-		Log.d("tag", "myLoader: deliverResult cursor = " + data);
+		//Log.d("tag", "myLoader: deliverResult cursor = " + data);
 		
 		if (isStarted()) {
-			//Log.d("tag", "loader started state " + this);
+			////Log.d("tag", "loader started state " + this);
 		}
 		
 		if (isReset()) {
@@ -83,7 +83,7 @@ public class MyLoader extends CursorLoader {
 	@Override
 	public void onContentChanged() {
 		super.onContentChanged();
-		Log.d("tag", "MyLoader: onContentChanged");
+		//Log.d("tag", "MyLoader: onContentChanged");
 	}
 	
 	@Override
@@ -91,14 +91,14 @@ public class MyLoader extends CursorLoader {
 		// TODO Auto-generated method stub
 		super.reset();
 		
-		Log.d("tag", "MyLoader: reset");
+		//Log.d("tag", "MyLoader: reset");
 		
 		if (isStarted()) {
-			Log.d("tag", "loader started state " + this);
+			//Log.d("tag", "loader started state " + this);
 		}
 		
 		if (isReset()) {
-			Log.d("tag", "loader reset state " + this);
+			//Log.d("tag", "loader reset state " + this);
 		}		
 		
 	}

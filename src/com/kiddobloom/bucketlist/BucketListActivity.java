@@ -54,6 +54,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -98,7 +100,7 @@ public class BucketListActivity extends Activity implements TabListener {
     
     private void onSessionStateChange(Session session, SessionState state, Exception exception) {
     	
-    	Log.d("tag", "bucketlist onseesionstatechange:" + session + " state:" + state);
+    	//Log.d("tag", "bucketlist onseesionstatechange:" + session + " state:" + state);
 
     	if (session != null && session.isOpened()) {
  
@@ -112,7 +114,7 @@ public class BucketListActivity extends Activity implements TabListener {
 
 				goToAuthenticatorActivity();
         	} else {
-        		Log.d("tag", "bucketlist onsessionstatechange re-open STATE MACHINE is ONLINE");
+        		//Log.d("tag", "bucketlist onsessionstatechange re-open STATE MACHINE is ONLINE");
         	}
         
     	} else if (session.isClosed() == true){
@@ -128,6 +130,9 @@ public class BucketListActivity extends Activity implements TabListener {
 	protected void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
+		
+		//requestWindowFeature(Window.FEATURE_);
+		//getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		Intent intent = getIntent();
 	    currentTab = intent.getIntExtra("current_tab", 0);
@@ -154,7 +159,7 @@ public class BucketListActivity extends Activity implements TabListener {
 		uiHelper = new UiLifecycleHelper(this, callback);		
 		uiHelper.onCreate(savedInstanceState);
 
-		Log.d("tag", "bucketlist activity created - currentTab: " + currentTab);
+		//Log.d("tag", "bucketlist activity created - currentTab: " + currentTab);
 
 		sp = getSharedPreferences(getString(R.string.pref_name), 0);
 
@@ -181,7 +186,7 @@ public class BucketListActivity extends Activity implements TabListener {
  
 		getActionBar().setTitle("Bucket List");
 	    getActionBar().setSubtitle("by kiddoBLOOM");
-		
+	    
 		mHandler = new Handler();
 		
 		// timer callback handler - timer is set when state is OFFLINE
@@ -191,29 +196,29 @@ public class BucketListActivity extends Activity implements TabListener {
         		
         		// are we in online, offline, or skip state?
         		if (getState() == StateMachine.OFFLINE_STATE) {
-        			Log.d("tag", "timer event offline");
+        			//Log.d("tag", "timer event offline");
         			// most likely there is an error
         			if (getStatus() == StateMachine.ERROR_STATUS) {
 
         				if (!isNetworkAvailable()) {
-        					Log.d("tag", "network is not available");
+        					//Log.d("tag", "network is not available");
         				} else {
 	        				
 	        				switch (getError()) {
 	        					case StateMachine.NETWORK_DISCONNECT_ERROR:
-	        						Log.d("tag", "retry - network disconnect error");
+	        						//Log.d("tag", "retry - network disconnect error");
 	        						//getFacebookInfo();
 	        						break;
 								case StateMachine.FB_GET_ME_FAILED_ERROR:
-									Log.d("tag", "retry - fb get me failed error");
+									//Log.d("tag", "retry - fb get me failed error");
 									//getFacebookInfo();
 									break;
 								case StateMachine.FB_GET_FRIENDS_FAILED_ERROR:
-									Log.d("tag", "retry - fb get friends failed error");
+									//Log.d("tag", "retry - fb get friends failed error");
 									//getFacebookFriends();
 									break;
 								case StateMachine.FBID_SERVER_REGISTER_ERROR:
-									Log.d("tag", "retry - server register error");
+									//Log.d("tag", "retry - server register error");
 									//registerUserId();
 									break;
 								default:
@@ -229,7 +234,7 @@ public class BucketListActivity extends Activity implements TabListener {
         		} else if (getState() == StateMachine.ONLINE_STATE) {
         			// it seems our timer callback has successfully delivered us to ONLINE mode
         			// re-select the tab and DO not restart timer
-        			Log.d("tag", "timer event online");
+        			//Log.d("tag", "timer event online");
         			
         			switch(currentTab) {
         			case MYLIST_NAV_TAB_IDX:
@@ -262,7 +267,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// TODO Auto-generated method stub
 		
-		Log.d("tag", "menu item selected :" + item.getItemId());
+		//Log.d("tag", "menu item selected :" + item.getItemId());
 		
 		int id = item.getItemId();
 		
@@ -274,7 +279,7 @@ public class BucketListActivity extends Activity implements TabListener {
 				myApp.friendsList.clear();	
 			} else {
 				// toast
-				Log.d("tag", "toast: you are not logged in to facebook - ");
+				//Log.d("tag", "toast: you are not logged in to facebook - ");
 				Toast.makeText(this,
 		                "You are not currently Logged in to Facebook",
 		                Toast.LENGTH_SHORT).show();
@@ -297,8 +302,8 @@ public class BucketListActivity extends Activity implements TabListener {
 		super.onResume();
         uiHelper.onResume();
         isResumed = true;
-        Log.d("tag", "bucketlist activity is resumed - currentTab: " + currentTab);
-        Log.d("tag", "bucketlist resuming from " + StateMachine.stateStr[getState()]);
+        //Log.d("tag", "bucketlist activity is resumed - currentTab: " + currentTab);
+        //Log.d("tag", "bucketlist resuming from " + StateMachine.stateStr[getState()]);
         
 		switch(currentTab) {
 		case MYLIST_NAV_TAB_IDX:
@@ -317,7 +322,7 @@ public class BucketListActivity extends Activity implements TabListener {
 		if (getState() == StateMachine.OFFLINE_STATE) {
 			// most likely there is an error
 			if (getStatus() == StateMachine.ERROR_STATUS) {
-				Log.d("tag", "trigger a timer to retry");
+				//Log.d("tag", "trigger a timer to retry");
 				mHandler.removeCallbacks(mUpdate);
 				mHandler.postDelayed(mUpdate, TIMER_INTERVAL);
 			}
@@ -342,7 +347,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	        
 	    // remove timer callback if the activity is paused
 	    mHandler.removeCallbacks(mUpdate);
-		Log.d("tag", "bucketlist activity is paused");
+		//Log.d("tag", "bucketlist activity is paused");
 	}
 
 
@@ -363,27 +368,27 @@ public class BucketListActivity extends Activity implements TabListener {
        // clear facebook friends when activity is destroyed
 	   myApp.friendsList.clear();
        saveInitialSynced(false);
-       Log.d("tag", "bucketlist activity ondestroy");
+       //Log.d("tag", "bucketlist activity ondestroy");
     }
 
 	@Override
 	protected void onStop() {
 		super.onStop();
-		Log.d("tag", "bucketlist activity is stopped");
+		//Log.d("tag", "bucketlist activity is stopped");
 	}
 	
 	@Override
 	protected void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
-		Log.d("tag", "bucketlist activity is started");
+		//Log.d("tag", "bucketlist activity is started");
 
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		// TODO Auto-generated method stub
-		Log.d("tag", "bucketlist activity onsaveinstancestate");
+		//Log.d("tag", "bucketlist activity onsaveinstancestate");
 		
 
 	 	// save the currently selected fragment
@@ -397,13 +402,13 @@ public class BucketListActivity extends Activity implements TabListener {
 	@Override
 	protected void onRestoreInstanceState(Bundle state) {
 		// TODO Auto-generated method stub
-		Log.d("tag", "bucketlist activity onrestoreinstancestate");
+		//Log.d("tag", "bucketlist activity onrestoreinstancestate");
 
 		super.onRestoreInstanceState(state);
 	}
 
 	public void handleVisit(View v) {
-		Log.d("tag", "handle visit");
+		//Log.d("tag", "handle visit");
 		
 		Intent intent = new Intent(Intent.ACTION_VIEW); 
 		intent.setData(Uri.parse("http://www.kiddobloom.com"));		
@@ -412,7 +417,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	}
 	
 	public void handleTwitter(View v) {
-		Log.d("tag", "handle Twitter follow");
+		//Log.d("tag", "handle Twitter follow");
 		
 		Intent intent = new Intent(Intent.ACTION_VIEW); 
 		intent.setData(Uri.parse("http://twitter.com/kiddobloom"));		
@@ -421,7 +426,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	}
 	
 	public void handleFbLike(View v) {
-		Log.d("tag", "handle FB like");
+		//Log.d("tag", "handle FB like");
 		
 		Intent intent;
 		String kiddobloom_fb_id = "208086305947271";
@@ -429,12 +434,12 @@ public class BucketListActivity extends Activity implements TabListener {
 		String url = "https://www.facebook.com/kiddobloom";
 			
 		try {
-			Log.d("tag", "uri: " + uri);
+			//Log.d("tag", "uri: " + uri);
 			intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
 			startActivity(intent);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			//e.printStackTrace();Log.d("tag", "url: " + url);
+			//e.printStackTrace();//Log.d("tag", "url: " + url);
 		    intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
 		    startActivity(intent);
 		}
@@ -447,7 +452,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	    Session session = Session.getActiveSession();
 	       
 		if (tab.getText().equals("My List")) {
-			Log.d("tag", "My List selected");
+			//Log.d("tag", "My List selected");
 			
 			ft.show(fmList[MYLIST_FRAGMENT_IDX]);	
 			MyListFragment mf = (MyListFragment) fmList[MYLIST_FRAGMENT_IDX];
@@ -460,7 +465,7 @@ public class BucketListActivity extends Activity implements TabListener {
 			currentTab = MYLIST_NAV_TAB_IDX;
 			
 		} else if (tab.getText().equals("My Friends' List")) {
-			Log.d("tag", "community selected");
+			//Log.d("tag", "community selected");
 
 			ft.hide(fmList[MYLIST_FRAGMENT_IDX]);	
 			
@@ -479,7 +484,7 @@ public class BucketListActivity extends Activity implements TabListener {
 			currentTab = COMMUNITY_NAV_TAB_IDX;
 
 		} else {
-			Log.d("tag", "about selected");
+			//Log.d("tag", "about selected");
 			
 			ft.hide(fmList[MYLIST_FRAGMENT_IDX]);			
 			ft.hide(fmList[COMMUNITY_FRAGMENT_IDX]);
@@ -502,7 +507,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	public void onTabReselected(Tab tab, FragmentTransaction ft) {
 		
 		if (tab.getText().equals("My Friends' List")) {
-			Log.d("tag", "community re-selected");
+			//Log.d("tag", "community re-selected");
 			
 			Session session = Session.getActiveSession();
 			if(getState() == StateMachine.ONLINE_STATE) {
@@ -515,7 +520,7 @@ public class BucketListActivity extends Activity implements TabListener {
 				ft.show(fmList[COMMUNITY_OFFLINE_FRAGMENT_IDX]);
 			}
 		} else if (tab.getText().equals("My List")){
-			Log.d("tag", "My List re-selected");
+			//Log.d("tag", "My List re-selected");
 			
 		}
 	
@@ -556,7 +561,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	
 	// state
 	public void saveState(int state) {
-		Log.d("tag", "bucketlist state change " + StateMachine.stateStr[state]);
+		//Log.d("tag", "bucketlist state change " + StateMachine.stateStr[state]);
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putInt(getString(R.string.pref_state_key), state);
 		editor.commit();
@@ -623,7 +628,7 @@ public class BucketListActivity extends Activity implements TabListener {
 	
 	// facebook pending publish
 	public void saveFbPendingPublish(boolean value) {
-		Log.d("tag", "set FbPendingPublish: " + value);
+		//Log.d("tag", "set FbPendingPublish: " + value);
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putBoolean(getString(R.string.pref_facebook_pending_publish), value);
 		editor.commit();

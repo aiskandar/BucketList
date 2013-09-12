@@ -30,7 +30,7 @@ public class MyApplication extends Application {
 		// TODO Auto-generated method stub
 		super.onCreate();
 		
-		Log.d("tagaa", "MyApplication oncreate");
+		//Log.d("tagaa", "MyApplication oncreate");
 		
 		friendsList = new ArrayList<FriendData>();
 			
@@ -64,6 +64,9 @@ public class MyApplication extends Application {
 			editor.putInt(getString(R.string.pref_status_key), StateMachine.OK_STATUS);
 			editor.putInt(getString(R.string.pref_error_key), StateMachine.NO_ERROR);
 			editor.putString(getString(R.string.pref_fb_userid_key), "none");
+			editor.putString(getString(R.string.pref_fb_user_city_key), "none");
+			editor.putString(getString(R.string.pref_fb_user_state_key), "none");
+			editor.putString(getString(R.string.pref_fb_user_country_key), "none");
 			editor.putBoolean(getString(R.string.pref_facebook_pending_publish), false);
 			
 			editor.putBoolean(getString(R.string.pref_userid_registered_key), false);
