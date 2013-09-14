@@ -280,22 +280,26 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 				}
 			} else {
 				// the response should contain fileurl of the last updated entry		
-				////Log.d("tag", "restUpdate: updated fileurl: " + response);
+				//Log.d("tag", "restUpdate: updated fileurl: " + response);
 				
-				ContentValues cv = new ContentValues();
-				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
-				cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
-				cv.put(MyContentProvider.COLUMN_IMG_PATH, response);
-				cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
-				
-				Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
-				Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
-				
-				try {
-					provider.update(uri, cv, null, null);
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if (response != null) {
+					ContentValues cv = new ContentValues();
+					cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
+					cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
+					cv.put(MyContentProvider.COLUMN_IMG_PATH, response);
+					cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
+					
+					Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
+					Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+					
+					try {
+						provider.update(uri, cv, null, null);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} else {
+					// there is an unexpected error - keep the rest state and retry at next sync
 				}
 			}
 			
@@ -395,7 +399,7 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 			if (error == true) {
 				String arr[] = response.split(":");
 			
-				//Log.d("tag", "error response in restinsert");
+				//Log.d("tag", "error response in restInsert");
 				for(int i=0; i < arr.length ; i++) {
 					//Log.d("tag", "arr[i]");
 				}
@@ -403,39 +407,34 @@ public class MySyncAdapter extends AbstractThreadedSyncAdapter {
 				// the response should contain server_id of the last inserted entry
 				
 				//Log.d("tag", "restInsert: server response: " + response);
-				
 				String arr[] = response.split("\\|");
 				
-				if (arr.length == 3) {
-					//Log.d("tag", arr[0] + " " + arr[1] + " " + arr[2]);
-				} else if (arr.length == 2) {
-					//Log.d("tag", arr[0] + " " + arr[1]);
-				} else if (arr.length == 1) {
-					//Log.d("tag", arr[0]);
-				} else {
-					//Log.d("tag", "split response array size: " + arr.length);
-				}
+				//Log.d("tag", "split response array size: " + arr.length);
 				
-				String serverId = arr[0];
-				String fileurl = arr[1];
-				
-				//Log.d("tag", "restInsert: server response serverid: " + serverId);
-				
-				ContentValues cv = new ContentValues();
-				cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
-				cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
-				cv.put(MyContentProvider.COLUMN_SERVER_ID, serverId);
-				cv.put(MyContentProvider.COLUMN_IMG_PATH, fileurl);
-				cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
-				
-				Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
-				Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
-				
-				try {
-					provider.update(uri, cv, null, null);
-				} catch (RemoteException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if (arr.length != 2) {
+					// there is an unexpected error - keep the rest state and retry at next sync
+				} else {	
+					String serverId = arr[0];
+					String fileurl = arr[1];
+					
+					//Log.d("tag", "restInsert: server response serverid: " + serverId + " fileurl: " + fileurl);
+					
+					ContentValues cv = new ContentValues();
+					cv.put(MyContentProvider.COLUMN_REST_STATE, MyContentProvider.REST_STATE_NONE);
+					cv.put(MyContentProvider.COLUMN_REST_STATUS, MyContentProvider.REST_STATUS_SYNCED);
+					cv.put(MyContentProvider.COLUMN_SERVER_ID, serverId);
+					cv.put(MyContentProvider.COLUMN_IMG_PATH, fileurl);
+					cv.put(MyContentProvider.COLUMN_IMG_CACHE, "false");
+					
+					Uri base = Uri.withAppendedPath(MyContentProvider.CONTENT_URI, MyContentProvider.PATH_UPDATE_NO_NOTIFY);
+					Uri uri = Uri.withAppendedPath(base, Integer.toString(c.getInt(MyContentProvider.COLUMN_INDEX_ID)));
+					
+					try {
+						provider.update(uri, cv, null, null);
+					} catch (RemoteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 			
